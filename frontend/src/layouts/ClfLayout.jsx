@@ -10,6 +10,7 @@ const menu = [
   { label: 'Employees', path: '/clf/employees' },
   { label: 'Work', path: '/clf/work' },
   { label: 'Advice', path: '/clf/advice' },
+  { label: 'Top Sheet', path: '/clf/topsheet' },
   { label: 'Attendance', path: '/clf/attendance' },
   { label: 'Leaves', path: '/clf/leaves' }, // ✅ NAYA: CLF Admin ke liye Leaves add kiya
   { label: 'Notifications', path: '/clf/notifications' },

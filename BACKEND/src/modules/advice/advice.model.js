@@ -29,7 +29,8 @@ const adviceSchema = new mongoose.Schema(
       {
         sl: { type: Number },
         name: { type: String, required: true },
-        month: { type: String },
+        designation: { type: String, trim: true, default: '' }, // ✅ NEW: Designation Short
+        month: { type: String }, // Can hold single or multiple months e.g., "Jun26, Jul26"
         bankAccountNumber: { type: String, default: '' },
         bankName: { type: String, default: '' },
         branch: { type: String, default: '' },

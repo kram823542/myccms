@@ -175,6 +175,7 @@ export const createAdvice = async (req, data) => {
     return {
       sl: i + 1,
       name: String(e.name).trim(),
+      designation: e.designation ? String(e.designation).trim() : '', // ✅ NEW
       month: e.month ? String(e.month).trim() : '',
       bankAccountNumber: e.bankAccountNumber ? String(e.bankAccountNumber).trim() : '',
       bankName: e.bankName ? String(e.bankName).trim() : '',
@@ -209,8 +210,6 @@ export const createAdvice = async (req, data) => {
     }
   }
   // Agar adviceNumber blank hai, toh ye check skip ho jayega, aur direct save hoga
-
-
 
   const advice = await Advice.create({
     adviceType: data.adviceType === 'EXPENSE' ? 'EXPENSE' : 'SALARY',
@@ -477,9 +476,9 @@ export const generateAdvicePDF = async (req, id, res, { inline = false } = {}) =
       year: 'numeric',
     });
 
-  // ✅ CHANGED: Blank space agar number nahi hai
-const adviceNumberText = advice.adviceNumber && advice.adviceNumber.trim() ? advice.adviceNumber : '';
-doc.text(`पत्रांक_  ${adviceNumberText}`, marginLeft, y);
+    // ✅ CHANGED: Blank space agar number nahi hai
+    const adviceNumberText = advice.adviceNumber && advice.adviceNumber.trim() ? advice.adviceNumber : '';
+    doc.text(`पत्रांक_  ${adviceNumberText}`, marginLeft, y);
     doc.text(`दिनांक - ${dateStr}`, marginLeft, y, { width: contentWidth, align: 'right' });
     y += 18;
 
@@ -513,7 +512,7 @@ doc.text(`पत्रांक_  ${adviceNumberText}`, marginLeft, y);
       y += 14;
       
       // ✅ EXACT IMAGE FORMAT (No Ch. No.)
-            doc.text(
+      doc.text(
         `Please debit a sum of Rs. ${totalAmount.toLocaleString('en-IN')}/- (${formatAmountInWords(totalAmount)})`,
         marginLeft, y, { width: contentWidth, align: 'justify' }
       );
@@ -531,9 +530,10 @@ doc.text(`पत्रांक_  ${adviceNumberText}`, marginLeft, y);
       y += 18;
     }
 
-    if (!isSignatureOnlyPage) {
-      const colWidths = { sl: 22, name: 90, month: 70, bankAccountNumber: 95, bank: 55, branch: 60, ifsc: 75, amount: 68 };
-      const totalTableWidth = colWidths.sl + colWidths.name + colWidths.month + colWidths.bankAccountNumber + colWidths.bank + colWidths.branch + colWidths.ifsc + colWidths.amount;
+      if (!isSignatureOnlyPage) {
+      // ✅ UPDATED: Name & Designation ki width badhayi aur baaki adjust kiye
+      const colWidths = { sl: 20, name: 85, designation: 50, month: 55, bankAccountNumber: 85, bank: 45, branch: 50, ifsc: 65, amount: 65 };
+      const totalTableWidth = Object.values(colWidths).reduce((a, b) => a + b, 0);
 
       const startX = marginLeft + (contentWidth - totalTableWidth) / 2;
       const rowHeight = 20;
@@ -542,6 +542,7 @@ doc.text(`पत्रांक_  ${adviceNumberText}`, marginLeft, y);
       const headers = [
         { w: colWidths.sl, label: 'Sl.' },
         { w: colWidths.name, label: 'Name' },
+        { w: colWidths.designation, label: 'Desig' }, 
         { w: colWidths.month, label: 'Month' },
         { w: colWidths.bankAccountNumber, label: 'Bank A/c' },
         { w: colWidths.bank, label: 'Bank' },
@@ -556,7 +557,7 @@ doc.text(`पत्रांक_  ${adviceNumberText}`, marginLeft, y);
 
       headers.forEach((h) => {
         doc.rect(x, y, h.w, rowHeight).stroke();
-        doc.text(h.label, x + 3, y + 6, { width: h.w - 6, align: h.label === 'Amount' ? 'right' : 'left' });
+        doc.text(h.label, x + 2, y + 6, { width: h.w - 4, align: h.label === 'Amount' ? 'right' : 'left' });
         x += h.w;
       });
       y += rowHeight;
@@ -564,28 +565,48 @@ doc.text(`पत्रांक_  ${adviceNumberText}`, marginLeft, y);
       doc.font('Devanagari').fontSize(8);
       chunk.forEach((emp) => {
         x = startX;
+        
+        // ✅ FIX: Dynamic Row Height calculate karo taaki text 2 line me fit ho jaye
+        const nameText = String(emp.name || '-');
+        const desigText = String(emp.designation || '-');
+        const nameHeight = doc.heightOfString(nameText, { width: colWidths.name - 4 });
+        const desigHeight = doc.heightOfString(desigText, { width: colWidths.designation - 4 });
+        
+        const currentRowHeight = Math.max(rowHeight, nameHeight + 6, desigHeight + 6);
+
         const rowValues = [
-          { w: colWidths.sl, value: `${emp.sl}.`, align: 'center' },
-          { w: colWidths.name, value: emp.name, align: 'left' },
-          { w: colWidths.month, value: emp.month || '-', align: 'left' },
-          { w: colWidths.bankAccountNumber, value: emp.bankAccountNumber || '-', align: 'left' },
-          { w: colWidths.bank, value: getBankShortName(emp.bankName), align: 'left' },
-          { w: colWidths.branch, value: emp.branch || '-', align: 'left' },
-          { w: colWidths.ifsc, value: emp.ifscCode || '-', align: 'left' },
-          { w: colWidths.amount, value: emp.amount.toLocaleString('en-IN'), align: 'right' },
+          { w: colWidths.sl, value: `${emp.sl}.`, align: 'center', wrap: false },
+          { w: colWidths.name, value: nameText, align: 'left', wrap: true }, // ✅ wrap true
+          { w: colWidths.designation, value: desigText, align: 'left', wrap: true }, // ✅ wrap true
+          { w: colWidths.month, value: emp.month || '-', align: 'left', wrap: false },
+          { w: colWidths.bankAccountNumber, value: emp.bankAccountNumber || '-', align: 'left', wrap: false },
+          { w: colWidths.bank, value: getBankShortName(emp.bankName), align: 'left', wrap: false },
+          { w: colWidths.branch, value: emp.branch || '-', align: 'left', wrap: false },
+          { w: colWidths.ifsc, value: emp.ifscCode || '-', align: 'left', wrap: false },
+          { w: colWidths.amount, value: emp.amount.toLocaleString('en-IN'), align: 'right', wrap: false },
         ];
+        
         rowValues.forEach((v) => {
-          doc.rect(x, y, v.w, rowHeight).stroke();
-          doc.text(v.value, x + 3, y + 6, { width: v.w - 6, align: v.align, lineBreak: false, ellipsis: true });
+          doc.rect(x, y, v.w, currentRowHeight).stroke();
+          const textY = y + (v.wrap ? 5 : (currentRowHeight - 8) / 2 + 2);
+          
+          doc.text(v.value, x + 2, textY, { 
+            width: v.w - 4, 
+            align: v.align, 
+            lineBreak: v.wrap ? true : false, 
+            ellipsis: !v.wrap 
+          });
           x += v.w;
         });
-        y += rowHeight;
+        y += currentRowHeight;
       });
 
       if (isLastPage && chunk.length > 0) {
         x = startX;
+        const totalW = colWidths.sl + colWidths.name + colWidths.designation + colWidths.month + colWidths.bankAccountNumber + colWidths.bank + colWidths.branch + colWidths.ifsc;
+        
         const totalRowValues = [
-          { w: colWidths.sl + colWidths.name + colWidths.month + colWidths.bankAccountNumber + colWidths.bank + colWidths.branch + colWidths.ifsc, value: 'TOTAL', align: 'right', bold: true },
+          { w: totalW, value: 'TOTAL', align: 'right', bold: true },
           { w: colWidths.amount, value: `${totalAmount.toLocaleString('en-IN')}.00`, align: 'right', bold: true },
         ];
         totalRowValues.forEach((v) => {
@@ -602,6 +623,18 @@ doc.text(`पत्रांक_  ${adviceNumberText}`, marginLeft, y);
         y = doc.y + 10;
       } else { y += 6; }
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
     if (isLastPage) {
       const footerTop = pageHeight - 90;

@@ -25,6 +25,10 @@ export default function Work() {
     },
   ];
 
+  // Slider calculation (0% or 50%)
+  const activeIndex = tabs.findIndex(t => t.key === tab);
+  const sliderLeft = `${activeIndex * (100 / tabs.length)}%`;
+
   return (
     <div style={{ maxWidth: 1300, margin: '0 auto', width: '100%', padding: '0 8px' }}>
       <PageHeader
@@ -36,19 +40,38 @@ export default function Work() {
         }
       />
 
-      {/* ✅ Modern Segmented Control (No Box) */}
+      {/* ✅ FIXED: Smooth Slider Pills */}
       <div
         style={{
-          display: 'inline-flex',
-          gap: 8,
+          position: 'relative',
+          display: 'flex',
           marginBottom: 28,
           marginTop: 8,
-          padding: 4,
-          background: `${theme.colors.muted}10`, // Very light background
-          borderRadius: 999, // Pill shape
-          border: `1px solid ${theme.colors.border}50`,
+          padding: 6,
+          background: theme.colors.background,
+          borderRadius: 999,
+          border: `1px solid ${theme.colors.border}`,
+          boxShadow: theme.shadow.sm,
+          maxWidth: 480, // Width control
+          width: '100%', // Responsive
         }}
       >
+        {/* ✅ Sliding Background */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 6,
+            bottom: 6,
+            left: sliderLeft,
+            width: `calc(${100 / tabs.length}% - 6px)`, // Thoda adjust kiya taaki perfect fit ho
+            background: theme.colors.primary,
+            borderRadius: 999,
+            transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            zIndex: 1,
+            boxShadow: theme.shadow.md,
+          }}
+        />
+
         {tabs.map((t) => {
           const isActive = tab === t.key;
           return (
@@ -56,38 +79,38 @@ export default function Work() {
               key={t.key}
               onClick={() => setTab(t.key)}
               style={{
+                flex: 1,
+                position: 'relative',
+                zIndex: 2,
+                padding: '10px 12px',
+                border: 'none',
+                background: 'transparent',
+                color: isActive ? '#FFFFFF' : theme.colors.muted,
+                fontWeight: isActive ? 700 : 600,
+                fontSize: 13,
+                cursor: 'pointer',
+                transition: 'color 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 8,
-                padding: '10px 20px',
-                borderRadius: 999,
-                border: 'none',
-                background: isActive ? '#FFFFFF' : 'transparent',
-                color: isActive ? theme.colors.text : theme.colors.muted,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
-                fontWeight: isActive ? 700 : 500,
-                fontSize: 14,
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) e.currentTarget.style.color = theme.colors.text;
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) e.currentTarget.style.color = theme.colors.muted;
+                justifyContent: 'center',
+                gap: 6,
+                whiteSpace: 'nowrap', // Text wrap nahi hoga
               }}
             >
               <span style={{ fontSize: 16, opacity: isActive ? 1 : 0.7 }}>{t.icon}</span>
               <span>{t.label}</span>
+              
+              {/* Hint Text (Time) */}
               <span
                 style={{
-                  fontSize: 10,
-                  fontWeight: 600,
+                  fontSize: 9,
+                  fontWeight: 700,
                   padding: '2px 6px',
                   borderRadius: 4,
-                  background: isActive ? `${theme.colors.primary}15` : 'transparent',
-                  color: isActive ? theme.colors.primary : theme.colors.muted,
-                  display: window.innerWidth < 400 ? 'none' : 'inline-block', // Mobile par hint chhupa do
+                  background: isActive ? 'rgba(255,255,255,0.25)' : `${theme.colors.muted}15`,
+                  color: isActive ? '#fff' : theme.colors.muted,
+                  display: window.innerWidth < 450 ? 'none' : 'inline-block', // Mobile pe hide
+                  marginLeft: 2,
                 }}
               >
                 {t.hint}
@@ -97,13 +120,12 @@ export default function Work() {
         })}
       </div>
 
-      {/* Content Area - Seamless */}
+      {/* Content Area */}
       <div style={{ width: '100%', animation: 'fadeIn 0.3s ease' }}>
         {tab === 'action-plan' && <ActionPlansPage />}
         {tab === 'work-done' && <WorkDonePage />}
       </div>
 
-      {/* Simple Animation CSS */}
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(4px); }
