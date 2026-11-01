@@ -66,6 +66,7 @@ export default function Sidebar({ title, menu = [] }) {
   const location = useLocation();
   const [activeIndex, setActiveIndex] = useState(-1);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [activeTooltip, setActiveTooltip] = useState({ show: false, label: '', top: 0 });
 
   useEffect(() => {
     let currentPath = location.pathname;
@@ -98,6 +99,16 @@ export default function Sidebar({ title, menu = [] }) {
     navigate('/login');
   };
 
+  const handleMouseEnter = (event, label) => {
+    if (!isCollapsed) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    setActiveTooltip({ show: true, label, top: rect.top + rect.height / 2 });
+  };
+
+  const handleMouseLeave = () => {
+    setActiveTooltip({ show: false, label: '', top: 0 });
+  };
+
   const sidebarWidth = isCollapsed ? 64 : 210;
   const itemHeight = 40;
   const itemGap = 10;
@@ -114,6 +125,7 @@ export default function Sidebar({ title, menu = [] }) {
           width: sidebarWidth,
           background: theme.colors.sidebarBg,
           borderRight: `1px solid ${theme.colors.border}`,
+          borderRadius: 0,
           boxShadow: theme.shadow.lg,
           display: 'none',
           flexDirection: 'column',
@@ -139,12 +151,12 @@ export default function Sidebar({ title, menu = [] }) {
         <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
           <div style={{ position: 'relative', paddingBottom: 12, marginBottom: 12, borderBottom: `1px solid ${theme.colors.border}`, width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'space-between' }}>
-              <div style={{ width: 40, height: 40, background: theme.colors.sidebarActive, border: `1px solid ${theme.colors.accent}33`, borderRadius: theme.radius.md, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.colors.textLight, fontWeight: 900, fontSize: 25, flexShrink: 0 }}>
+              <div style={{ width: 40, height: 40, background: theme.colors.sidebarActive, border: `1px solid ${theme.colors.accent}33`, borderRadius: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.colors.textLight, fontWeight: 900, fontSize: 25, flexShrink: 0 }}>
                 {title ? title.charAt(0) : 'C'}
               </div>
 
               {!isCollapsed && (
-                <button onClick={() => setIsCollapsed(true)} title="Collapse Sidebar" style={{ width: 28, height: 28, borderRadius: theme.radius.sm, background: `${theme.colors.surface}00`, border: `1px solid ${theme.colors.border}`, color: theme.colors.sidebarText, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.25s ease' }}>
+                <button onClick={() => setIsCollapsed(true)} title="Collapse Sidebar" style={{ width: 28, height: 28, borderRadius: 0, background: 'transparent', border: `1px solid ${theme.colors.border}`, color: theme.colors.sidebarText, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.25s ease' }}>
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
                 </button>
               )}
@@ -154,14 +166,14 @@ export default function Sidebar({ title, menu = [] }) {
               <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '0 2px' }}>
                 <h1 style={{ margin: 0, fontSize: 12, fontWeight: 700, color: theme.colors.sidebarText, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</h1>
                 <p style={{ margin: 0, fontSize: 10, color: theme.colors.muted, opacity: 0.9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</p>
-                <span style={{ width: 'max-content', marginTop: 4, fontSize: 8, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 800, background: `${theme.colors.accent}22`, color: theme.colors.accent, border: `1px solid ${theme.colors.accent}55`, padding: '2px 8px', borderRadius: theme.radius.sm }}>
+                <span style={{ width: 'max-content', marginTop: 4, fontSize: 8, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 800, background: `${theme.colors.accent}22`, color: theme.colors.accent, border: `1px solid ${theme.colors.accent}55`, padding: '2px 8px', borderRadius: 0 }}>
                   {user?.role?.replace('_', ' ')}
                 </span>
               </div>
             )}
 
             {isCollapsed && (
-              <button onClick={() => setIsCollapsed(false)} title="Expand Sidebar" style={{ width: 40, height: 24, background: `${theme.colors.surface}00`, border: `1px solid ${theme.colors.border}`, borderRadius: theme.radius.sm, color: theme.colors.sidebarText, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
+              <button onClick={() => setIsCollapsed(false)} title="Expand Sidebar" style={{ width: 40, height: 24, background: 'transparent', border: `1px solid ${theme.colors.border}`, borderRadius: 0, color: theme.colors.sidebarText, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.8" viewBox="0 0 24 24" style={{ transform: 'rotate(180deg)' }}><path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7" /></svg>
               </button>
             )}
@@ -169,13 +181,13 @@ export default function Sidebar({ title, menu = [] }) {
 
           <nav className="clf-nav-scroll" style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: itemGap, width: '100%', overflowY: 'auto', maxHeight: 'calc(100vh - 280px)' }}>
             {activeIndex !== -1 && (
-              <div style={{ position: 'absolute', left: isCollapsed ? '50%' : 0, width: isCollapsed ? 40 : '100%', height: itemHeight, background: theme.colors.sidebarActive, border: `1px solid ${theme.colors.accent}44`, borderRadius: theme.radius.md, zIndex: 0, transform: `translateY(${activeIndex * (itemHeight + itemGap)}px) ${isCollapsed ? 'translateX(-50%)' : ''}`, transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.3s ease', pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', left: isCollapsed ? '50%' : 0, width: isCollapsed ? 40 : '100%', height: itemHeight, background: theme.colors.sidebarActive, border: `1px solid ${theme.colors.accent}44`, borderRadius: 0, zIndex: 0, transform: `translateY(${activeIndex * (itemHeight + itemGap)}px) ${isCollapsed ? 'translateX(-50%)' : ''}`, transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.3s ease', pointerEvents: 'none' }} />
             )}
 
             {menu.map((item, idx) => {
               const isActive = activeIndex === idx;
               return (
-                <div key={item.path} className="clf-sidebar-item" style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
+                <div key={item.path} className="clf-sidebar-item" onMouseEnter={(event) => handleMouseEnter(event, item.label)} onMouseLeave={handleMouseLeave} style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
                   <NavLink
                     to={item.path}
                     style={{
@@ -184,7 +196,7 @@ export default function Sidebar({ title, menu = [] }) {
                       display: 'flex',
                       alignItems: 'center',
                       height: itemHeight,
-                      borderRadius: theme.radius.md,
+                      borderRadius: 0,
                       width: '100%',
                       justifyContent: isCollapsed ? 'center' : 'flex-start',
                       padding: isCollapsed ? 0 : '0 12px',
@@ -206,7 +218,7 @@ export default function Sidebar({ title, menu = [] }) {
                     )}
 
                     {isActive && (
-                      <span style={{ position: 'absolute', background: theme.colors.accent, borderRadius: theme.radius.sm, ...(isCollapsed ? { bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 16, height: 3 } : { right: 0, top: 0, bottom: 0, width: 3 }) }} />
+                      <span style={{ position: 'absolute', background: theme.colors.accent, borderRadius: 0, ...(isCollapsed ? { bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 16, height: 3 } : { right: 0, top: 0, bottom: 0, width: 3 }) }} />
                     )}
                   </NavLink>
                 </div>
@@ -215,13 +227,50 @@ export default function Sidebar({ title, menu = [] }) {
           </nav>
         </div>
 
-        <div className="clf-sidebar-item" style={{ position: 'relative', paddingTop: 12, borderTop: `1px solid ${theme.colors.border}`, width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <button onClick={handleLogout} style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${theme.colors.danger}22`, color: theme.colors.danger, border: `1px solid ${theme.colors.danger}55`, borderRadius: theme.radius.md, cursor: 'pointer', width: isCollapsed ? 40 : '100%', gap: isCollapsed ? 0 : 10, padding: isCollapsed ? 0 : '0 10px', transition: 'all 0.25s ease', fontSize: 12, fontWeight: 700 }}>
+        <div className="clf-sidebar-item" onMouseEnter={(event) => handleMouseEnter(event, 'Logout')} onMouseLeave={handleMouseLeave} style={{ position: 'relative', paddingTop: 12, borderTop: `1px solid ${theme.colors.border}`, width: '100%', display: 'flex', justifyContent: 'center' }}>
+          <button onClick={handleLogout} style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${theme.colors.danger}22`, color: theme.colors.danger, border: `1px solid ${theme.colors.danger}55`, borderRadius: 0, cursor: 'pointer', width: isCollapsed ? 40 : '100%', gap: isCollapsed ? 0 : 10, padding: isCollapsed ? 0 : '0 10px', transition: 'all 0.25s ease', fontSize: 12, fontWeight: 700 }}>
             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9" /></svg>
             {!isCollapsed && <span>Logout</span>}
           </button>
         </div>
       </aside>
+
+      {isCollapsed && activeTooltip.show && (
+        <div
+          style={{
+            position: 'fixed',
+            left: 72,
+            top: activeTooltip.top,
+            transform: 'translateY(-50%)',
+            background: theme.colors.sidebarActive,
+            color: activeTooltip.label === 'Logout' ? theme.colors.danger : theme.colors.textLight,
+            fontSize: 12,
+            fontWeight: 700,
+            padding: '6px 12px',
+            borderRadius: 0,
+            boxShadow: theme.shadow.md,
+            border: `1px solid ${activeTooltip.label === 'Logout' ? `${theme.colors.danger}66` : theme.colors.border}`,
+            whiteSpace: 'nowrap',
+            zIndex: 9999,
+            pointerEvents: 'none',
+          }}
+        >
+          {activeTooltip.label}
+          <div
+            style={{
+              position: 'absolute',
+              left: -4,
+              top: '50%',
+              transform: 'translateY(-50%) rotate(45deg)',
+              width: 8,
+              height: 8,
+              background: theme.colors.sidebarActive,
+              borderLeft: `1px solid ${activeTooltip.label === 'Logout' ? `${theme.colors.danger}66` : theme.colors.border}`,
+              borderBottom: `1px solid ${activeTooltip.label === 'Logout' ? `${theme.colors.danger}66` : theme.colors.border}`,
+            }}
+          />
+        </div>
+      )}
     </>
   );
 }

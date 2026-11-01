@@ -1,4 +1,3 @@
-import { useEffect, useState, useRef } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { theme } from '../../config/theme.js';
 import { getAuthUser } from '../../utils/authStorage.js';
@@ -6,9 +5,8 @@ import { renderDynamicIcon } from './Sidebar.jsx';
 
 export default function BottomBar({ menu = [] }) {
   const location = useLocation();
-  const [sliderStyle, setSliderStyle] = useState({ left: 0, width: 0, opacity: 0 });
-  const itemRefs = useRef([]);
   const user = getAuthUser() || {};
+  const profileImage = user.profilePhoto || user.profileImage || null;
 
   const ROLE_MENUS = {
     EMPLOYEE: [
@@ -56,28 +54,6 @@ export default function BottomBar({ menu = [] }) {
     });
   }
 
-  useEffect(() => {
-    if (isProfileActive || activeIndex === -1) {
-      setSliderStyle((prev) => ({ ...prev, opacity: 0 }));
-      return;
-    }
-
-    const updateSlider = () => {
-      const activeEl = itemRefs.current[activeIndex];
-      if (activeEl) {
-        setSliderStyle({
-          left: activeEl.offsetLeft,
-          width: activeEl.offsetWidth,
-          opacity: 1,
-        });
-      }
-    };
-
-    setTimeout(updateSlider, 50);
-    window.addEventListener('resize', updateSlider);
-    return () => window.removeEventListener('resize', updateSlider);
-  }, [activeIndex, isProfileActive]);
-
   const userInitial = (user.name || user.username || '?').charAt(0).toUpperCase();
 
   return (
@@ -108,42 +84,38 @@ export default function BottomBar({ menu = [] }) {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          gap: 2px;
           box-shadow: ${theme.shadow.lg};
           height: 56px;
           box-sizing: border-box;
           min-width: 0;
           border: 1px solid ${theme.colors.bbIndigo}40;
-          position: relative;
-        }
-        .custom-bb-slider {
-          position: absolute;
-          top: 4px;
-          bottom: 4px;
-          background: ${theme.colors.surface};
-          border-radius: ${theme.radius.full || '9999px'};
-          box-shadow: ${theme.shadow.sm};
-          transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-          z-index: 1;
-          pointer-events: none;
+          overflow: hidden;
         }
         .custom-bb-item {
-          position: relative;
-          z-index: 2;
           display: flex;
           align-items: center;
           justify-content: center;
           height: 100%;
           text-decoration: none;
           border-radius: ${theme.radius.full || '9999px'};
-          transition: color 0.3s ease;
+          transition: none;
           color: ${theme.colors.bbLightLilac};
-          padding: 0 10px;
-          min-width: 0;
+          padding: 0 4px;
+          flex: 1 1 0;
+          min-width: 28px;
           white-space: nowrap;
         }
-        .custom-bb-item.active { color: ${theme.colors.bbDarkBrown}; padding: 0 14px; }
+        .custom-bb-item.active {
+          flex: 0 1 auto;
+          max-width: calc(100% - 84px);
+          color: ${theme.colors.bbDarkBrown};
+          background: ${theme.colors.surface};
+          box-shadow: ${theme.shadow.sm};
+          padding: 0 8px;
+        }
         .custom-bb-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .custom-bb-label { font-size: 13px; font-weight: 700; margin-left: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .custom-bb-label { display: block; font-size: 13px; font-weight: 700; margin-left: 6px; white-space: nowrap; }
         .custom-bb-circle-btn {
           width: 56px;
           height: 56px;
@@ -168,25 +140,22 @@ export default function BottomBar({ menu = [] }) {
           .custom-bb-container { width: calc(100% - 16px); bottom: 12px; gap: 6px; }
           .custom-bb-main { height: 52px; padding: 3px 4px; }
           .custom-bb-circle-btn { width: 52px; height: 52px; }
-          .custom-bb-label { font-size: 12px; margin-left: 4px; }
-          .custom-bb-item { padding: 0 8px; }
-          .custom-bb-item.active { padding: 0 10px; }
+          .custom-bb-label { font-size: 11px; margin-left: 4px; }
+          .custom-bb-item { padding: 0 2px; min-width: 24px; }
+          .custom-bb-item.active { max-width: calc(100% - 72px); padding: 0 6px; }
         }
         @media (min-width: 768px) { .custom-bb-container { display: none !important; } }
       `}</style>
 
       <nav className="custom-bb-container" aria-label="Mobile navigation">
         <div className="custom-bb-main">
-          <div className="custom-bb-slider" style={{ left: `${sliderStyle.left}px`, width: `${sliderStyle.width}px`, opacity: sliderStyle.opacity }} />
           {items.map((item, index) => {
             const isActive = activeIndex === index;
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                ref={(el) => { itemRefs.current[index] = el; }}
                 className={`custom-bb-item ${isActive ? 'active' : ''}`}
-                style={{ width: isActive ? 'auto' : '25%', paddingLeft: isActive ? '14px' : '10px', paddingRight: isActive ? '14px' : '10px' }}
               >
                 <span className="custom-bb-icon">{renderDynamicIcon(item, 18)}</span>
                 {isActive && <span className="custom-bb-label">{item.label}</span>}
@@ -196,7 +165,7 @@ export default function BottomBar({ menu = [] }) {
         </div>
 
         <Link to={profilePath} className={`custom-bb-circle-btn ${isProfileActive ? 'active' : ''}`} title="Profile">
-          {user.profileImage ? <img src={user.profileImage} alt="profile" className="custom-bb-profile-img" /> : <span className="custom-bb-initial">{userInitial}</span>}
+          {profileImage ? <img src={profileImage} alt="profile" className="custom-bb-profile-img" /> : <span className="custom-bb-initial">{userInitial}</span>}
         </Link>
       </nav>
     </>
