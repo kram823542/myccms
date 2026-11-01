@@ -133,11 +133,13 @@ app.use(
   })
 );
 
-// ✅ SECURE DYNAMIC CORS CONFIGURATION
-// Yeh .env se CLIENT_URL uthayega (comma separated allowed)
-const allowedOrigins = env.CLIENT_URL
-  ? env.CLIENT_URL.split(',').map((url) => url.trim())
-  : [];
+// ✅ SMART CORS CONFIGURATION (String aur Array dono handle karega)
+let allowedOrigins = [];
+if (Array.isArray(env.CLIENT_URL)) {
+  allowedOrigins = env.CLIENT_URL.map(url => url.trim());
+} else if (typeof env.CLIENT_URL === 'string') {
+  allowedOrigins = env.CLIENT_URL.split(',').map(url => url.trim());
+}
 
 app.use(
   cors({
