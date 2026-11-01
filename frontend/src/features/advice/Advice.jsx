@@ -66,7 +66,7 @@ export default function Advice() {
                 padding: '8px 10px',
                 border: 'none',
                 background: 'transparent',
-                color: isActive ? '#FFFFFF' : theme.colors.muted,
+                color: isActive ? theme.colors.textLight : theme.colors.muted,
                 fontWeight: isActive ? 700 : 600,
                 fontSize: 11,
                 letterSpacing: 0.5,

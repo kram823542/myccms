@@ -18,17 +18,21 @@ app.set('trust proxy', 1);
 
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginResourcePolicy: { policy: 'same-origin' },
     contentSecurityPolicy: env.IS_PROD ? undefined : false,
   })
 );
 
-// ✅ FIX #20: CORS errors ab 403 return karte hain (500 nahi)
+const allowedOrigins = new Set(
+  [...(env.CLIENT_URL || []), 'http://localhost:3000', 'http://127.0.0.1:3000']
+    .filter(Boolean)
+    .map((origin) => origin.trim())
+);
+
 app.use(
   cors({
     origin: (origin, cb) => {
-      if (!origin) return cb(null, true);
-      if (env.CLIENT_URL.includes(origin)) return cb(null, true);
+      if (!origin || allowedOrigins.has(origin)) return cb(null, true);
       if (!env.IS_PROD && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return cb(null, true);
       logger.warn(`🚫 CORS blocked origin: ${origin}`);
       const err = new Error(`CORS blocked: ${origin}`);

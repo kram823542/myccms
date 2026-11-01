@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearAuthState, getAuthToken, setAuthToken } from '../utils/authStorage.js';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
@@ -6,14 +7,16 @@ const apiClient = axios.create({
   baseURL: API_URL,
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 30000, // ✅ 30s — bade lists ke liye
+  timeout: 30000,
 });
 
-// ─── Request interceptor: attach access token ───
+const getCurrentToken = () => getAuthToken();
+
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = getCurrentToken();
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    else delete config.headers.Authorization;
     return config;
   },
   (error) => Promise.reject(error)
@@ -43,13 +46,9 @@ apiClient.interceptors.response.use(
       original._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) throw new Error('No refresh token');
-
-        // ✅ Share refresh promise across simultaneous 401s
         if (!refreshPromise) {
           refreshPromise = axios
-            .post(`${API_URL}/auth/refresh`, { refreshToken })
+            .post(`${API_URL}/auth/refresh`, {}, { withCredentials: true })
             .finally(() => {
               refreshPromise = null;
             });
@@ -58,26 +57,18 @@ apiClient.interceptors.response.use(
         const { data } = await refreshPromise;
         const newToken = data?.data?.accessToken;
 
-        if (!newToken) throw new Error('No new token');
+        if (newToken) {
+          setAuthToken(newToken);
+          original.headers.Authorization = `Bearer ${newToken}`;
+        }
 
-        localStorage.setItem('accessToken', newToken);
-        original.headers.Authorization = `Bearer ${newToken}`;
-
-        // ✅ Retry original request with new token
         return apiClient(original);
       } catch (e) {
-        // ❌ Refresh failed → clear session, redirect to login
         console.warn('Session expired — redirecting to login');
 
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
+        clearAuthState();
 
-        // ✅ Safe redirect: skip if already on /login
-        if (
-          typeof window !== 'undefined' &&
-          window.location.pathname !== '/login'
-        ) {
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
           window.location.href = '/login';
         }
         return Promise.reject(error);

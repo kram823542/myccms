@@ -12,6 +12,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Toaster } from 'react-hot-toast';
 import App from './App.jsx';
+import { theme } from './config/theme.js';
 import './index.css';   // ✅ Tailwind CSS
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -22,18 +23,18 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       toastOptions={{
         duration: 3000,
         style: {
-          background: '#18181B',
-          color: '#fff',
+          background: theme.colors.toastSurface,
+          color: theme.colors.textLight,
           fontSize: '13px',
           fontWeight: 600,
-          border: '1px solid #27272A',
+          border: `1px solid ${theme.colors.toastBorder}`,
           borderRadius: '10px',
         },
         success: {
-          iconTheme: { primary: '#16A34A', secondary: '#fff' },
+          iconTheme: { primary: theme.colors.success, secondary: theme.colors.textLight },
         },
         error: {
-          iconTheme: { primary: '#DC2626', secondary: '#fff' },
+          iconTheme: { primary: theme.colors.danger, secondary: theme.colors.textLight },
         },
       }}
     />

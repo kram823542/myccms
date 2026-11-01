@@ -9,11 +9,11 @@ const menu = [
   { label: 'Dashboard', path: '/bpm' },
   { label: 'CLFs', path: '/bpm/clfs' },
   { label: 'Employees', path: '/bpm/employees' },
-  { label: 'Work', path: '/bpm/work' },           // ✅ नया
+  { label: 'Work', path: '/bpm/work' },
   { label: 'Attendance', path: '/bpm/attendance' },
   { label: 'Notifications', path: '/bpm/notifications' },
   { label: 'Reports', path: '/bpm/reports' },
-    { label: 'Profile', path: '/bpm/profile' },   // ✅ नया
+  { label: 'Profile', path: '/bpm/profile' },
 ];
 
 export default function BpmLayout() {
@@ -21,17 +21,9 @@ export default function BpmLayout() {
     <div style={{ minHeight: '100vh', background: theme.colors.background }}>
       <Sidebar title="BPM Admin" menu={menu} />
 
-      <div
-        className="clf-content"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '100vh',
-          paddingBottom: 70,
-        }}
-      >
+      <div className="clf-content" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', paddingBottom: 70 }}>
         <Breadcrumb />
-        <main style={{ padding: 24, flex: 1 }}>
+        <main style={{ padding: 'clamp(16px, 2vw, 24px)', flex: 1 }}>
           <Outlet />
         </main>
       </div>

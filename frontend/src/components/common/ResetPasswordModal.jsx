@@ -173,7 +173,7 @@ export default function ResetPasswordModal({
             <div
               style={{
                 padding: 10,
-                background: '#FEE2E2',
+                background: theme.colors.dangerSurface,
                 color: theme.colors.danger,
                 borderRadius: theme.radius.md,
                 fontSize: 13,
@@ -197,7 +197,7 @@ export default function ResetPasswordModal({
           <div
             style={{
               padding: 14,
-              background: '#DCFCE7',
+              background: theme.colors.successSurface,
               color: theme.colors.success,
               borderRadius: theme.radius.md,
               fontSize: 14,

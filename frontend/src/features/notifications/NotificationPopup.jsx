@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { theme } from '../../config/theme.js';
+import { getAuthUser } from '../../utils/authStorage.js';
 import * as api from './notifications.api.js';
 
 export default function NotificationPopup() {
@@ -8,7 +9,7 @@ export default function NotificationPopup() {
   const [expandedId, setExpandedId] = useState(null);
   const mountedRef = useRef(true);
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const canReceive = ['EMPLOYEE', 'CLF'].includes(user.role);
 
   const fetchUnread = async () => {
@@ -94,7 +95,7 @@ export default function NotificationPopup() {
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(15, 23, 42, 0.75)',
+        background: theme.colors.overlayStrong,
         backdropFilter: 'blur(4px)',
         WebkitBackdropFilter: 'blur(4px)',
         zIndex: 9999,
@@ -125,7 +126,7 @@ export default function NotificationPopup() {
           maxWidth: 500,
           maxHeight: '90vh',
           overflowY: 'auto',
-          boxShadow: '0 25px 60px rgba(0,0,0,0.4)',
+          boxShadow: theme.shadow.lg,
           animation: 'slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
         }}
       >
@@ -145,7 +146,7 @@ export default function NotificationPopup() {
               height: 40,
               borderRadius: 12,
               background: theme.colors.primary,
-              color: '#fff',
+              color: theme.colors.textLight,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -198,7 +199,7 @@ export default function NotificationPopup() {
                   borderRadius: 999,
                   border: 'none',
                   background: expandedId === u._id ? theme.colors.primary : 'transparent',
-                  color: expandedId === u._id ? '#fff' : theme.colors.muted,
+                  color: expandedId === u._id ? theme.colors.textLight : theme.colors.muted,
                   fontWeight: 600,
                   fontSize: 12,
                   cursor: 'pointer',
@@ -280,7 +281,7 @@ export default function NotificationPopup() {
               style={{
                 padding: '10px 18px',
                 background: theme.colors.primary,
-                color: '#fff',
+                color: theme.colors.textLight,
                 border: 'none',
                 borderRadius: theme.radius.md,
                 fontSize: 13,

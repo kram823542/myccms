@@ -6,6 +6,7 @@ import Badge from '../../components/ui/Badge.jsx';
 import AttendanceFilter from './AttendanceFilter.jsx';
 import { theme } from '../../config/theme.js';
 import { listEmployees } from '../employees/employees.api.js';
+import { getAuthUser } from '../../utils/authStorage.js';
 import * as api from './attendance.api.js';
 import toast from 'react-hot-toast';
 
@@ -21,7 +22,7 @@ const daysInMonth = (year, month) => new Date(year, month, 0).getDate();
 const fmt = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
 export default function AttendancePage() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const isEmployee = user.role === 'EMPLOYEE';
 
   const now = new Date();

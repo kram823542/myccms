@@ -13,8 +13,6 @@ export default function ConfirmDialog({
   variant = 'danger',
   loading = false,
 }) {
-  
-  // Icon aur Colors mapping
   const getIcon = () => {
     if (variant === 'danger') {
       return (
@@ -58,16 +56,16 @@ export default function ConfirmDialog({
     <Modal
       open={open}
       onClose={onClose}
-      title="" // Title khali rakha hai custom UI ke liye
+      title=""
       footer={
-        <div style={{ 
-          display: 'flex', 
-          gap: 12, 
-          width: '100%', 
-          justifyContent: 'flex-end', 
+        <div style={{
+          display: 'flex',
+          gap: 12,
+          width: '100%',
+          justifyContent: 'flex-end',
           paddingTop: 20,
           borderTop: `1px solid ${theme.colors.border}50`,
-          marginTop: 20
+          marginTop: 20,
         }}>
           <Button variant="ghost" onClick={onClose} disabled={loading}>
             {cancelText}
@@ -80,13 +78,11 @@ export default function ConfirmDialog({
     >
       <div style={{ padding: '10px 0' }}>
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-          
-          {/* Modern Icon Box */}
           <div
             style={{
               width: 48,
               height: 48,
-              borderRadius: '12px', // Squircle design (premium look)
+              borderRadius: theme.radius.md,
               background: getIconBg(),
               border: `1px solid ${getIconColor()}20`,
               display: 'flex',
@@ -98,27 +94,25 @@ export default function ConfirmDialog({
             {getIcon()}
           </div>
 
-          {/* Text Content */}
           <div style={{ flex: 1, paddingTop: 2 }}>
-            <h2 style={{ 
-              margin: '0 0 8px', 
-              fontSize: 18, 
-              fontWeight: 700, 
+            <h2 style={{
+              margin: '0 0 8px',
+              fontSize: 18,
+              fontWeight: 700,
               color: theme.colors.text,
-              letterSpacing: '-0.3px'
+              letterSpacing: '-0.3px',
             }}>
               {title}
             </h2>
-            <p style={{ 
-              margin: 0, 
-              fontSize: 14, 
-              color: theme.colors.muted, 
-              lineHeight: 1.5 
+            <p style={{
+              margin: 0,
+              fontSize: 14,
+              color: theme.colors.muted,
+              lineHeight: 1.5,
             }}>
               {message}
             </p>
           </div>
-
         </div>
       </div>
     </Modal>

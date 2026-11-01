@@ -6,6 +6,7 @@ import Loader from '../../components/ui/Loader.jsx';
 import TopSheetHistory from './TopSheetHistory.jsx'; 
 import * as adviceApi from './advice.api.js';
 import { getClf } from '../clfs/clfs.api.js';
+import { getAuthUser } from '../../utils/authStorage.js';
 import toast from 'react-hot-toast';
 import { theme } from '../../config/theme.js';
 
@@ -23,7 +24,7 @@ export default function TopSheet() {
   const [inputs, setInputs] = useState({});
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = getAuthUser() || {};
     if (user.clfId) {
       getClf(user.clfId).then(({ data }) => {
         setClfData(data.data);
@@ -104,7 +105,7 @@ export default function TopSheet() {
     if (selectedAdviceIds.length === 0) return toast.error('Please select at least one advice');
     if (!selectedBankAcc) return toast.error('Please select a CLF Bank Account');
 
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = getAuthUser() || {};
     const clfId = user.clfId;
     if (!clfId) return toast.error('CLF ID not found');
 
@@ -253,7 +254,7 @@ export default function TopSheet() {
                             <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(a._id)} className="w-4 h-4 cursor-pointer" />
                           </td>
                           {/* ✅ NAYA: Serial Number Display */}
-                          <td className="px-3 py-2 text-center font-mono font-bold text-gray-500">
+                          <td className="px-3 py-2 text-center font-mono font-bold" style={{ color: theme.colors.muted }}>
                             {index + 1}.
                           </td>
                           <td className="px-3 py-2">

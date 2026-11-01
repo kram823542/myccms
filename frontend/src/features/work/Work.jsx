@@ -3,9 +3,10 @@ import PageHeader from '../../components/common/PageHeader.jsx';
 import ActionPlansPage from '../actionPlans/ActionPlansPage.jsx';
 import WorkDonePage from '../workDone/WorkDonePage.jsx';
 import { theme } from '../../config/theme.js';
+import { getAuthUser } from '../../utils/authStorage.js';
 
 export default function Work() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const isEmployee = user.role === 'EMPLOYEE';
 
   const [tab, setTab] = useState('action-plan');
@@ -85,7 +86,7 @@ export default function Work() {
                 padding: '10px 12px',
                 border: 'none',
                 background: 'transparent',
-                color: isActive ? '#FFFFFF' : theme.colors.muted,
+                color: isActive ? theme.colors.textLight : theme.colors.muted,
                 fontWeight: isActive ? 700 : 600,
                 fontSize: 13,
                 cursor: 'pointer',
@@ -107,8 +108,8 @@ export default function Work() {
                   fontWeight: 700,
                   padding: '2px 6px',
                   borderRadius: 4,
-                  background: isActive ? 'rgba(255,255,255,0.25)' : `${theme.colors.muted}15`,
-                  color: isActive ? '#fff' : theme.colors.muted,
+                  background: isActive ? `${theme.colors.textLight}40` : `${theme.colors.muted}15`,
+                  color: isActive ? theme.colors.textLight : theme.colors.muted,
                   display: window.innerWidth < 450 ? 'none' : 'inline-block', // Mobile pe hide
                   marginLeft: 2,
                 }}

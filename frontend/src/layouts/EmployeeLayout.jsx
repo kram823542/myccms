@@ -9,7 +9,7 @@ const menu = [
   { label: 'Dashboard', path: '/employee' },
   { label: 'Work', path: '/employee/work' },
   { label: 'Attendance', path: '/employee/attendance' },
-  { label: 'Leaves', path: '/employee/leaves' }, // ✅ NAYA: Employee ke liye Leaves add kiya
+  { label: 'Leaves', path: '/employee/leaves' },
   { label: 'Notifications', path: '/employee/notifications' },
   { label: 'Reports', path: '/employee/reports' },
   { label: 'Profile', path: '/employee/profile' },
@@ -20,17 +20,9 @@ export default function EmployeeLayout() {
     <div style={{ minHeight: '100vh', background: theme.colors.background }}>
       <Sidebar title="Employee" menu={menu} />
 
-      <div
-        className="clf-content"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '100vh',
-          paddingBottom: 70,
-        }}
-      >
+      <div className="clf-content" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', paddingBottom: 70 }}>
         <Breadcrumb />
-        <main style={{ padding: 24, flex: 1 }}>
+        <main style={{ padding: 'clamp(16px, 2vw, 24px)', flex: 1 }}>
           <Outlet />
         </main>
       </div>

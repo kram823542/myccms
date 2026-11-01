@@ -16,7 +16,7 @@ export default function Input({
   const borderColor = error ? theme.colors.danger : theme.colors.border;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, ...style }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%', ...style }}>
       {label && (
         <label style={{ fontSize: 13, fontWeight: 600, color: theme.colors.text, paddingLeft: 14 }}>
           {label} {required && <span style={{ color: theme.colors.danger }}>*</span>}
@@ -33,7 +33,7 @@ export default function Input({
         className="clf-pill-input"
         style={{
           padding: '13px 20px',
-          borderRadius: '9999px',
+          borderRadius: theme.radius.full || '9999px',
           border: `1.5px solid ${borderColor}`,
           fontSize: 14,
           outline: 'none',

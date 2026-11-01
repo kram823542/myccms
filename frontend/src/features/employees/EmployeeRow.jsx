@@ -145,7 +145,7 @@ export default function EmployeeRow({
                     background: theme.colors.surface,
                     border: `1px solid ${theme.colors.border}`,
                     borderRadius: '12px',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                    boxShadow: theme.shadow.lg,
                     minWidth: 220,
                     zIndex: 9999,
                     overflow: 'hidden',

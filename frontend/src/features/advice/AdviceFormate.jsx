@@ -400,6 +400,7 @@ import { createPortal } from 'react-dom';
 import { useReactToPrint } from 'react-to-print';
 import { getBankShortName, formatAmountInWords } from './AdviceUtils';
 import toast from 'react-hot-toast';
+import { theme } from '../../config/theme.js';
 
 const AdviceFormate = ({ advicePreview }) => {
   const printRef = useRef(null);
@@ -420,7 +421,7 @@ const AdviceFormate = ({ advicePreview }) => {
           width: 210mm !important;
           margin: 0 !important;
           padding: 0 !important;
-          background: #fff !important;
+          background: ${theme.colors.printSurface} !important;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
@@ -447,7 +448,7 @@ const AdviceFormate = ({ advicePreview }) => {
           overflow: hidden !important;
           display: flex !important;
           flex-direction: column !important;
-          background: #fff !important;
+          background: ${theme.colors.printSurface} !important;
         }
         .print-page-card:last-child {
           page-break-after: auto !important;
@@ -517,15 +518,15 @@ const AdviceFormate = ({ advicePreview }) => {
     return (
       <div
         key={pageIndex}
-        className={`print-page-card w-[210mm] h-[296mm] box-border p-[8mm_10mm] font-sans leading-snug text-black bg-white flex flex-col overflow-hidden ${
+        className={`print-page-card print-text print-surface w-[210mm] h-[296mm] box-border p-[8mm_10mm] font-sans leading-snug flex flex-col overflow-hidden ${
           isPrintMode ? '' : 'shadow-lg'
         }`}
       >
         <div className="flex-1 min-h-0 flex flex-col">
           {/* HEADER TOP STRIP */}
           <div className="flex w-full h-[7px] mb-3 shrink-0">
-            <div className="w-[30%] bg-[#82c828]"></div>
-            <div className="w-[70%] bg-[#e05a10]"></div>
+            <div className="w-[30%] print-accent-green"></div>
+            <div className="w-[70%] print-accent-orange"></div>
           </div>
 
           {/* HEADER LOGOS AND TITLE */}
@@ -537,16 +538,16 @@ const AdviceFormate = ({ advicePreview }) => {
               crossOrigin="anonymous"
             />
             <div className="flex-1 text-center font-serif">
-              <h1 className="text-[30px] font-extrabold leading-tight m-0 text-black">
+              <h1 className="text-[30px] font-extrabold leading-tight m-0">
                 सतबरवा आजीविका महिला संकुल स्तरीय
               </h1>
-              <h2 className="text-[24px] font-bold leading-tight mt-1 m-0 text-black">
+              <h2 className="text-[24px] font-bold leading-tight mt-1 m-0">
                 प्राथमिक स्वावलम्बी सहकारी समिति लिमिटेड
               </h2>
-              <p className="text-[15px] font-semibold mt-1.5 mb-0 text-black">
+              <p className="text-[15px] font-semibold mt-1.5 mb-0">
                 ग्राम- सतबरवा, कलस्टर- सतबरवा, प्रखंड- सतबरवा, जिला- पलामू (झा0)
               </p>
-              <p className="text-[15px] font-semibold mt-1 mb-0 text-black">
+              <p className="text-[15px] font-semibold mt-1 mb-0">
                 निबंधन संख्या :- 02-JKD-01-04-01-0TH-001-2023
               </p>
             </div>
@@ -560,8 +561,8 @@ const AdviceFormate = ({ advicePreview }) => {
 
           {/* HEADER BOTTOM STRIP */}
           <div className="flex w-full h-[7px] mt-2 mb-3 shrink-0">
-            <div className="w-[30%] bg-[#82c828]"></div>
-            <div className="w-[70%] bg-[#e05a10]"></div>
+            <div className="w-[30%] print-accent-green"></div>
+            <div className="w-[70%] print-accent-orange"></div>
           </div>
 
           <div className="flex justify-between text-[16px] font-semibold my-2 shrink-0">
@@ -622,19 +623,19 @@ const AdviceFormate = ({ advicePreview }) => {
                 </p>
               )}
 
-              <table className="w-full border-collapse border border-black table-fixed">
+              <table className="w-full border-collapse border print-border table-fixed">
                 <thead>
-                  <tr className="bg-gray-100">
+                  <tr className="print-header">
                     {/* ✅ UPDATED: Widths ko adjust kiya gaya hai Desig column ke liye */}
-                    <th className="border border-black p-1.5 font-bold text-center text-[14px] w-[4%]">Sl.</th>
-                    <th className="border border-black p-1.5 font-bold text-left text-[14px] w-[16%]">Name</th>
-                    <th className="border border-black p-1.5 font-bold text-left text-[14px] w-[10%]">Desig</th>
-                    <th className="border border-black p-1.5 font-bold text-left text-[13px] w-[10%]">Month</th>
-                    <th className="border border-black p-1.5 font-bold text-left text-[14px] w-[19%]">Bank A/c</th>
-                    <th className="border border-black p-1.5 font-bold text-left text-[14px] w-[8%]">Bank</th>
-                    <th className="border border-black p-1.5 font-bold text-left text-[14px] w-[10%]">Branch</th>
-                    <th className="border border-black p-1.5 font-bold text-left text-[13px] w-[12%]">IFSC</th>
-                    <th className="border border-black p-1.5 font-bold text-right text-[14px] w-[11%]">Amount</th>
+                    <th className="border print-border p-1.5 font-bold text-center text-[14px] w-[4%]">Sl.</th>
+                    <th className="border print-border p-1.5 font-bold text-left text-[14px] w-[16%]">Name</th>
+                    <th className="border print-border p-1.5 font-bold text-left text-[14px] w-[10%]">Desig</th>
+                    <th className="border print-border p-1.5 font-bold text-left text-[13px] w-[10%]">Month</th>
+                    <th className="border print-border p-1.5 font-bold text-left text-[14px] w-[19%]">Bank A/c</th>
+                    <th className="border print-border p-1.5 font-bold text-left text-[14px] w-[8%]">Bank</th>
+                    <th className="border print-border p-1.5 font-bold text-left text-[14px] w-[10%]">Branch</th>
+                    <th className="border print-border p-1.5 font-bold text-left text-[13px] w-[12%]">IFSC</th>
+                    <th className="border print-border p-1.5 font-bold text-right text-[14px] w-[11%]">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -645,44 +646,44 @@ const AdviceFormate = ({ advicePreview }) => {
                         : PAGE_1_MAX + (pageIndex - 1) * PAGE_NEXT_MAX + idx + 1;
                     return (
                       <tr key={emp._id || idx}>
-                        <td className="border border-black p-1.5 text-center text-[15px] font-semibold">
+                        <td className="border print-border p-1.5 text-center text-[15px] font-semibold">
                           {globalIdx}.
                         </td>
-                        <td className="border border-black p-1.5 break-words font-semibold text-[15px]">
+                        <td className="border print-border p-1.5 break-words font-semibold text-[15px]">
                           {emp.name}
                         </td>
                         {/* ✅ NEW: Designation Cell */}
-                        <td className="border border-black p-1.5 break-words text-[14px]">
+                        <td className="border print-border p-1.5 break-words text-[14px]">
                           {emp.designation || '-'}
                         </td>
-                        <td className="border border-black p-1.5 whitespace-nowrap text-[14px]">
+                        <td className="border print-border p-1.5 whitespace-nowrap text-[14px]">
                           {emp.month || '-'}
                         </td>
-                        <td className="border border-black p-1.5 font-mono text-[14px] font-bold break-all">
+                        <td className="border print-border p-1.5 font-mono text-[14px] font-bold break-all">
                           {emp.bankAccountNumber || '-'}
                         </td>
-                        <td className="border border-black p-1.5 break-words text-[14px] font-semibold">
+                        <td className="border print-border p-1.5 break-words text-[14px] font-semibold">
                           {getBankShortName(emp.bankName)}
                         </td>
-                        <td className="border border-black p-1.5 break-words text-[14px]">
+                        <td className="border print-border p-1.5 break-words text-[14px]">
                           {emp.branch || '-'}
                         </td>
-                        <td className="border border-black p-1.5 font-mono text-[13px] font-bold break-all">
+                        <td className="border print-border p-1.5 font-mono text-[13px] font-bold break-all">
                           {emp.ifscCode || '-'}
                         </td>
-                        <td className="border border-black p-1.5 text-right font-bold whitespace-nowrap text-[15px]">
+                        <td className="border print-border p-1.5 text-right font-bold whitespace-nowrap text-[15px]">
                           {Number(emp.amount || 0).toLocaleString('en-IN')}
                         </td>
                       </tr>
                     );
                   })}
                   {isLastPage && chunk.length > 0 && (
-                    <tr className="bg-gray-50">
+                    <tr className="print-total">
                       {/* ✅ UPDATED: Colspan 7 se badhakar 8 karna pada kyunki ek column (Desig) badh gaya */}
-                      <td colSpan="8" className="border border-black p-1.5 text-right font-bold text-[16px]">
+                      <td colSpan="8" className="border print-border p-1.5 text-right font-bold text-[16px]">
                         TOTAL
                       </td>
-                      <td className="border border-black p-1.5 text-right font-bold text-[16px] whitespace-nowrap">
+                      <td className="border print-border p-1.5 text-right font-bold text-[16px] whitespace-nowrap">
                         {totalAmount.toLocaleString('en-IN')}.00
                       </td>
                     </tr>
@@ -707,15 +708,15 @@ const AdviceFormate = ({ advicePreview }) => {
                 <div className="flex gap-6">
                   <div className="text-center text-[15px] w-28">
                     <div className="h-4"></div>
-                    <p className="border-t border-black pt-1 font-bold m-0">अध्यक्ष</p>
+                    <p className="border-t print-border pt-1 font-bold m-0">अध्यक्ष</p>
                   </div>
                   <div className="text-center text-[15px] w-28">
                     <div className="h-4"></div>
-                    <p className="border-t border-black pt-1 font-bold m-0">सचिव</p>
+                    <p className="border-t print-border pt-1 font-bold m-0">सचिव</p>
                   </div>
                   <div className="text-center text-[15px] w-28">
                     <div className="h-4"></div>
-                    <p className="border-t border-black pt-1 font-bold m-0">कोषाध्यक्ष</p>
+                    <p className="border-t print-border pt-1 font-bold m-0">कोषाध्यक्ष</p>
                   </div>
                 </div>
                 <div className="text-right text-[12px] leading-snug">
@@ -731,10 +732,10 @@ const AdviceFormate = ({ advicePreview }) => {
         {/* FOOTER */}
         <div className="w-full pt-1 pb-0 mt-auto shrink-0">
           <div className="flex w-full h-[5px] mb-1.5">
-            <div className="w-[30%] bg-[#82c828]"></div>
-            <div className="w-[70%] bg-[#e05a10]"></div>
+            <div className="w-[30%] print-accent-green"></div>
+            <div className="w-[70%] print-accent-orange"></div>
           </div>
-          <div className="text-center text-[12px] leading-tight space-y-[1px] text-black">
+          <div className="text-center text-[12px] leading-tight space-y-[1px]">
             <p className="m-0">
               <strong>प्रखंड कार्यालय :-</strong> प्रखंड मिशन प्रबंधन इकाई, राँची रोड, सतबरवा पलामू 822126
             </p>
@@ -756,7 +757,18 @@ const AdviceFormate = ({ advicePreview }) => {
 
   return (
     <>
-      <div className="bg-gray-300 p-4 rounded overflow-auto w-full" style={{ maxHeight: '70vh' }}>
+      <style>{`
+        .print-text { color: ${theme.colors.printText}; }
+        .print-surface { background-color: ${theme.colors.printSurface}; }
+        .print-border { border-color: ${theme.colors.printBorder}; }
+        .print-header { background-color: ${theme.colors.printHeader}; }
+        .print-total { background-color: ${theme.colors.printTotal}; }
+        .print-preview { background-color: ${theme.colors.printPreview}; }
+        .print-accent-green { background-color: ${theme.colors.printAccentGreen}; }
+        .print-accent-orange { background-color: ${theme.colors.printAccentOrange}; }
+      `}</style>
+
+      <div className="print-preview p-4 rounded overflow-auto w-full" style={{ maxHeight: '70vh' }}>
         <div className="flex flex-col items-center gap-8">
           {employeeChunks.map((chunk, pageIndex) => (
             <div
@@ -785,7 +797,7 @@ const AdviceFormate = ({ advicePreview }) => {
             }}
             aria-hidden="true"
           >
-            <div ref={printRef} className="print-root bg-white">
+            <div ref={printRef} className="print-root print-surface">
               {employeeChunks.map((chunk, pageIndex) =>
                 renderPageCard(chunk, pageIndex, true)
               )}

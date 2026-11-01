@@ -1,18 +1,3 @@
-// import { useEffect, useMemo, useState } from 'react';
-// import Modal from '../../components/ui/Modal.jsx';
-// import Loader from '../../components/ui/Loader.jsx';
-// import Button from '../../components/ui/Button.jsx';
-// import Input from '../../components/ui/Input.jsx';
-// import Select from '../../components/ui/Select.jsx';
-// import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
-// import { monthNames } from './AdviceUtils';
-// import { listEmployees } from '../employees/employees.api.js';
-// import { getClf } from '../clfs/clfs.api.js'; // ✅ NAYA: CLF bank accounts ke liye
-// import * as adviceApi from './advice.api.js';
-// import toast from 'react-hot-toast';
-// import { theme } from '../../config/theme.js';
-
-// export default function SalaryAdvice() {
 //   const [employees, setEmployees] = useState([]);
 //   const [loading, setLoading] = useState(true);
 //   const [loadingMembers, setLoadingMembers] = useState(false);
@@ -37,10 +22,6 @@
 //   const [deleting, setDeleting] = useState(false);
 //   const [loadingAdvices, setLoadingAdvices] = useState(false);
 
-//   // ✅ CLF Data load karo
-//   useEffect(() => {
-//     const user = JSON.parse(localStorage.getItem('user') || '{}');
-//     if (user.clfId) {
 //       getClf(user.clfId).then(({ data }) => {
 //         setClfData(data.data);
 //         if (data.data?.bankAccounts?.length > 0) {
@@ -85,7 +66,6 @@
 //   const handleLoadClfMembers = async () => {
 //     try {
 //       setLoadingMembers(true);
-//       const user = JSON.parse(localStorage.getItem('user') || '{}');
 //       const clfId = user.clfId;
 //       if (!clfId) return toast.error('CLF ID not found.');
 //       const { data } = await adviceApi.getClfMembers(clfId);
@@ -214,7 +194,6 @@
 //   };
 
 //   const totalAmount = salaryEntries.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-//   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
 //   return (
 //     <div className="space-y-4">
@@ -420,6 +399,7 @@ import Select from '../../components/ui/Select.jsx';
 import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
 import { listEmployees } from '../employees/employees.api.js';
 import { getClf } from '../clfs/clfs.api.js';
+import { getAuthUser } from '../../utils/authStorage.js';
 import * as adviceApi from './advice.api.js';
 import toast from 'react-hot-toast';
 import { theme } from '../../config/theme.js';
@@ -457,7 +437,7 @@ export default function SalaryAdvice() {
 
   // ✅ CLF Data load karo
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = getAuthUser() || {};
     if (user.clfId) {
       getClf(user.clfId).then(({ data }) => {
         setClfData(data.data);
@@ -503,7 +483,7 @@ export default function SalaryAdvice() {
   const handleLoadClfMembers = async () => {
     try {
       setLoadingMembers(true);
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const user = getAuthUser() || {};
       const clfId = user.clfId;
       if (!clfId) return toast.error('CLF ID not found.');
       const { data } = await adviceApi.getClfMembers(clfId);
@@ -644,7 +624,7 @@ export default function SalaryAdvice() {
   };
 
   const totalAmount = salaryEntries.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
 
   return (
     <div className="space-y-4">
@@ -770,7 +750,7 @@ export default function SalaryAdvice() {
                   const checked = selectedIds.includes(emp._id);
                   const initial = emp.name ? emp.name.charAt(0).toUpperCase() : 'E';
                   return (
-                    <tr key={emp._id} onClick={() => eligible && toggleSelect(emp._id)} style={{ borderColor: theme.colors.border, backgroundColor: checked ? `${theme.colors.secondary}15` : 'transparent' }} className={`border-b text-xs ${eligible ? 'hover:bg-black/5 cursor-pointer' : 'opacity-40 cursor-not-allowed'}`}>
+                    <tr key={emp._id} onClick={() => eligible && toggleSelect(emp._id)} style={{ borderColor: theme.colors.border, backgroundColor: checked ? `${theme.colors.secondary}15` : 'transparent', '--theme-hover-color': theme.colors.overlaySubtle }} className={`border-b text-xs ${eligible ? 'theme-hover-row cursor-pointer' : 'opacity-40 cursor-not-allowed'}`}>
                       <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={checked} onChange={() => toggleSelect(emp._id)} disabled={!eligible} className="w-3.5 h-3.5 rounded cursor-pointer" /></td>
                       <td className="px-4 py-3"><div className="w-7 h-7 rounded-full border flex items-center justify-center font-bold text-[11px]" style={{ backgroundColor: theme.colors.background, borderColor: theme.colors.border, color: theme.colors.primary }}>{initial}</div></td>
                       <td className="px-4 py-3 font-semibold" style={{ color: theme.colors.text }}>{emp.name}</td>
@@ -819,7 +799,7 @@ export default function SalaryAdvice() {
           <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
             {salaryEntries.map((entry, idx) => (
               <div key={entry.employee._id} className="border rounded-lg p-3" style={{ backgroundColor: theme.colors.surface, borderColor: theme.colors.border }}>
-                <p className="text-xs font-semibold mb-2" style={{ color: theme.colors.text }}>{idx + 1}. {entry.employee.name} <span className="text-[10px] text-gray-500">({entry.employee.designation || 'N/A'})</span></p>
+                <p className="text-xs font-semibold mb-2" style={{ color: theme.colors.text }}>{idx + 1}. {entry.employee.name} <span className="text-[10px]" style={{ color: theme.colors.muted }}>({entry.employee.designation || 'N/A'})</span></p>
                 <div className="grid grid-cols-2 gap-3">
                   {/* ✅ Month Input (Multiple months ke liye comma laga kar type karein) */}
                   <Input 

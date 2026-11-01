@@ -38,7 +38,7 @@ export default function LeaveLetterModal({ leave, onClose, children }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: theme.colors.overlay, backdropFilter: 'blur(4px)' }}>
       
       <div style={{ background: theme.colors.surface, borderRadius: theme.radius.lg, boxShadow: theme.shadow.lg }} className="w-full max-w-3xl h-[90vh] flex flex-col overflow-hidden relative">
         
@@ -46,14 +46,14 @@ export default function LeaveLetterModal({ leave, onClose, children }) {
         <div style={{ borderBottom: `1px solid ${theme.colors.border}`, background: theme.colors.background }} className="flex items-center justify-between p-4">
           <h2 style={{ color: theme.colors.text }} className="text-lg font-bold">Leave Application (आवेदन पत्र)</h2>
           <div className="flex items-center gap-3">
-            <button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))} style={{ borderColor: theme.colors.border, background: theme.colors.surface }} className="p-2 border rounded hover:bg-gray-100">A-</button>
+            <button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))} style={{ borderColor: theme.colors.border, background: theme.colors.surface }} className="p-2 border rounded">A-</button>
             <button onClick={() => setZoom(1)} style={{ color: theme.colors.muted }} className="text-sm font-medium hover:opacity-80">Reset</button>
-            <button onClick={() => setZoom(z => Math.min(2, z + 0.2))} style={{ borderColor: theme.colors.border, background: theme.colors.surface }} className="p-2 border rounded hover:bg-gray-100">A+</button>
+            <button onClick={() => setZoom(z => Math.min(2, z + 0.2))} style={{ borderColor: theme.colors.border, background: theme.colors.surface }} className="p-2 border rounded">A+</button>
             
             <button 
               onClick={handleDownload} 
               disabled={downloading}
-              style={{ background: theme.colors.primary, color: '#fff' }}
+              style={{ background: theme.colors.primary, color: theme.colors.textLight }}
               className="ml-4 px-4 py-2 rounded font-medium hover:opacity-90 flex items-center gap-2 disabled:opacity-50"
             >
               {downloading ? 'Downloading...' : (
@@ -73,7 +73,7 @@ export default function LeaveLetterModal({ leave, onClose, children }) {
         {/* Scrollable Letter Area */}
         <div style={{ background: theme.colors.background }} className="flex-1 overflow-auto p-8">
           <div 
-            style={{ transform: `scale(${zoom})`, background: '#fff', border: `1px solid ${theme.colors.border}`, width: '210mm', minHeight: '297mm', boxShadow: theme.shadow.md }}
+            style={{ transform: `scale(${zoom})`, background: theme.colors.printSurface, border: `1px solid ${theme.colors.border}`, width: '210mm', minHeight: '297mm', boxShadow: theme.shadow.md }}
             className="mx-auto p-10 origin-top transition-transform duration-200 ease-out"
           >
             {/* Letterhead */}
@@ -111,7 +111,7 @@ export default function LeaveLetterModal({ leave, onClose, children }) {
               </p>
               <p>
                 अवकाश का कारण निम्नलिखित है: <br/>
-                <span style={{ color: theme.colors.muted, borderLeft: `4px solid ${theme.colors.border}` }} className="italic block mt-2 p-4 bg-gray-50">
+                <span style={{ color: theme.colors.muted, borderLeft: `4px solid ${theme.colors.border}`, background: theme.colors.surfaceAlt }} className="italic block mt-2 p-4">
                   "{leave.reason}"
                 </span>
               </p>

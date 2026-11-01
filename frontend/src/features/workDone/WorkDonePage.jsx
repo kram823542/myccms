@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../../components/common/PageHeader.jsx';
 import Table from '../../components/ui/Table.jsx';
+import { getAuthUser } from '../../utils/authStorage.js';
 import Badge from '../../components/ui/Badge.jsx';
 import Button from '../../components/ui/Button.jsx';
 import Modal from '../../components/ui/Modal.jsx';
@@ -63,7 +64,7 @@ function ReasonCell({ item }) {
    Main Page
    ───────────────────────────────────────────── */
 export default function WorkDonePage() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const isEmployee = user.role === 'EMPLOYEE';
   const isCLF = user.role === 'CLF';
 
@@ -126,7 +127,7 @@ export default function WorkDonePage() {
           <WorkDoneForm onSubmitted={() => { setShowForm(false); load(); }} onCancel={() => setShowForm(false)} />
         ) : (
           <>
-            <button onClick={() => setShowForm(true)} style={{ padding: '12px 20px', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 600, cursor: 'pointer', marginBottom: 20 }}>
+            <button onClick={() => setShowForm(true)} style={{ padding: '12px 20px', background: theme.colors.primary, color: theme.colors.textLight, border: 'none', borderRadius: 10, fontWeight: 600, cursor: 'pointer', marginBottom: 20 }}>
               + Submit Work Done
             </button>
             <Table
@@ -221,10 +222,10 @@ export default function WorkDonePage() {
         actions={
           isCLF && (
             <Link to="/clf/work-done/approval" style={{ textDecoration: 'none' }}>
-              <span style={{ padding: '10px 16px', background: 'var(--color-primary)', color: '#fff', borderRadius: 10, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ padding: '10px 16px', background: theme.colors.primary, color: theme.colors.textLight, borderRadius: 10, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 Full Approvals Page
                 {pendingCount > 0 && (
-                  <span style={{ background: '#fff', color: 'var(--color-primary)', borderRadius: 999, padding: '1px 8px', fontSize: 11, fontWeight: 800 }}>{pendingCount}</span>
+                  <span style={{ background: theme.colors.textLight, color: theme.colors.primary, borderRadius: 999, padding: '1px 8px', fontSize: 11, fontWeight: 800 }}>{pendingCount}</span>
                 )}
               </span>
             </Link>

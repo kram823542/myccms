@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader.jsx';
 import Badge from '../components/ui/Badge.jsx';
+import { getAuthUser } from '../utils/authStorage.js';
 import { theme } from '../config/theme.js';
 import * as actionApi from '../features/actionPlans/actionPlans.api.js';
 import * as workApi from '../features/workDone/workDone.api.js';
@@ -46,7 +47,7 @@ const getMonthRange = () => {
 };
 
 export default function EmployeeDashboard() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const greeting = getGreeting();
   const currentWindow = getCurrentWindow();
 
@@ -128,7 +129,7 @@ export default function EmployeeDashboard() {
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.08)';
+        e.currentTarget.style.boxShadow = theme.shadow.md;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/common/PageHeader.jsx';
 import Button from '../../components/ui/Button.jsx';
+import { clearAuthState, getAuthUser, setAuthUser } from '../../utils/authStorage.js';
 import Input from '../../components/ui/Input.jsx';
 import Loader from '../../components/ui/Loader.jsx';
 import Badge from '../../components/ui/Badge.jsx';
@@ -15,7 +16,7 @@ import ReportsPage from '../reports/ReportsPage.jsx';
 import toast from 'react-hot-toast';
 
 export default function Profile() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const role = user.role;
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -78,9 +79,8 @@ export default function Profile() {
       const updated = data.data;
       setProfile(updated);
 
-      const stored = JSON.parse(localStorage.getItem('user') || '{}');
-      localStorage.setItem('user', JSON.stringify({ ...stored, ...updated }));
-      
+      const stored = getAuthUser() || {};
+      setAuthUser({ ...stored, ...updated });
       window.dispatchEvent(new Event('storage'));
 
       toast.success('Profile updated ✅');
@@ -97,9 +97,7 @@ export default function Profile() {
   const handleLogout = async () => {
     setLoggingOut(true);
     try { await api.logout?.(); } catch (e) {}
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
+    clearAuthState();
     toast.success('Logged out');
     navigate('/login');
   };
@@ -128,7 +126,7 @@ export default function Profile() {
               <div className="relative group" style={{ flexShrink: 0 }}>
                 <div style={{ width: 72, height: 72, borderRadius: '50%', background: `${theme.colors.primary}15`, border: `2px solid ${theme.colors.primary}44`, color: theme.colors.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 800, overflow: 'hidden', position: 'relative' }}>
                   {previewImage || profile.profilePhoto ? (<img src={previewImage || profile.profilePhoto} alt="DP" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />) : (initial)}
-                  <div onClick={() => fileInputRef.current?.click()} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, cursor: 'pointer', transition: 'opacity 0.2s', color: '#fff' }} onMouseEnter={(e) => e.currentTarget.style.opacity = 1} onMouseLeave={(e) => e.currentTarget.style.opacity = 0}>
+                  <div onClick={() => fileInputRef.current?.click()} style={{ position: 'absolute', inset: 0, background: theme.colors.overlay, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, cursor: 'pointer', transition: 'opacity 0.2s', color: theme.colors.textLight }} onMouseEnter={(e) => e.currentTarget.style.opacity = 1} onMouseLeave={(e) => e.currentTarget.style.opacity = 0}>
                     <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                   </div>
                 </div>

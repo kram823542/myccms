@@ -136,11 +136,11 @@ export default function TopSheetHistory() {
                         <div key={i} className="flex justify-between items-center text-[11px] border-b last:border-0 pb-1 last:pb-0" style={{ borderColor: `${theme.colors.border}50` }}>
                           <div>
                             <span className="font-semibold" style={{ color: theme.colors.text }}>{emp.name}</span>
-                            <span className="ml-1 text-gray-500">({emp.designation || 'N/A'})</span>
+                            <span className="ml-1" style={{ color: theme.colors.muted }}>({emp.designation || 'N/A'})</span>
                           </div>
                           <div className="text-right">
                             <div className="font-mono" style={{ color: theme.colors.text }}>₹ {emp.amount}</div>
-                            <div className="text-[9px] font-mono text-gray-400">{emp.accountNumber}</div>
+                            <div className="text-[9px] font-mono" style={{ color: theme.colors.muted }}>{emp.accountNumber}</div>
                           </div>
                         </div>
                       ))}

@@ -85,7 +85,7 @@ export default function LeavePage() {
                   </thead>
                   <tbody style={{ color: theme.colors.text }} className="text-sm">
                     {leaves.map((leave) => (
-                      <tr key={leave._id} style={{ borderBottom: `1px solid ${theme.colors.border}` }} className="hover:bg-black/5 transition">
+                      <tr key={leave._id} style={{ borderBottom: `1px solid ${theme.colors.border}`, '--theme-hover-color': theme.colors.overlaySubtle }} className="theme-hover-row transition">
                         <td className="p-3 font-medium">{leave.leaveType}</td>
                         <td style={{ color: theme.colors.muted }} className="p-3">
                           {new Date(leave.startDate).toLocaleDateString('en-IN')} {leave.startDate !== leave.endDate && ` - ${new Date(leave.endDate).toLocaleDateString('en-IN')}`}

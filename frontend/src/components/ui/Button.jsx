@@ -11,12 +11,14 @@ export default function Button({
   style = {},
 }) {
   const variants = {
-    primary: { bg: theme.colors.primary, color: '#fff', border: 'none' },
-    secondary: { bg: theme.colors.secondary, color: '#fff', border: 'none' },
-    outline: { bg: 'transparent', color: theme.colors.primary, border: `1.5px solid ${theme.colors.primary}` },
-    danger: { bg: theme.colors.danger, color: '#fff', border: 'none' },
-    success: { bg: theme.colors.success, color: '#fff', border: 'none' },
-    ghost: { bg: 'transparent', color: theme.colors.text, border: `1px solid ${theme.colors.border}` },
+    primary: { bg: theme.colors.primary, color: theme.colors.textLight, border: 'none' },
+    secondary: { bg: theme.colors.secondary, color: theme.colors.textLight, border: 'none' },
+    outline: { bg: `${theme.colors.surface}00`, color: theme.colors.primary, border: `1.5px solid ${theme.colors.primary}` },
+    danger: { bg: theme.colors.danger, color: theme.colors.textLight, border: 'none' },
+    success: { bg: theme.colors.success, color: theme.colors.textLight, border: 'none' },
+    warning: { bg: theme.colors.warning, color: theme.colors.textLight, border: 'none' },
+    info: { bg: theme.colors.info, color: theme.colors.textLight, border: 'none' },
+    ghost: { bg: `${theme.colors.background}00`, color: theme.colors.text, border: `1px solid ${theme.colors.border}` },
   };
 
   const sizes = {
@@ -39,7 +41,7 @@ export default function Button({
           background: v.bg,
           color: v.color,
           border: v.border,
-          borderRadius: '9999px',
+          borderRadius: theme.radius.full || '9999px',
           fontWeight: 600,
           cursor: disabled || loading ? 'not-allowed' : 'pointer',
           opacity: disabled || loading ? 0.7 : 1,
@@ -47,7 +49,7 @@ export default function Button({
           alignItems: 'center',
           justifyContent: 'center',
           gap: 10,
-          boxShadow: disabled || loading ? 'none' : '0 4px 14px rgba(0, 0, 0, 0.1)',
+          boxShadow: disabled || loading ? 'none' : theme.shadow.md,
           letterSpacing: '0.01em',
           position: 'relative',
           overflow: 'hidden',
@@ -73,9 +75,7 @@ export default function Button({
       <style>{`
         .pill-slide-btn {
           border-radius: 9999px !important;
-          transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1),
-                      box-shadow 0.25s ease,
-                      color 0.25s ease;
+          transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.25s ease, color 0.25s ease;
         }
         .hover-slide-overlay {
           position: absolute;
@@ -84,7 +84,7 @@ export default function Button({
           width: 100%;
           height: 100%;
           border-radius: 9999px;
-          background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0) 100%);
+          background: linear-gradient(90deg, ${theme.colors.surface}00 0%, ${theme.colors.surface}40 50%, ${theme.colors.surface}00 100%);
           transition: left 0.45s cubic-bezier(0.4, 0, 0.2, 1);
           z-index: 1;
           pointer-events: none;
@@ -98,7 +98,7 @@ export default function Button({
         }
         .pill-slide-btn:not(:disabled):active {
           transform: translateX(-4px) scale(0.97);
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+          box-shadow: ${theme.shadow.sm};
           transition: transform 0.1s ease-out;
         }
         .btn-variant-outline .hover-slide-overlay {
@@ -107,8 +107,8 @@ export default function Button({
         .btn-spinner {
           width: 16px;
           height: 16px;
-          border: 2px solid rgba(255, 255, 255, 0.35);
-          border-top-color: #ffffff;
+          border: 2px solid ${theme.colors.surface}55;
+          border-top-color: ${theme.colors.surface};
           border-radius: 50%;
           animation: btnSpin 0.7s linear infinite;
         }
@@ -117,9 +117,7 @@ export default function Button({
           border-color: ${theme.colors.primary}35;
           border-top-color: ${theme.colors.primary};
         }
-        @keyframes btnSpin {
-          to { transform: rotate(360deg); }
-        }
+        @keyframes btnSpin { to { transform: rotate(360deg); } }
       `}</style>
     </>
   );

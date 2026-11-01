@@ -5,10 +5,11 @@ import Table from '../../components/ui/Table.jsx';
 import Badge from '../../components/ui/Badge.jsx';
 import WorkDoneForm from './WorkDoneForm.jsx';
 import { theme } from '../../config/theme.js';
+import { getAuthUser } from '../../utils/authStorage.js';
 import * as api from './workDone.api.js';
 
 export default function WorkDonePage() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const isEmployee = user.role === 'EMPLOYEE';
 
   const [items, setItems] = useState([]);
@@ -53,7 +54,7 @@ export default function WorkDonePage() {
           <WorkDoneForm onSubmitted={() => { setShowForm(false); load(); }} onCancel={() => setShowForm(false)} />
         ) : (
           <>
-            <button onClick={() => setShowForm(true)} style={{ padding: '12px 20px', background: theme.colors.primary, color: '#fff', border: 'none', borderRadius: 10, fontWeight: 600, cursor: 'pointer', marginBottom: 20 }}>
+            <button onClick={() => setShowForm(true)} style={{ padding: '12px 20px', background: theme.colors.primary, color: theme.colors.textLight, border: 'none', borderRadius: 10, fontWeight: 600, cursor: 'pointer', marginBottom: 20 }}>
               + Submit Work Done
             </button>
 
@@ -126,7 +127,7 @@ export default function WorkDonePage() {
 
   return (
     <>
-      <PageHeader title="Work Done" actions={user.role === 'CLF' && (<Link to="/clf/work-done/approval" style={{ textDecoration: 'none' }}><span style={{ padding: '10px 16px', background: theme.colors.primary, color: '#fff', borderRadius: 10, fontWeight: 600 }}>Pending Approvals</span></Link>)} />
+      <PageHeader title="Work Done" actions={user.role === 'CLF' && (<Link to="/clf/work-done/approval" style={{ textDecoration: 'none' }}><span style={{ padding: '10px 16px', background: theme.colors.primary, color: theme.colors.textLight, borderRadius: 10, fontWeight: 600 }}>Pending Approvals</span></Link>)} />
       <Table columns={columns} data={items} loading={loading} />
     </>
   );

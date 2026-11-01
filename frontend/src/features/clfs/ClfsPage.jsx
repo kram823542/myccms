@@ -7,6 +7,7 @@ import Loader from '../../components/ui/Loader.jsx'; // ✅ NEW: Loader import k
 import ClfForm from './ClfForm.jsx';
 import ResetPasswordModal from '../../components/common/ResetPasswordModal.jsx';
 import { theme } from '../../config/theme.js';
+import { getAuthUser } from '../../utils/authStorage.js';
 import * as api from './clfs.api.js';
 
 function ResponsiveTable({ children, minWidth = 720 }) {
@@ -108,7 +109,7 @@ export default function ClfsPage() {
   const [resetTarget, setResetTarget] = useState(null);
   const [viewTarget, setViewTarget] = useState(null);
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const canReset = ['BPM', 'SUPER_ADMIN'].includes(user.role);
 
   const load = async () => {

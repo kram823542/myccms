@@ -78,7 +78,7 @@ export default function AdminLeavePage() {
                 </thead>
                 <tbody style={{ color: theme.colors.text }} className="text-sm">
                   {leaves.map((leave) => (
-                    <tr key={leave._id} style={{ borderBottom: `1px solid ${theme.colors.border}` }} className="hover:bg-black/5">
+                    <tr key={leave._id} style={{ borderBottom: `1px solid ${theme.colors.border}`, '--theme-hover-color': theme.colors.overlaySubtle }} className="theme-hover-row">
                       <td className="p-4">
                         <div className="font-medium">{leave.employeeId?.name || 'Unknown'}</div>
                         <div style={{ color: theme.colors.muted }} className="text-xs">{leave.employeeId?.employeeCode}</div>
@@ -109,7 +109,7 @@ export default function AdminLeavePage() {
         )}
 
         {rejectModal.open && (
-          <div className="fixed inset-0 flex items-center justify-center z-[60] p-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+          <div className="fixed inset-0 flex items-center justify-center z-[60] p-4" style={{ background: theme.colors.overlay }}>
             <div style={{ background: theme.colors.surface, borderRadius: theme.radius.md, boxShadow: theme.shadow.lg }} className="p-6 max-w-md w-full">
               <h3 style={{ color: theme.colors.text }} className="text-lg font-bold mb-4">Reject Leave Application</h3>
               <textarea value={rejectModal.reason} onChange={(e) => setRejectModal(prev => ({ ...prev, reason: e.target.value }))}

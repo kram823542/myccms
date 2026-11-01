@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Input from '../../components/ui/Input.jsx';
 import Button from '../../components/ui/Button.jsx';
+import { theme } from '../../config/theme.js';
 import * as api from './blocks.api.js';
 
 export default function BlockForm({ onCreated }) {
@@ -30,7 +31,7 @@ export default function BlockForm({ onCreated }) {
       <Input label="Code" name="code" value={form.code} onChange={handleChange} required />
       <Input label="District" name="district" value={form.district} onChange={handleChange} />
       <Input label="State" name="state" value={form.state} onChange={handleChange} />
-      {error && <p style={{ color: 'red', fontSize: 13, margin: 0 }}>{error}</p>}
+      {error && <p style={{ color: theme.colors.danger, fontSize: 13, margin: 0 }}>{error}</p>}
       <Button type="submit" loading={loading}>
         Create Block
       </Button>

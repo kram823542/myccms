@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader.jsx';
 import { theme } from '../config/theme.js';
+import { getAuthUser } from '../utils/authStorage.js';
 import * as api from '../features/clfs/clfs.api.js';
 
 const greeting = () => {
@@ -57,7 +58,7 @@ const Stat = ({ icon, label, value, color, to }) => {
 };
 
 export default function BpmDashboard() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const [data, setData] = useState({ totalCLFs: '...', totalEmployees: '...', todayActionPlans: '...' });
 
   useEffect(() => {

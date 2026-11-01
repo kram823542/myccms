@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Input from '../../components/ui/Input.jsx';
 import Button from '../../components/ui/Button.jsx';
+import { theme } from '../../config/theme.js';
 import * as api from './employees.api.js';
 
 export default function EmployeeForm({ onCreated }) {
@@ -160,8 +161,8 @@ export default function EmployeeForm({ onCreated }) {
         <div
           style={{
             padding: 10,
-            background: '#FEE2E2',
-            color: '#DC2626',
+            background: theme.colors.dangerSurface,
+            color: theme.colors.danger,
             borderRadius: 8,
             fontSize: 13,
           }}

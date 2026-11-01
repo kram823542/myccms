@@ -12,7 +12,7 @@ const menu = [
   { label: 'Advice', path: '/clf/advice' },
   { label: 'Top Sheet', path: '/clf/topsheet' },
   { label: 'Attendance', path: '/clf/attendance' },
-  { label: 'Leaves', path: '/clf/leaves' }, // ✅ NAYA: CLF Admin ke liye Leaves add kiya
+  { label: 'Leaves', path: '/clf/leaves' },
   { label: 'Notifications', path: '/clf/notifications' },
   { label: 'Reports', path: '/clf/reports' },
   { label: 'Profile', path: '/clf/profile' },
@@ -23,17 +23,9 @@ export default function ClfLayout() {
     <div style={{ minHeight: '100vh', background: theme.colors.background }}>
       <Sidebar title="CLF Admin" menu={menu} />
 
-      <div
-        className="clf-content"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '100vh',
-          paddingBottom: 70,
-        }}
-      >
+      <div className="clf-content" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', paddingBottom: 70 }}>
         <Breadcrumb />
-        <main style={{ padding: 24, flex: 1 }}>
+        <main style={{ padding: 'clamp(16px, 2vw, 24px)', flex: 1 }}>
           <Outlet />
         </main>
       </div>

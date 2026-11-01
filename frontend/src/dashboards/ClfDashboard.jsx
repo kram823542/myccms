@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader.jsx';
 import { theme } from '../config/theme.js';
+import { getAuthUser } from '../utils/authStorage.js';
 import { listEmployees } from '../features/employees/employees.api.js';
 import { listWorkDone } from '../features/workDone/workDone.api.js';
 
@@ -58,7 +59,7 @@ const Stat = ({ icon, label, value, color, to }) => {
 };
 
 export default function ClfDashboard() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const [stats, setStats] = useState({ emp: 0, today: 0, pending: 0, approved: 0 });
   const [loading, setLoading] = useState(true);
 

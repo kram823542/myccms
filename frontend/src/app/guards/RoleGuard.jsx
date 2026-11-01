@@ -1,12 +1,8 @@
 import { Navigate } from 'react-router-dom';
+import { getAuthUser } from '../../utils/authStorage.js';
 
 export default function RoleGuard({ allowed = [], children }) {
-  let user = null;
-  try {
-    user = JSON.parse(localStorage.getItem('user') || 'null');
-  } catch {
-    user = null;
-  }
+  const user = getAuthUser();
 
   if (!user || !allowed.includes(user.role)) {
     return <Navigate to="/login" replace />;

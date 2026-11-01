@@ -8,10 +8,11 @@ import Button from '../../components/ui/Button.jsx';
 import Badge from '../../components/ui/Badge.jsx';
 import { theme } from '../../config/theme.js';
 import { listClfs } from '../clfs/clfs.api.js';
+import { getAuthUser } from '../../utils/authStorage.js';
 import * as api from './notifications.api.js';
 
 export default function NotificationsPage() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const isEmployee = user.role === 'EMPLOYEE';
   const isBPM = user.role === 'BPM';
   const isCLF = user.role === 'CLF';

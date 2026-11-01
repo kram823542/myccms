@@ -71,7 +71,7 @@ export default function EmployeeReportRow({ employee, onSelect, onAction }) {
                 background: theme.colors.surface,
                 border: `1px solid ${theme.colors.border}`,
                 borderRadius: theme.radius.sm,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                boxShadow: theme.shadow.md,
                 minWidth: 200,
                 zIndex: 100,
                 overflow: 'hidden',

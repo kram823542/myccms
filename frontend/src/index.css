@@ -16,3 +16,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.theme-hover-row:hover {
+  background-color: var(--theme-hover-color);
+}

@@ -9,6 +9,7 @@ import EmployeeForm from './EmployeeForm.jsx';
 import EmployeeRow from './EmployeeRow.jsx';
 import ResetPasswordModal from '../../components/common/ResetPasswordModal.jsx';
 import { theme } from '../../config/theme.js';
+import { getAuthUser } from '../../utils/authStorage.js';
 import * as api from './employees.api.js';
 
 function ResponsiveTable({ children, minWidth = 800 }) {
@@ -40,7 +41,7 @@ export default function EmployeesPage() {
   const [statusTarget, setStatusTarget] = useState(null);
   const [statusLoading, setStatusLoading] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const canCreate = user.role === 'CLF';
   const canReset = ['CLF', 'SUPER_ADMIN'].includes(user.role);
   const canDelete = ['CLF', 'SUPER_ADMIN'].includes(user.role);

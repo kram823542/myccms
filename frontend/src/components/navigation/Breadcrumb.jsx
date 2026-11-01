@@ -36,7 +36,7 @@ export default function Breadcrumb() {
         whiteSpace: 'nowrap',
         fontFamily: 'system-ui, -apple-system, sans-serif',
         // Halka sa shadow neeche
-        boxShadow: '0 2px 10px rgba(0,0,0,0.02)', 
+        boxShadow: theme.shadow.sm,
       }}
     >
       {/* ✅ Home Icon / Link */}
@@ -96,7 +96,7 @@ export default function Breadcrumb() {
                   borderRadius: '99px',
                   background: theme.colors.bbDarkBrown || theme.colors.text, // Dark background
                   fontWeight: 600,
-                  color: '#ffffff',
+                  color: theme.colors.textLight,
                   boxShadow: theme.shadow.sm,
                 }}
               >

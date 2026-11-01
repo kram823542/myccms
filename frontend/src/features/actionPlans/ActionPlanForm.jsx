@@ -51,7 +51,7 @@ export default function ActionPlanForm({ onSubmitted }) {
         }}
         required
       />
-      {error && <p style={{ color: 'red', fontSize: 13, margin: 0 }}>{error}</p>}
+      {error && <p style={{ color: theme.colors.danger, fontSize: 13, margin: 0 }}>{error}</p>}
       <Button type="submit" loading={loading}>
         Submit Action Plan
       </Button>

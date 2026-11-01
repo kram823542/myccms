@@ -243,7 +243,7 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
               <div style={{ fontSize: 12, color: theme.colors.muted, fontFamily: 'monospace' }}>A/c: {bank.accountNumber} | IFSC: {bank.ifscCode || '-'} | Branch: {bank.branch || '-'}</div>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <Button type="button" size="sm" onClick={() => handleEditBank(idx)} style={{ background: theme.colors.info, color: '#fff' }}>Edit</Button>
+              <Button type="button" size="sm" onClick={() => handleEditBank(idx)} style={{ background: theme.colors.info, color: theme.colors.textLight }}>Edit</Button>
               <Button type="button" size="sm" variant="danger" onClick={() => handleDeleteBank(idx)}>Delete</Button>
             </div>
           </div>
@@ -339,8 +339,8 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
                       )}
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                      <Button type="button" size="sm" onClick={() => handleEditMember(globalIndex)} style={{ background: theme.colors.info, color: '#fff', flex: 1 }}>Edit</Button>
-                      <Button type="button" size="sm" onClick={() => toggleBodStatus(globalIndex)} style={{ background: member.status === 'ACTIVE' ? theme.colors.success : theme.colors.muted, color: '#fff', flex: 1 }}>
+                      <Button type="button" size="sm" onClick={() => handleEditMember(globalIndex)} style={{ background: theme.colors.info, color: theme.colors.textLight, flex: 1 }}>Edit</Button>
+                      <Button type="button" size="sm" onClick={() => toggleBodStatus(globalIndex)} style={{ background: member.status === 'ACTIVE' ? theme.colors.success : theme.colors.muted, color: theme.colors.textLight, flex: 1 }}>
                         {member.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
                       </Button>
                       <Button type="button" size="sm" variant="danger" onClick={() => deleteBodMember(globalIndex)} style={{ flex: 1 }}>Delete</Button>

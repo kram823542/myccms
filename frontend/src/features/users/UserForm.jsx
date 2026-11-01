@@ -53,7 +53,7 @@ export default function UserForm({ onCreated }) {
         options={blocks}
         required
       />
-      {error && <p style={{ color: 'red', fontSize: 13, margin: 0 }}>{error}</p>}
+      {error && <p style={{ color: theme.colors.danger, fontSize: 13, margin: 0 }}>{error}</p>}
       <Button type="submit" loading={loading}>
         Create BPM
       </Button>

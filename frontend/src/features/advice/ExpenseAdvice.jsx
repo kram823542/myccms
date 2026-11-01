@@ -1,14 +1,3 @@
-// import { useEffect, useState } from 'react';
-// import Modal from '../../components/ui/Modal.jsx';
-// import Button from '../../components/ui/Button.jsx';
-// import Input from '../../components/ui/Input.jsx';
-// import Select from '../../components/ui/Select.jsx'; // ✅ NAYA
-// import Loader from '../../components/ui/Loader.jsx';
-// import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
-// import * as adviceApi from './advice.api.js';
-// import { getClf } from '../clfs/clfs.api.js'; // ✅ NAYA
-// import toast from 'react-hot-toast';
-// import { theme } from '../../config/theme.js';
 
 // const EMPTY_ROW = { vendorName: '', bankName: '', branch: '', bankAccountNumber: '', ifscCode: '', reason: '', amount: '' };
 
@@ -29,10 +18,6 @@
 //   const [deleteTarget, setDeleteTarget] = useState(null);
 //   const [deleting, setDeleting] = useState(false);
 
-//   // ✅ CLF Data load karo
-//   useEffect(() => {
-//     const user = JSON.parse(localStorage.getItem('user') || '{}');
-//     if (user.clfId) {
 //       getClf(user.clfId).then(({ data }) => {
 //         setClfData(data.data);
 //         if (data.data?.bankAccounts?.length > 0) {
@@ -316,6 +301,7 @@ import Loader from '../../components/ui/Loader.jsx';
 import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
 import * as adviceApi from './advice.api.js';
 import { getClf } from '../clfs/clfs.api.js';
+import { getAuthUser } from '../../utils/authStorage.js';
 import toast from 'react-hot-toast';
 import { theme } from '../../config/theme.js';
 
@@ -340,7 +326,7 @@ export default function ExpenseAdvice() {
 
   // ✅ CLF Data load karo
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = getAuthUser() || {};
     if (user.clfId) {
       getClf(user.clfId).then(({ data }) => {
         setClfData(data.data);

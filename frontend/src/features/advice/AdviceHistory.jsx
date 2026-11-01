@@ -210,8 +210,8 @@ export default function AdviceHistory() {
                     {viewTarget.employees?.map((emp, i) => (
                       <tr key={i} className="border-t" style={{ borderColor: `${theme.colors.border}50` }}>
                         <td className="p-2 font-semibold">{emp.name}</td>
-                        <td className="p-2 text-gray-500">{emp.designation || '-'}</td>
-                        <td className="p-2 font-mono text-gray-500">{emp.bankAccountNumber || '-'}</td>
+                        <td className="p-2" style={{ color: theme.colors.muted }}>{emp.designation || '-'}</td>
+                        <td className="p-2 font-mono" style={{ color: theme.colors.muted }}>{emp.bankAccountNumber || '-'}</td>
                         <td className="p-2 text-right font-bold">₹ {emp.amount}</td>
                       </tr>
                     ))}

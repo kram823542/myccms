@@ -5,6 +5,7 @@ import Badge from '../../components/ui/Badge.jsx';
 import Button from '../../components/ui/Button.jsx';
 import Modal from '../../components/ui/Modal.jsx';
 import UserForm from './UserForm.jsx';
+import { theme } from '../../config/theme.js';
 import * as api from './users.api.js';
 
 export default function UsersPage() {
@@ -68,7 +69,7 @@ export default function UsersPage() {
         <p style={{ fontSize: 14 }}>
           Please note this password — यह सिर्फ एक बार दिखेगा:
         </p>
-        <code style={{ background: '#F1F5F9', padding: 12, borderRadius: 8, display: 'block' }}>
+        <code style={{ background: theme.colors.codeSurface, padding: 12, borderRadius: 8, display: 'block' }}>
           {tempPass}
         </code>
         <Button style={{ marginTop: 16 }} onClick={() => navigator.clipboard.writeText(tempPass)}>

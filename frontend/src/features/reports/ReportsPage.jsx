@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import PageHeader from '../../components/common/PageHeader.jsx';
 import Button from '../../components/ui/Button.jsx';
+import { getAuthUser, setAuthUser } from '../../utils/authStorage.js';
 import Loader from '../../components/ui/Loader.jsx';
 import Input from '../../components/ui/Input.jsx';
 import { theme } from '../../config/theme.js';
@@ -23,7 +24,7 @@ const downloadBlob = (blob, filename) => {
 };
 
 export default function ReportsPage() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const isEmployee = user.role === 'EMPLOYEE';
   if (isEmployee) return <EmployeeReportsView user={user} />;
   return <AdminReportsView />;
@@ -156,7 +157,7 @@ function EmployeeReportsView({ user }) {
         if (!cancelled && empId) {
           setEmployeeId(empId);
           const updated = { ...user, employeeId: empId };
-          localStorage.setItem('user', JSON.stringify(updated));
+          setAuthUser(updated);
         }
       } catch (err) { console.error('Failed to fetch employeeId:', err); } finally { if (!cancelled) setLoadingId(false); }
     })();

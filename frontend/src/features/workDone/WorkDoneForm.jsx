@@ -62,7 +62,7 @@ export default function WorkDoneForm({ onSubmitted, onCancel }) {
       />
       <ImageUpload label="Work Photo" value={null} onChange={setImage} required />
 
-      {error && <p style={{ color: 'red', fontSize: 13, margin: 0 }}>{error}</p>}
+      {error && <p style={{ color: theme.colors.danger, fontSize: 13, margin: 0 }}>{error}</p>}
       <div style={{ display: 'flex', gap: 10 }}>
         {onCancel && (
           <Button variant="ghost" type="button" onClick={onCancel}>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Input from '../../components/ui/Input.jsx';
 import Button from '../../components/ui/Button.jsx';
 import { theme } from '../../config/theme.js';
+import { clearAuthState, setAuthUser, setAuthToken, setRefreshToken } from '../../utils/authStorage.js';
 import * as authApi from './auth.api.js';
 
 export default function Login() {
@@ -21,10 +22,11 @@ export default function Login() {
     try {
       const { data } = await authApi.login(form);
       const { user, accessToken, refreshToken } = data.data;
-      
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-      localStorage.setItem('user', JSON.stringify(user));
+
+      clearAuthState();
+      setAuthToken(accessToken);
+      setRefreshToken(refreshToken);
+      setAuthUser(user);
 
       const redirects = {
         SUPER_ADMIN: '/super-admin',
@@ -67,8 +69,8 @@ export default function Login() {
               borderRadius: '50%', 
               objectFit: 'cover', 
               margin: '0 auto', 
-              border: `3px solid ${theme.colors.primary || '#0f172a'}`, 
-              boxShadow: '0 8px 20px rgba(0, 0, 0, 0.12)' 
+              border: `3px solid ${theme.colors.primary}`,
+              boxShadow: theme.shadow.md
             }}
           />
         </div>
@@ -80,7 +82,7 @@ export default function Login() {
             fontSize: 'clamp(28px, 6vw, 34px)', 
             fontWeight: 700, 
             fontStyle: 'italic',
-            color: theme.colors.text || '#0f172a', 
+            color: theme.colors.text,
             letterSpacing: '0.02em', 
             lineHeight: 1.15,
             textTransform: 'uppercase' 
@@ -90,7 +92,7 @@ export default function Login() {
           <p style={{ 
             margin: '6px 0 0', 
             fontSize: '11.5px', 
-            color: theme.colors.muted || '#64748b', 
+            color: theme.colors.muted,
             fontWeight: 600, 
             lineHeight: 1.4,
             textTransform: 'uppercase', 
@@ -142,7 +144,7 @@ export default function Login() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: theme.colors.muted || '#64748b',
+              color: theme.colors.muted,
               padding: 4,
             }}
           >
@@ -165,9 +167,9 @@ export default function Login() {
       {error && (
         <div style={{ 
           padding: '12px 14px', 
-          background: `${theme.colors.danger || '#ef4444'}12`, 
-          border: `1px solid ${theme.colors.danger || '#ef4444'}35`, 
-          color: theme.colors.danger || '#ef4444', 
+          background: `${theme.colors.danger}12`,
+          border: `1px solid ${theme.colors.danger}35`,
+          color: theme.colors.danger,
           borderRadius: theme.radius.md || '8px', 
           fontSize: '12px', 
           fontWeight: 600, 
@@ -196,9 +198,9 @@ export default function Login() {
           fontWeight: 700, 
           fontSize: '14px', 
           letterSpacing: '0.08em', 
-          backgroundColor: theme.colors.primary || '#0f172a',
-          color: theme.colors.surface || '#ffffff',
-          boxShadow: `0 8px 20px -4px ${theme.colors.primary || '#0f172a'}40`, 
+          backgroundColor: theme.colors.primary,
+          color: theme.colors.textLight,
+          boxShadow: theme.shadow.md,
           transition: 'all 0.2s ease',
           textTransform: 'uppercase' 
         }}
@@ -212,11 +214,11 @@ export default function Login() {
         @media (max-width: 899px) {
           .mobile-logo { display: block !important; }
           .login-form-wrapper {
-            background: #ffffff;
+            background: ${theme.colors.surface};
             padding: 28px 20px;
             border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: ${theme.shadow.lg};
+            border: 1px solid ${theme.colors.border};
           }
           .login-header-section {
             text-align: center !important;

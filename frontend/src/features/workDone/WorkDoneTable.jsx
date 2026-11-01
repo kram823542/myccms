@@ -13,7 +13,7 @@ function ReasonCell({ item }) {
         fontSize: 12,
         color: theme.colors.danger,
         padding: '6px 10px',
-        background: '#FEF2F2',
+        background: theme.colors.dangerSurface,
         borderRadius: 6,
         borderLeft: `3px solid ${theme.colors.danger}`,
         lineHeight: 1.4,

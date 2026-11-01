@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useReactToPrint } from 'react-to-print';
 import { getBankShortName, formatAmountInWords } from './AdviceUtils';
+import { theme } from '../../config/theme.js';
 
 const TopSheetFormate = ({ topSheetData, clfBank, month, inputs }) => {
   const printRef = useRef(null);
@@ -22,7 +23,7 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs }) => {
           width: 210mm !important;
           margin: 0 !important;
           padding: 0 !important;
-          background: #fff !important;
+          background: ${theme.colors.printSurface} !important;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
@@ -49,7 +50,7 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs }) => {
           overflow: hidden !important;
           display: flex !important;
           flex-direction: column !important;
-          background: #fff !important;
+          background: ${theme.colors.printSurface} !important;
         }
         .print-page-card:last-child {
           page-break-after: auto !important;
@@ -78,7 +79,7 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs }) => {
   const renderPageCard = (isPrintMode) => {
     return (
       <div
-        className={`print-page-card w-[210mm] min-h-[296mm] box-border p-[8mm_10mm] font-sans leading-snug text-black bg-white flex flex-col overflow-hidden ${
+        className={`print-page-card print-text print-surface w-[210mm] min-h-[296mm] box-border p-[8mm_10mm] font-sans leading-snug flex flex-col overflow-hidden ${
           isPrintMode ? '' : 'shadow-lg'
         }`}
       >
@@ -86,8 +87,8 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs }) => {
           
           {/* HEADER TOP STRIP */}
           <div className="flex w-full h-[7px] mb-3 shrink-0">
-            <div className="w-[30%] bg-[#82c828]"></div>
-            <div className="w-[70%] bg-[#e05a10]"></div>
+            <div className="w-[30%] print-accent-green"></div>
+            <div className="w-[70%] print-accent-orange"></div>
           </div>
 
           {/* HEADER LOGOS AND TITLE */}
@@ -99,16 +100,16 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs }) => {
               crossOrigin="anonymous"
             />
             <div className="flex-1 text-center font-serif">
-              <h1 className="text-[30px] font-extrabold leading-tight m-0 text-black">
+              <h1 className="text-[30px] font-extrabold leading-tight m-0">
                 सतबरवा आजीविका महिला संकुल स्तरीय
               </h1>
-              <h2 className="text-[24px] font-bold leading-tight mt-1 m-0 text-black">
+              <h2 className="text-[24px] font-bold leading-tight mt-1 m-0">
                 प्राथमिक स्वावलम्बी सहकारी समिति लिमिटेड
               </h2>
-              <p className="text-[15px] font-semibold mt-1.5 mb-0 text-black">
+              <p className="text-[15px] font-semibold mt-1.5 mb-0">
                 ग्राम- सतबरवा, कलस्टर- सतबरवा, प्रखंड- सतबरवा, जिला- पलामू (झा0)
               </p>
-              <p className="text-[15px] font-semibold mt-1 mb-0 text-black">
+              <p className="text-[15px] font-semibold mt-1 mb-0">
                 निबंधन संख्या :- 02-JKD-01-04-01-0TH-001-2023
               </p>
             </div>
@@ -122,8 +123,8 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs }) => {
 
           {/* HEADER BOTTOM STRIP */}
           <div className="flex w-full h-[7px] mt-2 mb-3 shrink-0">
-            <div className="w-[30%] bg-[#82c828]"></div>
-            <div className="w-[70%] bg-[#e05a10]"></div>
+            <div className="w-[30%] print-accent-green"></div>
+            <div className="w-[70%] print-accent-orange"></div>
           </div>
 
           <div className="flex justify-between text-[16px] font-semibold my-2 shrink-0">
@@ -176,17 +177,17 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs }) => {
 
           {/* TABLE SECTION */}
           <div className="mb-2">
-            <table className="w-full border-collapse border border-black table-fixed">
+            <table className="w-full border-collapse border print-border table-fixed">
               <thead>
-                <tr className="bg-gray-100">
-                  <th className="border border-black p-1 font-bold text-center text-[13px] w-[4%]">Sl.</th>
-                  <th className="border border-black p-1 font-bold text-left text-[13px] w-[22%]">TYPE OF CADER</th>
-                  <th className="border border-black p-1 font-bold text-center text-[13px] w-[11%]">MONTH</th>
-                  <th className="border border-black p-1 font-bold text-center text-[13px] w-[9%]">TOTAL<br/>CADER</th>
-                  <th className="border border-black p-1 font-bold text-center text-[13px] w-[10%]">TRANSFER<br/>TO BANK</th>
-                  <th className="border border-black p-1 font-bold text-right text-[13px] w-[13%]">AMOUNT</th>
-                  <th className="border border-black p-1 font-bold text-center text-[13px] w-[13%]">CHECK<br/>NO.</th>
-                  <th className="border border-black p-1 font-bold text-center text-[13px] w-[18%]">BLOCK<br/>LETTER NO.</th>
+                <tr className="print-header">
+                  <th className="border print-border p-1 font-bold text-center text-[13px] w-[4%]">Sl.</th>
+                  <th className="border print-border p-1 font-bold text-left text-[13px] w-[22%]">TYPE OF CADER</th>
+                  <th className="border print-border p-1 font-bold text-center text-[13px] w-[11%]">MONTH</th>
+                  <th className="border print-border p-1 font-bold text-center text-[13px] w-[9%]">TOTAL<br/>CADER</th>
+                  <th className="border print-border p-1 font-bold text-center text-[13px] w-[10%]">TRANSFER<br/>TO BANK</th>
+                  <th className="border print-border p-1 font-bold text-right text-[13px] w-[13%]">AMOUNT</th>
+                  <th className="border print-border p-1 font-bold text-center text-[13px] w-[13%]">CHECK<br/>NO.</th>
+                  <th className="border print-border p-1 font-bold text-center text-[13px] w-[18%]">BLOCK<br/>LETTER NO.</th>
                 </tr>
               </thead>
               <tbody>
@@ -196,42 +197,42 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs }) => {
                   
                   return (
                     <tr key={row.adviceId || idx}>
-                      <td className="border border-black p-1.5 text-center text-[14px] font-semibold">
+                      <td className="border print-border p-1.5 text-center text-[14px] font-semibold">
                         {idx + 1}.
                       </td>
-                      <td className="border border-black p-1.5 break-words text-[14px] font-semibold uppercase">
+                      <td className="border print-border p-1.5 break-words text-[14px] font-semibold uppercase">
                         {row.designation || 'MIXED'}
                       </td>
-                      <td className="border border-black p-1.5 text-center text-[14px]">
+                      <td className="border print-border p-1.5 text-center text-[14px]">
                         {row.month || '-'}
                       </td>
-                      <td className="border border-black p-1.5 text-center text-[14px]">
+                      <td className="border print-border p-1.5 text-center text-[14px]">
                         {row.totalCader || 0}
                       </td>
-                      <td className="border border-black p-1.5 text-center text-[14px] font-semibold">
+                      <td className="border print-border p-1.5 text-center text-[14px] font-semibold">
                         {getBankShortName(row.bankName)}
                       </td>
-                      <td className="border border-black p-1.5 text-right font-bold text-[14px] whitespace-nowrap">
+                      <td className="border print-border p-1.5 text-right font-bold text-[14px] whitespace-nowrap">
                         {Number(row.totalAmount || 0).toLocaleString('en-IN')}
                       </td>
-                      <td className="border border-black p-1.5 text-center text-[14px] font-mono">
+                      <td className="border print-border p-1.5 text-center text-[14px] font-mono">
                         {cheque}
                       </td>
-                      <td className="border border-black p-1.5 text-center text-[14px] font-mono">
+                      <td className="border print-border p-1.5 text-center text-[14px] font-mono">
                         {block}
                       </td>
                     </tr>
                   );
                 })}
                 {/* TOTAL ROW */}
-                <tr className="bg-gray-50">
-                  <td colSpan="5" className="border border-black p-1.5 text-right font-bold text-[15px]">
+                <tr className="print-total">
+                  <td colSpan="5" className="border print-border p-1.5 text-right font-bold text-[15px]">
                     TOTAL
                   </td>
-                  <td className="border border-black p-1.5 text-right font-bold text-[15px] whitespace-nowrap">
+                  <td className="border print-border p-1.5 text-right font-bold text-[15px] whitespace-nowrap">
                     {grandTotal.toLocaleString('en-IN')}.00
                   </td>
-                  <td colSpan="2" className="border border-black p-1.5"></td>
+                  <td colSpan="2" className="border print-border p-1.5"></td>
                 </tr>
               </tbody>
             </table>
@@ -250,15 +251,15 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs }) => {
               <div className="flex gap-6">
                 <div className="text-center text-[15px] w-28">
                   <div className="h-4"></div>
-                  <p className="border-t border-black pt-1 font-bold m-0">अध्यक्ष</p>
+                  <p className="border-t print-border pt-1 font-bold m-0">अध्यक्ष</p>
                 </div>
                 <div className="text-center text-[15px] w-28">
                   <div className="h-4"></div>
-                  <p className="border-t border-black pt-1 font-bold m-0">सचिव</p>
+                  <p className="border-t print-border pt-1 font-bold m-0">सचिव</p>
                 </div>
                 <div className="text-center text-[15px] w-28">
                   <div className="h-4"></div>
-                  <p className="border-t border-black pt-1 font-bold m-0">कोषाध्यक्ष</p>
+                  <p className="border-t print-border pt-1 font-bold m-0">कोषाध्यक्ष</p>
                 </div>
               </div>
               <div className="text-right text-[12px] leading-snug">
@@ -273,10 +274,10 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs }) => {
         {/* FOOTER */}
         <div className="w-full pt-1 pb-0 mt-auto shrink-0">
           <div className="flex w-full h-[5px] mb-1.5">
-            <div className="w-[30%] bg-[#82c828]"></div>
-            <div className="w-[70%] bg-[#e05a10]"></div>
+            <div className="w-[30%] print-accent-green"></div>
+            <div className="w-[70%] print-accent-orange"></div>
           </div>
-          <div className="text-center text-[12px] leading-tight space-y-[1px] text-black">
+          <div className="text-center text-[12px] leading-tight space-y-[1px]">
             <p className="m-0">
               <strong>प्रखंड कार्यालय :-</strong> प्रखंड मिशन प्रबंधन इकाई, राँची रोड, सतबरवा पलामू 822126
             </p>
@@ -298,8 +299,19 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs }) => {
 
   return (
     <>
+      <style>{`
+        .print-text { color: ${theme.colors.printText}; }
+        .print-surface { background-color: ${theme.colors.printSurface}; }
+        .print-border { border-color: ${theme.colors.printBorder}; }
+        .print-header { background-color: ${theme.colors.printHeader}; }
+        .print-total { background-color: ${theme.colors.printTotal}; }
+        .print-preview { background-color: ${theme.colors.printPreview}; }
+        .print-accent-green { background-color: ${theme.colors.printAccentGreen}; }
+        .print-accent-orange { background-color: ${theme.colors.printAccentOrange}; }
+      `}</style>
+
       {/* SCREEN PREVIEW */}
-      <div className="bg-gray-300 p-4 rounded overflow-auto w-full" style={{ maxHeight: '80vh' }}>
+      <div className="print-preview p-4 rounded overflow-auto w-full" style={{ maxHeight: '80vh' }}>
         <div className="flex flex-col items-center gap-8">
           <div
             style={{
@@ -326,7 +338,7 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs }) => {
             }}
             aria-hidden="true"
           >
-            <div ref={printRef} className="print-root bg-white">
+            <div ref={printRef} className="print-root print-surface">
               {renderPageCard(true)}
             </div>
           </div>,

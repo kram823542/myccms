@@ -13,7 +13,7 @@ export default function Select({
   style = {},
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, ...style }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%', ...style }}>
       {label && (
         <label style={{ fontSize: 13, fontWeight: 600, color: theme.colors.text }}>
           {label} {required && <span style={{ color: theme.colors.danger }}>*</span>}
@@ -34,6 +34,8 @@ export default function Select({
           background: disabled ? theme.colors.background : theme.colors.surface,
           color: theme.colors.text,
           cursor: disabled ? 'not-allowed' : 'pointer',
+          width: '100%',
+          boxSizing: 'border-box',
         }}
       >
         <option value="">{placeholder}</option>

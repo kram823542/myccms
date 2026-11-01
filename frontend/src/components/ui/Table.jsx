@@ -6,21 +6,20 @@ export default function Table({ columns = [], data = [], loading = false, emptyM
       style={{
         background: theme.colors.surface,
         borderRadius: theme.radius.md,
-        boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+        boxShadow: theme.shadow.sm,
         border: `1px solid ${theme.colors.border}`,
-        overflow: 'hidden', // Border radius ke liye
         width: '100%',
+        overflow: 'hidden',
       }}
     >
-      {/* CSS Animations for Skeleton Loader */}
       <style>{`
         @keyframes shimmer {
           0% { background-position: -1000px 0; }
           100% { background-position: 1000px 0; }
         }
         .skeleton-line {
-          background: #f6f7f8;
-          background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+          background: ${theme.colors.background};
+          background-image: linear-gradient(to right, ${theme.colors.background} 0%, ${theme.colors.border} 20%, ${theme.colors.background} 40%, ${theme.colors.background} 100%);
           background-repeat: no-repeat;
           background-size: 1000px 100%;
           animation: shimmer 1.5s infinite linear forwards;
@@ -28,11 +27,8 @@ export default function Table({ columns = [], data = [], loading = false, emptyM
         }
       `}</style>
 
-      {/* Scrollable Container */}
-      <div style={{ overflowX: 'auto', maxHeight: '75vh' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          
-          {/* ✅ Sticky & Clean Header */}
+      <div style={{ overflowX: 'auto', maxWidth: '100vw', WebkitOverflowScrolling: 'touch' }}>
+        <table style={{ width: '100%', minWidth: Math.max(columns.length * 150, 700), borderCollapse: 'collapse', fontSize: 14 }}>
           <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: theme.colors.surface }}>
             <tr>
               {columns.map((c, i) => (
@@ -48,7 +44,7 @@ export default function Table({ columns = [], data = [], loading = false, emptyM
                     color: theme.colors.muted,
                     borderBottom: `2px solid ${theme.colors.border}`,
                     whiteSpace: 'nowrap',
-                    background: theme.colors.surface, // Sticky ke liye background zaroori hai
+                    background: theme.colors.surface,
                   }}
                 >
                   {c.header}
@@ -59,26 +55,23 @@ export default function Table({ columns = [], data = [], loading = false, emptyM
 
           <tbody>
             {loading ? (
-              // ✅ PROFESSIONAL SKELETON LOADER
               Array.from({ length: 6 }).map((_, rowIndex) => (
                 <tr key={`skeleton-${rowIndex}`} style={{ borderBottom: `1px solid ${theme.colors.border}` }}>
                   {columns.map((_, colIndex) => (
                     <td key={`skeleton-col-${colIndex}`} style={{ padding: '16px' }}>
-                      {/* Alag-alag width taaki natural lage */}
-                      <div 
-                        className="skeleton-line" 
-                        style={{ 
-                          height: 16, 
+                      <div
+                        className="skeleton-line"
+                        style={{
+                          height: 16,
                           width: colIndex === 0 ? '60%' : colIndex % 2 === 0 ? '45%' : '80%',
                           maxWidth: 180,
-                        }} 
+                        }}
                       />
                     </td>
                   ))}
                 </tr>
               ))
             ) : data.length === 0 ? (
-              // ✅ MEANINGFUL EMPTY STATE
               <tr>
                 <td colSpan={columns.length} style={{ padding: '80px 20px', textAlign: 'center' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
@@ -102,14 +95,13 @@ export default function Table({ columns = [], data = [], loading = false, emptyM
                 </td>
               </tr>
             ) : (
-              // ✅ DATA ROWS (With Hover & Zebra Striping)
               data.map((row, ri) => (
                 <tr
                   key={ri}
                   style={{
                     borderBottom: `1px solid ${theme.colors.border}`,
                     transition: 'background 0.2s ease',
-                    background: ri % 2 === 0 ? theme.colors.surface : `${theme.colors.background}50`, // Zebra Stripe
+                    background: ri % 2 === 0 ? theme.colors.surface : `${theme.colors.background}50`,
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = `${theme.colors.primary}08`;

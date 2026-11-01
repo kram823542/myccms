@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import Table from '../../components/ui/Table.jsx';
 import ActionPlanForm from './ActionPlanForm.jsx';
 import { theme } from '../../config/theme.js';
+import { getAuthUser } from '../../utils/authStorage.js';
 import * as actionApi from './actionPlans.api.js';
 
 export default function ActionPlansPage() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getAuthUser() || {};
   const isEmployee = user.role === 'EMPLOYEE';
   const isBPM = user.role === 'BPM'; // ✅ NAYA: BPM check
 
@@ -97,14 +98,14 @@ export default function ActionPlansPage() {
             style={{
               padding: '12px 24px',
               background: theme.colors.primary,
-              color: '#fff',
+              color: theme.colors.textLight,
               border: 'none',
               borderRadius: 999,
               fontWeight: 700,
               fontSize: 13,
               cursor: 'pointer',
               marginBottom: 20,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)',
+              boxShadow: theme.shadow.md,
               transition: 'all 0.25s ease',
             }}
           >
