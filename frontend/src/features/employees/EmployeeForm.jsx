@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Input from '../../components/ui/Input.jsx';
 import Button from '../../components/ui/Button.jsx';
 import { theme } from '../../config/theme.js';
 import * as api from './employees.api.js';
 
-export default function EmployeeForm({ onCreated }) {
+export default function EmployeeForm({ initialData, onCreated, onCancel }) {
   const [form, setForm] = useState({
     employeeCode: '',
     name: '',
@@ -19,14 +19,31 @@ export default function EmployeeForm({ onCreated }) {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState([]);
 
-  const handleChange = (e) =>
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  // ✅ FIX: Edit mode me asli Aadhaar aur Account Number load karo
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        employeeCode: initialData.employeeCode || '',
+        name: initialData.name || '',
+        mobile: initialData.mobile || '',
+        designation: initialData.designation || '',
+        joiningDate: initialData.joiningDate ? initialData.joiningDate.split('T')[0] : '',
+        // ✅ Asli Aadhaar load karo (masked nahi)
+        aadhaarNumber: initialData.aadhaarNumber || '', 
+        bankDetails: {
+          bankName: initialData.bankDetails?.bankName || '',
+          // ✅ Asli Account Number load karo (masked nahi)
+          accountNumber: initialData.bankDetails?.accountNumber || '',
+          branch: initialData.bankDetails?.branch || '',
+          ifsc: initialData.bankDetails?.ifsc || '',
+        },
+        workLocation: { panchayat: initialData.workLocation?.panchayat || '' },
+      });
+    }
+  }, [initialData]);
 
-  const handleNested = (section) => (e) =>
-    setForm((f) => ({
-      ...f,
-      [section]: { ...f[section], [e.target.name]: e.target.value },
-    }));
+  const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const handleNested = (section) => (e) => setForm((f) => ({ ...f, [section]: { ...f[section], [e.target.name]: e.target.value } }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,44 +51,38 @@ export default function EmployeeForm({ onCreated }) {
     setFieldErrors([]);
     setLoading(true);
 
-    // Build clean payload — remove empty optional fields
     const payload = {
-      employeeCode: form.employeeCode.trim().toUpperCase(),
       name: form.name.trim(),
       mobile: form.mobile.trim(),
       designation: form.designation.trim(),
       joiningDate: form.joiningDate,
-      workLocation: {
-        panchayat: form.workLocation.panchayat.trim(),
-      },
+      workLocation: { panchayat: form.workLocation.panchayat.trim() },
     };
 
-    // Aadhaar only if provided
-    if (form.aadhaarNumber.trim()) {
-      payload.aadhaarNumber = form.aadhaarNumber.trim();
-    }
-
-    // Bank details only if any field has value
+    if (form.aadhaarNumber && form.aadhaarNumber.trim()) payload.aadhaarNumber = form.aadhaarNumber.trim();
+    
     const bank = form.bankDetails;
-    const hasBankData = Object.values(bank).some((v) => v && v.trim());
-    if (hasBankData) {
-      payload.bankDetails = {};
-      if (bank.bankName.trim()) payload.bankDetails.bankName = bank.bankName.trim();
-      if (bank.accountNumber.trim())
-        payload.bankDetails.accountNumber = bank.accountNumber.trim();
-      if (bank.branch.trim()) payload.bankDetails.branch = bank.branch.trim();
-      if (bank.ifsc.trim()) payload.bankDetails.ifsc = bank.ifsc.trim().toUpperCase();
+    if (bank.bankName.trim() || bank.accountNumber.trim() || bank.branch.trim() || bank.ifsc.trim()) {
+      payload.bankDetails = {
+        bankName: bank.bankName.trim(),
+        branch: bank.branch.trim(),
+        ifsc: bank.ifsc.trim().toUpperCase(),
+      };
+      if (bank.accountNumber && bank.accountNumber.trim()) payload.bankDetails.accountNumber = bank.accountNumber.trim();
     }
-
-    console.log('📤 Sending payload:', payload);
 
     try {
-      const { data } = await api.createEmployee(payload);
-      onCreated?.(data.data.login);
+      if (initialData) {
+        await api.updateEmployee(initialData._id, payload);
+        onCreated?.();
+      } else {
+        payload.employeeCode = form.employeeCode.trim().toUpperCase();
+        const { data } = await api.createEmployee(payload);
+        onCreated?.(data.data.login);
+      }
     } catch (err) {
-      console.error('❌ Create employee error:', err.response?.data);
       const res = err.response?.data;
-      setError(res?.message || 'Failed to create employee');
+      setError(res?.message || 'Failed to save');
       if (res?.errors) setFieldErrors(res.errors);
     } finally {
       setLoading(false);
@@ -80,109 +91,58 @@ export default function EmployeeForm({ onCreated }) {
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <Input
-        label="Employee Code"
-        name="employeeCode"
-        value={form.employeeCode}
-        onChange={handleChange}
-        placeholder="EMP001"
-        required
-      />
+      {!initialData && (
+        <Input label="Employee Code" name="employeeCode" value={form.employeeCode} onChange={handleChange} placeholder="EMP001" required />
+      )}
+      
       <Input label="Name" name="name" value={form.name} onChange={handleChange} required />
+      <Input label="Mobile" name="mobile" value={form.mobile} onChange={handleChange} placeholder="9876543210" required />
+      <Input label="Designation" name="designation" value={form.designation} onChange={handleChange} placeholder="Bank Sakhi" required />
+      <Input label="Joining Date" name="joiningDate" type="date" value={form.joiningDate} onChange={handleChange} required />
+      
+      {/* ✅ Ab yahan asli Aadhaar dikhega */}
       <Input
-        label="Mobile"
-        name="mobile"
-        value={form.mobile}
-        onChange={handleChange}
-        placeholder="9876543210"
-        required
-      />
-      <Input
-        label="Designation"
-        name="designation"
-        value={form.designation}
-        onChange={handleChange}
-        placeholder="Bank Sakhi"
-        required
-      />
-      <Input
-        label="Joining Date"
-        name="joiningDate"
-        type="date"
-        value={form.joiningDate}
-        onChange={handleChange}
-        required
-      />
-      <Input
-        label="Aadhaar Number (optional)"
+        label="Aadhaar Number"
         name="aadhaarNumber"
         value={form.aadhaarNumber}
         onChange={handleChange}
         placeholder="12 digits"
       />
 
-      <h4 style={{ margin: '8px 0 0', fontSize: 14 }}>Bank Details (optional)</h4>
-      <Input
-        label="Bank Name"
-        name="bankName"
-        value={form.bankDetails.bankName}
-        onChange={handleNested('bankDetails')}
-      />
+      <h4 style={{ margin: '8px 0 0', fontSize: 14 }}>Bank Details</h4>
+      <Input label="Bank Name" name="bankName" value={form.bankDetails.bankName} onChange={handleNested('bankDetails')} />
+      
+      {/* ✅ Ab yahan asli Account Number dikhega */}
       <Input
         label="Account Number"
         name="accountNumber"
         value={form.bankDetails.accountNumber}
         onChange={handleNested('bankDetails')}
       />
-      <Input
-        label="Branch"
-        name="branch"
-        value={form.bankDetails.branch}
-        onChange={handleNested('bankDetails')}
-      />
-      <Input
-        label="IFSC"
-        name="ifsc"
-        value={form.bankDetails.ifsc}
-        onChange={handleNested('bankDetails')}
-        placeholder="SBIN0001234"
-      />
+      
+      <Input label="Branch" name="branch" value={form.bankDetails.branch} onChange={handleNested('bankDetails')} />
+      <Input label="IFSC" name="ifsc" value={form.bankDetails.ifsc} onChange={handleNested('bankDetails')} placeholder="SBIN0001234" />
 
       <h4 style={{ margin: '8px 0 0', fontSize: 14 }}>Work Location</h4>
-      <Input
-        label="Panchayat"
-        name="panchayat"
-        value={form.workLocation.panchayat}
-        onChange={handleNested('workLocation')}
-        required
-      />
+      <Input label="Panchayat" name="panchayat" value={form.workLocation.panchayat} onChange={handleNested('workLocation')} required />
 
       {error && (
-        <div
-          style={{
-            padding: 10,
-            background: theme.colors.dangerSurface,
-            color: theme.colors.danger,
-            borderRadius: 8,
-            fontSize: 13,
-          }}
-        >
+        <div style={{ padding: 10, background: theme.colors.dangerSurface, color: theme.colors.danger, borderRadius: 8, fontSize: 13 }}>
           <b>{error}</b>
           {fieldErrors.length > 0 && (
             <ul style={{ margin: '6px 0 0 16px', padding: 0 }}>
-              {fieldErrors.map((fe, i) => (
-                <li key={i}>
-                  <b>{fe.field}</b>: {fe.message}
-                </li>
-              ))}
+              {fieldErrors.map((fe, i) => <li key={i}><b>{fe.field}</b>: {fe.message}</li>)}
             </ul>
           )}
         </div>
       )}
 
-      <Button type="submit" loading={loading}>
-        Create Employee
-      </Button>
+      <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+        {onCancel && <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>}
+        <Button type="submit" loading={loading} style={{ flex: 1 }}>
+          {initialData ? 'Update Details' : 'Create Employee'}
+        </Button>
+      </div>
     </form>
   );
 }

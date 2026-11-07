@@ -16,11 +16,43 @@ const clfSchema = new mongoose.Schema(
     bpmId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     village: { type: String, trim: true },
     location: { type: String, trim: true },
+
+    // ✅ DYNAMIC LETTERHEAD (Default Logos set)
+    letterhead: {
+      subTitle: { type: String, trim: true },
+      addressLine: { type: String, trim: true },
+      registrationNo: { type: String, trim: true },
+      leftLogo: { 
+        type: String, 
+        trim: true, 
+        default: 'https://res.cloudinary.com/dsjnikk42/image/upload/v1789380290/WhatsApp_Image_2026-09-14_at_1.07.08_PM_nbbmda.jpg' 
+      },
+      rightLogo: { 
+        type: String, 
+        trim: true, 
+        default: 'https://res.cloudinary.com/dsjnikk42/image/upload/v1789380471/WhatsApp_Image_2026-09-14_at_1.07.10_PM_owpahi.jpg' 
+      },
+    },
     
-    // ✅ NAYA: CLF ke khud ke multiple bank accounts
+    // ✅ DYNAMIC FOOTER
+    footer: {
+      blockOffice: { type: String, trim: true },
+      districtOffice: { type: String, trim: true },
+      stateOffice: { type: String, trim: true },
+      phone: { type: String, trim: true },
+    },
+    
+    // ✅ DYNAMIC SIGNATURES (Default set)
+    signatures: {
+      first: { type: String, trim: true, default: 'अध्यक्ष' },
+      second: { type: String, trim: true, default: 'सचिव' },
+      third: { type: String, trim: true, default: 'कोषाध्यक्ष' },
+    },
+
+    // ✅ CLF ke khud ke multiple bank accounts
     bankAccounts: [
       {
-        accountName: { type: String, trim: true, required: true }, // e.g. "Main Account"
+        accountName: { type: String, trim: true, required: true },
         bankName: { type: String, trim: true, required: true },
         accountNumber: { type: String, trim: true, required: true },
         ifscCode: { type: String, trim: true, uppercase: true },
@@ -29,24 +61,9 @@ const clfSchema = new mongoose.Schema(
     ],
 
     coreMembers: {
-      president: {
-        name: { type: String, trim: true },
-        mobile: { type: String, trim: true },
-        address: { type: String, trim: true },
-        bankDetails: bankDetailsSchema,
-      },
-      secretary: {
-        name: { type: String, trim: true },
-        mobile: { type: String, trim: true },
-        address: { type: String, trim: true },
-        bankDetails: bankDetailsSchema,
-      },
-      treasurer: {
-        name: { type: String, trim: true },
-        mobile: { type: String, trim: true },
-        address: { type: String, trim: true },
-        bankDetails: bankDetailsSchema,
-      },
+      president: { name: { type: String, trim: true }, mobile: { type: String, trim: true }, address: { type: String, trim: true }, bankDetails: bankDetailsSchema },
+      secretary: { name: { type: String, trim: true }, mobile: { type: String, trim: true }, address: { type: String, trim: true }, bankDetails: bankDetailsSchema },
+      treasurer: { name: { type: String, trim: true }, mobile: { type: String, trim: true }, address: { type: String, trim: true }, bankDetails: bankDetailsSchema },
     },
 
     bodMembers: [

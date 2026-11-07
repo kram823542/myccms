@@ -18,7 +18,10 @@ export const submitWorkDone = async (req, { description }, fileBuffer) => {
     throw ApiError.forbidden('Work Done submission window closed (5-10 PM IST)');
   }
 
-  if (!fileBuffer) throw ApiError.badRequest('Work photo required');
+  // ✅ CHANGED: Description mandatory, image optional
+  if (!description || !description.trim()) {
+    throw ApiError.badRequest('Work description is required');
+  }
 
   const employee = await Employee.findOne({ userId: req.user._id });
   if (!employee) throw ApiError.notFound('Employee not found');
@@ -33,10 +36,14 @@ export const submitWorkDone = async (req, { description }, fileBuffer) => {
     throw ApiError.conflict('Work Done already approved for today');
   }
 
-  const upload = await uploadBuffer(fileBuffer, `clf-portal/workdone/${employee._id}`);
+  // ✅ Upload new image only if provided
+  let upload = null;
+  if (fileBuffer) {
+    upload = await uploadBuffer(fileBuffer, `clf-portal/workdone/${employee._id}`);
+  }
 
   if (doc && doc.status === 'REJECTED') {
-    // ✅ FIX #7: Purana image Cloudinary se delete
+    // ✅ Delete old image from Cloudinary if exists
     if (doc.imagePublicId) {
       try {
         await deleteImage(doc.imagePublicId);
@@ -50,25 +57,30 @@ export const submitWorkDone = async (req, { description }, fileBuffer) => {
       rejectedBy: doc.rejectedBy,
       rejectedAt: doc.rejectedAt,
     });
+
+    // ✅ Editable: text + image (image optional)
     doc.description = description;
-    doc.imageUrl = upload.secure_url;
-    doc.imagePublicId = upload.public_id; // ✅ Naya publicId
+    doc.imageUrl = upload ? upload.secure_url : null;
+    doc.imagePublicId = upload ? upload.public_id : null;
+
     doc.submittedAt = new Date();
     doc.status = 'PENDING';
     doc.version += 1;
     doc.rejectionReason = undefined;
     doc.rejectedBy = undefined;
     doc.rejectedAt = undefined;
+
     await doc.save();
   } else {
+    // Fresh submission — image optional
     doc = await WorkDone.create({
       employeeId: employee._id,
       clfId: employee.clfId,
       blockId: employee.blockId,
       date,
       description,
-      imageUrl: upload.secure_url,
-      imagePublicId: upload.public_id,
+      imageUrl: upload ? upload.secure_url : null,
+      imagePublicId: upload ? upload.public_id : null,
     });
   }
 
@@ -77,6 +89,7 @@ export const submitWorkDone = async (req, { description }, fileBuffer) => {
     action: 'WORK_DONE_SUBMITTED',
     targetType: 'WorkDone',
     targetId: doc._id,
+    metadata: { hasImage: !!upload, version: doc.version },
   });
 
   return doc;
@@ -131,6 +144,8 @@ export const approveWorkDone = async (req, id) => {
       doc.approvedAt = new Date();
       await doc.save({ session });
 
+      // ✅ IMPORTANT: Attendance hamesha ORIGINAL doc.date pe mark hoga
+      // (chahe approval kitne bhi din baad ho)
       await Attendance.findOneAndUpdate(
         { employeeId: doc.employeeId, date: doc.date },
         {
@@ -138,7 +153,7 @@ export const approveWorkDone = async (req, id) => {
             employeeId: doc.employeeId,
             clfId: doc.clfId,
             blockId: doc.blockId,
-            date: doc.date,
+            date: doc.date,            // ✅ Original submission date
             status: 'PRESENT',
             source: 'WORK_DONE_APPROVAL',
             markedBy: req.user._id,
@@ -149,7 +164,13 @@ export const approveWorkDone = async (req, id) => {
       );
     });
 
-    await createAudit({ req, action: 'WORK_DONE_APPROVED', targetType: 'WorkDone', targetId: doc._id });
+    await createAudit({
+      req,
+      action: 'WORK_DONE_APPROVED',
+      targetType: 'WorkDone',
+      targetId: doc._id,
+      metadata: { attendanceDate: doc.date },
+    });
     return doc;
   } finally {
     await session.endSession();
@@ -170,7 +191,13 @@ export const rejectWorkDone = async (req, id, reason) => {
   doc.rejectionReason = reason;
   await doc.save();
 
-  await createAudit({ req, action: 'WORK_DONE_REJECTED', targetType: 'WorkDone', targetId: doc._id, metadata: { reason } });
+  await createAudit({
+    req,
+    action: 'WORK_DONE_REJECTED',
+    targetType: 'WorkDone',
+    targetId: doc._id,
+    metadata: { reason },
+  });
   return doc;
 };
 

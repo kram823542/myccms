@@ -16,8 +16,9 @@ const router = express.Router();
 router.use(authenticate);
 
 // ✅ FIX #7: Validation add
+// ✅ NEW: 'Training' leave type add kiya
 const applyValidation = [
-  body('leaveType').isIn(['Casual Leave', 'Medical Leave', 'Half Day', 'Emergency Leave', 'Other']),
+  body('leaveType').isIn(['Casual Leave', 'Medical Leave', 'Half Day', 'Emergency Leave', 'Training', 'Other']),
   body('startDate').matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('startDate must be YYYY-MM-DD'),
   body('endDate').matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('endDate must be YYYY-MM-DD'),
   body('reason').trim().isLength({ min: 3, max: 1000 }),

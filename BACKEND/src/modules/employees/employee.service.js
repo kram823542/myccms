@@ -6,7 +6,6 @@ import { ApiError } from '../../utils/ApiError.js';
 import { encrypt, decrypt, generatePassword } from '../../utils/security.js';
 import { createAudit } from '../../middlewares/audit.middleware.js';
 
-// ✅ FIX #8: Cascade delete imports
 import { Attendance } from '../attendance/attendance.model.js';
 import { WorkDone } from '../workDone/workDone.model.js';
 import { Leave } from '../leaves/leave.model.js';
@@ -75,6 +74,7 @@ export const createEmployee = async (req, data) => {
           },
           workLocation: { panchayat: data.workLocation.panchayat },
           profilePhoto: data.profilePhoto,
+          tempPassword: tempPassword, // ✅ Yahan plain password save kiya
           clfId: clf._id,
           blockId: clf.blockId,
           userId: empUser[0]._id,
@@ -193,12 +193,13 @@ export const assertEmployeeAccess = (user, emp) => {
   throw ApiError.forbidden('Access denied');
 };
 
+/* ✅ UPDATE EMPLOYEE: Sirf CLF Admin edit kar sakta hai */
 export const updateEmployee = async (req, id, data) => {
   const emp = await Employee.findById(id).select('+aadhaarNumber +bankDetails.accountNumber');
   if (!emp) throw ApiError.notFound('Employee not found');
 
   if (req.user.role !== 'CLF' || String(req.user.clfId) !== String(emp.clfId)) {
-    if (req.user.role !== 'SUPER_ADMIN') throw ApiError.forbidden('Access denied');
+    throw ApiError.forbidden('Access denied. Only CLF Admin can edit employee details.');
   }
 
   const updatable = ['name', 'mobile', 'designation', 'joiningDate', 'profilePhoto'];
@@ -216,6 +217,12 @@ export const updateEmployee = async (req, id, data) => {
   if (data.aadhaarNumber) emp.aadhaarNumber = encrypt(data.aadhaarNumber);
 
   await emp.save();
+
+  await User.findByIdAndUpdate(emp.userId, {
+    ...(data.name && { name: data.name }),
+    ...(data.mobile && { mobile: data.mobile }),
+  });
+
   await createAudit({ req, action: 'EMPLOYEE_UPDATED', targetType: 'Employee', targetId: emp._id });
   return formatEmployee(emp, { revealSensitive: true });
 };
@@ -275,6 +282,10 @@ export const resetEmployeePassword = async (req, id, data) => {
 
     empUser.password = password;
     empUser.mustChangePassword = true;
+    
+    // ✅ Reset hote hi naya password Employee me save karo
+    emp.tempPassword = password; 
+    await emp.save();
   }
 
   empUser.loginAttempts = 0;
@@ -290,6 +301,26 @@ export const resetEmployeePassword = async (req, id, data) => {
   });
 
   return { username: empUser.username, resetBy: user.role };
+};
+
+// ✅ NAYA: Employee Credentials Fetch karo
+export const getEmployeeCredentials = async (req) => {
+  if (req.user.role !== 'CLF') throw ApiError.forbidden('Only CLF Admin can view credentials');
+
+  const employees = await Employee.find({ clfId: req.user.clfId })
+    .populate('userId', 'username') 
+    .select('name employeeCode tempPassword userId designation')
+    .sort({ name: 1 })
+    .lean();
+
+  return employees.map(emp => ({
+    _id: emp._id,
+    name: emp.name,
+    employeeCode: emp.employeeCode,
+    designation: emp.designation,
+    username: emp.userId?.username || emp.employeeCode.toLowerCase(),
+    password: emp.tempPassword || '******', // Agar purana employee hai toh ****** dikhega
+  }));
 };
 
 // ✅ FIX #8: Soft delete + orphan cleanup
@@ -309,7 +340,6 @@ export const deleteEmployee = async (req, id) => {
   }
 
   try {
-    // Cascade cleanup — reports/related data preserve karne ke liye related records delete
     await Promise.all([
       Attendance.deleteMany({ employeeId: emp._id }),
       WorkDone.deleteMany({ employeeId: emp._id }),
@@ -318,7 +348,6 @@ export const deleteEmployee = async (req, id) => {
       MessageRecipient.deleteMany({ employeeId: emp._id }),
     ]);
 
-    // Profile photo Cloudinary se delete
     if (emp.profilePhoto && emp.profilePhoto.includes('cloudinary')) {
       try {
         const publicId = emp.profilePhoto.split('/').slice(-2).join('/').replace(/\.[^.]+$/, '');

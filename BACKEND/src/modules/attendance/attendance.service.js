@@ -32,6 +32,7 @@ export const listAttendance = async (req, query) => {
     absent: attendance.filter((a) => a.status === 'ABSENT').length,
     halfDay: attendance.filter((a) => a.status === 'HALF_DAY').length,
     leave: attendance.filter((a) => a.status === 'LEAVE').length,
+      training: attendance.filter((a) => a.status === 'TRAINING').length, // ✅ NEW
     total: attendance.length,
   };
 

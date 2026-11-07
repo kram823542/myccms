@@ -11,21 +11,13 @@ import WorkDoneForm from './WorkDoneForm.jsx';
 import { theme } from '../../config/theme.js';
 import * as api from './workDone.api.js';
 
-/* ─────────────────────────────────────────────
-   Image Thumbnail
-   ───────────────────────────────────────────── */
+// Image Thumbnail Component
 function ImageThumb({ url, onPreview }) {
   if (!url) return <span style={{ color: theme.colors.muted }}>—</span>;
   return (
     <img
-      src={url}
-      alt="work"
-      onClick={() => onPreview(url)}
-      style={{
-        width: 40, height: 40, objectFit: 'cover', borderRadius: 6,
-        cursor: 'pointer', border: `1px solid ${theme.colors.border}`,
-        transition: 'transform 0.15s ease',
-      }}
+      src={url} alt="work" onClick={() => onPreview(url)}
+      style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6, cursor: 'pointer', border: `1px solid ${theme.colors.border}`, transition: 'transform 0.15s ease' }}
       onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
       onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
       title="Click to view full image"
@@ -33,36 +25,15 @@ function ImageThumb({ url, onPreview }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Reason Cell
-   ───────────────────────────────────────────── */
 function ReasonCell({ item }) {
-  if (item.status !== 'REJECTED') {
-    return <span style={{ color: theme.colors.muted }}>—</span>;
-  }
+  if (item.status !== 'REJECTED') return <span style={{ color: theme.colors.muted }}>—</span>;
   return (
-    <div
-      style={{
-        maxWidth: 180,
-        fontSize: 11,
-        color: theme.colors.danger,
-        padding: '6px 8px',
-        background: `${theme.colors.danger}08`,
-        borderRadius: 6,
-        borderLeft: `3px solid ${theme.colors.danger}`,
-        lineHeight: 1.3,
-        whiteSpace: 'normal',
-        wordBreak: 'break-word'
-      }}
-    >
+    <div style={{ maxWidth: 180, fontSize: 11, color: theme.colors.danger, padding: '6px 8px', background: `${theme.colors.danger}08`, borderRadius: 6, borderLeft: `3px solid ${theme.colors.danger}`, lineHeight: 1.3, whiteSpace: 'normal', wordBreak: 'break-word' }}>
       {item.rejectionReason || 'No reason provided'}
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────
-   Main Page
-   ───────────────────────────────────────────── */
 export default function WorkDonePage() {
   const user = getAuthUser() || {};
   const isEmployee = user.role === 'EMPLOYEE';
@@ -71,8 +42,10 @@ export default function WorkDonePage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(!isEmployee);
   const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState(null); // ✅ Edit ke liye
   const [tab, setTab] = useState('all');
   const [previewImg, setPreviewImg] = useState(null);
+  
   const [selected, setSelected] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState(false);
@@ -119,12 +92,16 @@ export default function WorkDonePage() {
   };
 
   if (isEmployee) {
-    // ... (Employee view same rahega, par main pura code de raha hoon)
     return (
       <>
         <PageHeader title="Work Done" subtitle="Window: 5:00 PM – 10:00 PM IST" />
-        {showForm ? (
-          <WorkDoneForm onSubmitted={() => { setShowForm(false); load(); }} onCancel={() => setShowForm(false)} />
+        
+        {showForm || editTarget ? (
+          <WorkDoneForm 
+            initialData={editTarget}
+            onSubmitted={() => { setShowForm(false); setEditTarget(null); load(); }} 
+            onCancel={() => { setShowForm(false); setEditTarget(null); }} 
+          />
         ) : (
           <>
             <button onClick={() => setShowForm(true)} style={{ padding: '12px 20px', background: theme.colors.primary, color: theme.colors.textLight, border: 'none', borderRadius: 10, fontWeight: 600, cursor: 'pointer', marginBottom: 20 }}>
@@ -137,6 +114,16 @@ export default function WorkDonePage() {
                 { header: 'Description', render: (r) => <div style={{ maxWidth: 400 }}>{r.description}</div> },
                 { header: 'Status', render: (r) => <Badge variant={r.status === 'APPROVED' ? 'success' : r.status === 'REJECTED' ? 'danger' : 'warning'}>{r.status}</Badge> },
                 { header: 'Rejection Reason', render: (r) => <ReasonCell item={r} /> },
+                {
+                  header: 'Action',
+                  render: (r) => {
+                    // ✅ Agar REJECTED hai toh Edit button dikhao
+                    if (r.status === 'REJECTED') {
+                      return <Button size="sm" variant="outline" onClick={() => setEditTarget(r)}>✏️ Edit</Button>;
+                    }
+                    return <span style={{ color: theme.colors.muted }}>—</span>;
+                  }
+                }
               ]}
               data={items}
               loading={loading}
@@ -150,6 +137,7 @@ export default function WorkDonePage() {
     );
   }
 
+  // ═══════════ ADMIN (CLF / BPM) VIEW ═══════════
   const filteredItems = tab === 'pending' ? items.filter((i) => i.status === 'PENDING') : items;
   const pendingCount = items.filter((i) => i.status === 'PENDING').length;
 
@@ -161,14 +149,7 @@ export default function WorkDonePage() {
         const initial = (r.employeeId?.name || '?').charAt(0).toUpperCase();
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: '50%',
-              background: `${theme.colors.primary}15`,
-              border: `1px solid ${theme.colors.primary}40`,
-              color: theme.colors.primary,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, fontWeight: 'bold', overflow: 'hidden', flexShrink: 0,
-            }}>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${theme.colors.primary}15`, border: `1px solid ${theme.colors.primary}40`, color: theme.colors.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 'bold', overflow: 'hidden', flexShrink: 0 }}>
               {dp ? <img src={dp} alt="dp" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initial}
             </div>
             <div>
@@ -179,31 +160,11 @@ export default function WorkDonePage() {
         );
       }
     },
-    { 
-      header: 'CLF', 
-      render: (r) => (
-        <span style={{ 
-          fontSize: 11, fontWeight: 700, color: theme.colors.primary,
-          background: `${theme.colors.primary}10`, padding: '4px 8px', borderRadius: 6,
-          display: 'inline-block', whiteSpace: 'nowrap'
-        }}>
-          {r.clfId?.name || r.employeeId?.clfId?.name || '—'}
-        </span>
-      ) 
-    },
+    { header: 'CLF', render: (r) => (<span style={{ fontSize: 11, fontWeight: 700, color: theme.colors.primary, background: `${theme.colors.primary}10`, padding: '4px 8px', borderRadius: 6, display: 'inline-block', whiteSpace: 'nowrap' }}>{r.clfId?.name || r.employeeId?.clfId?.name || '—'}</span>) },
     { header: 'Date', key: 'date' },
     { header: 'Image', render: (r) => <ImageThumb url={r.imageUrl} onPreview={setPreviewImg} /> },
     { header: 'Description', render: (r) => <div style={{ maxWidth: 200, whiteSpace: 'normal', fontSize: 13 }}>{r.description}</div> },
-    {
-      header: 'Status',
-      render: (r) => (
-        <Badge
-          variant={r.status === 'APPROVED' ? 'success' : r.status === 'REJECTED' ? 'danger' : 'warning'}
-        >
-          {r.status}
-        </Badge>
-      ),
-    },
+    { header: 'Status', render: (r) => (<Badge variant={r.status === 'APPROVED' ? 'success' : r.status === 'REJECTED' ? 'danger' : 'warning'}>{r.status}</Badge>) },
     { header: 'Rejection Reason', render: (r) => <ReasonCell item={r} /> },
     {
       header: 'Action',

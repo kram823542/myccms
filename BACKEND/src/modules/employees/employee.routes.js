@@ -20,6 +20,10 @@ router.post(
   ctrl.create
 );
 router.get('/', authorize('SUPER_ADMIN', 'BPM', 'CLF'), ctrl.list);
+
+// ✅ FIX: /credentials ko /:id se pehle rakha
+router.get('/credentials', authorize('CLF'), ctrl.getCredentials);
+
 router.get('/:id', ctrl.getOne);
 router.patch(
   '/:id',
@@ -30,14 +34,12 @@ router.patch(
 );
 router.patch('/:id/status', authorize('CLF', 'SUPER_ADMIN'), ctrl.setStatus);
 
-// ✅ Reset password
 router.post(
   '/:id/reset-password',
   authorize('CLF', 'SUPER_ADMIN'),
   ctrl.resetPassword
 );
 
-// ✅ NEW: Permanently delete employee
 router.delete(
   '/:id',
   authorize('CLF', 'SUPER_ADMIN'),

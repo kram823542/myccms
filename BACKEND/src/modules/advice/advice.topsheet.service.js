@@ -7,11 +7,12 @@ import { CLF } from '../clfs/clf.model.js';
 import { TopSheet } from './topSheet.model.js'; 
 import { ApiError } from '../../utils/ApiError.js';
 import { logger } from '../../utils/logger.js';
+import { generatePatrankPrefix } from '../../utils/generatePatrank.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ── Fonts Logic (Same as Advice) ──
+// ── Fonts Logic ──
 const getFontPath = (fontName) => {
   const paths = [
     path.join(process.cwd(), 'assets', 'fonts', fontName),
@@ -39,6 +40,7 @@ const registerFonts = (doc) => {
 };
 
 const fetchImageBuffer = async (url) => {
+  if (!url) return null;
   try {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -66,25 +68,18 @@ const formatAmountInWords = (num) => {
   return numToWords(Math.floor(num)) + ' Rupees Only';
 };
 
+// ✅ FIX: getBankShortName wapas add kiya
 const getBankShortName = (fullName) => {
   if (!fullName) return '';
-  const map = {
-    'state bank of india': 'SBI', 'punjab national bank': 'PNB', 'bank of india': 'BOI',
-    'bank of baroda': 'BOB', 'canara bank': 'Canara', 'union bank of india': 'UBI',
-    'indian bank': 'Indian Bank', 'hdfc bank': 'HDFC', 'icici bank': 'ICICI',
-    'axis bank': 'Axis', 'jharkhand rajya gramin bank': 'JRGB', 'jharkhand gramin bank': 'JGB',
-  };
+  const map = { 'state bank of india': 'SBI', 'punjab national bank': 'PNB', 'bank of india': 'BOI', 'bank of baroda': 'BOB', 'canara bank': 'Canara', 'union bank of india': 'UBI', 'indian bank': 'Indian Bank', 'hdfc bank': 'HDFC', 'icici bank': 'ICICI', 'axis bank': 'Axis', 'jharkhand rajya gramin bank': 'JRGB', 'jharkhand gramin bank': 'JGB' };
   return map[fullName.toLowerCase().trim()] || fullName;
 };
 
 export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, selectedBank, res) => {
-  // 1. Fetch CLF
   const clf = await CLF.findById(clfId);
   if (!clf) throw ApiError.notFound('CLF not found');
-
   if (!monthStr.includes('-')) throw ApiError.badRequest('Month format must be YYYY-MM');
   
-  // ✅ Sirf selected advice IDs fetch karo
   const selectedAdviceIds = adviceDetails.map(d => d.adviceId);
 
   const advices = await Advice.find({
@@ -95,7 +90,6 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
 
   if (!advices.length) throw ApiError.badRequest('No advices selected or found');
 
-  // 2. Process Rows & Grand Total
   let grandTotal = 0;
   const tableRows = [];
 
@@ -107,7 +101,6 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
     const amount = adv.totalAmount;
 
     grandTotal += amount;
-
     const input = adviceDetails?.find(d => String(d.adviceId) === String(adv._id)) || {};
 
     tableRows.push({
@@ -122,10 +115,9 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
     });
   });
 
-  // 3. PDF Setup
-  const LEFT_LOGO_URL = 'https://res.cloudinary.com/dsjnikk42/image/upload/v1789380290/WhatsApp_Image_2026-09-14_at_1.07.08_PM_nbbmda.jpg';
-  const RIGHT_LOGO_URL = 'https://res.cloudinary.com/dsjnikk42/image/upload/v1789380471/WhatsApp_Image_2026-09-14_at_1.07.10_PM_owpahi.jpg';
-  const [leftLogoBuf, rightLogoBuf] = await Promise.all([fetchImageBuffer(LEFT_LOGO_URL), fetchImageBuffer(RIGHT_LOGO_URL)]);
+  const leftLogoUrl = clf.letterhead?.leftLogo;
+  const rightLogoUrl = clf.letterhead?.rightLogo;
+  const [leftLogoBuf, rightLogoBuf] = await Promise.all([fetchImageBuffer(leftLogoUrl), fetchImageBuffer(rightLogoUrl)]);
 
   const doc = new PDFDocument({ size: 'A4', margin: 0, bufferPages: true, autoFirstPage: false });
   registerFonts(doc);
@@ -150,7 +142,7 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
 
   drawStrip(y); y += 18;
 
-  // Header
+  // HEADER
   const logoSize = 70, logoY = y;
   const titleWidth = pageWidth - marginLeft - marginRight - logoSize * 2 - 20;
   const titleX = marginLeft + logoSize + 10;
@@ -158,26 +150,32 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
   if (leftLogoBuf) try { doc.image(leftLogoBuf, marginLeft, logoY, { fit: [logoSize, logoSize] }); } catch {}
   if (rightLogoBuf) try { doc.image(rightLogoBuf, pageWidth - marginRight - logoSize, logoY, { fit: [logoSize, logoSize] }); } catch {}
 
-  let ty = logoY + 10;
-  doc.font('Devanagari-Bold').fontSize(18).fillColor('black').text('सतबरवा आजीविका महिला संकुल स्तरीय', titleX, ty, { width: titleWidth, align: 'center' });
-  ty += 22;
-  doc.font('Devanagari-Bold').fontSize(13).text('प्राथमिक स्वावलम्बी सहकारी समिति लिमिटेड', titleX, ty, { width: titleWidth, align: 'center' });
-  ty += 18;
-  doc.font('Devanagari').fontSize(8.5).text('ग्राम- सतबरवा, कलस्टर- सतबरवा, प्रखंड- सतबरवा, जिला- पलामू (झा0)', titleX, ty, { width: titleWidth, align: 'center' });
-  ty += 11;
-  doc.text('निबंधन संख्या :- 02-JKD-01-04-01-0TH-001-2023', titleX, ty, { width: titleWidth, align: 'center' });
+  let ty = logoY + 5;
+  doc.font('Devanagari').fontSize(16).fillColor('black').text(clf.name || '', titleX, ty, { width: titleWidth, align: 'center' });
+  ty += doc.heightOfString(clf.name || '', { width: titleWidth }) + 6;
+  
+  doc.font('Devanagari').fontSize(9).text(clf.letterhead?.addressLine || '', titleX, ty, { width: titleWidth, align: 'center' });
+  ty += 14;
+
+  if (clf.letterhead?.registrationNo) {
+    doc.text(clf.letterhead.registrationNo, titleX, ty, { width: titleWidth, align: 'center' });
+  }
 
   y = Math.max(logoY + logoSize, ty + 10) + 6;
   drawStrip(y); y += 18;
 
-  // Dates & Ref
+  // ✅ FIX: Patrank dynamic generate karo
+  const prefix = generatePatrankPrefix(clf.name);
+  const currentYear = new Date().getFullYear();
+  const patrankDisplay = `${prefix}/CLF/${currentYear}/`;
+
   doc.font('Devanagari').fontSize(10).fillColor('black');
   const dateStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  doc.text(`पत्रांक_  `, marginLeft, y);
+  
+  doc.text(`पत्रांक_  ${patrankDisplay}`, marginLeft, y);
   doc.text(`दिनांक - ${dateStr}`, marginLeft, y, { width: contentWidth, align: 'right' });
   y += 18;
 
-  // ✅ UPDATED: Dynamic Selected Bank Details
   const displayBankName = selectedBank?.bankName || clf.bankAccounts?.[0]?.bankName || 'Bank Name';
   const displayBankBranch = selectedBank?.branch || clf.bankAccounts?.[0]?.branch || '-';
   const displayBankAccNo = selectedBank?.accountNumber || clf.bankAccounts?.[0]?.accountNumber || '-';
@@ -191,13 +189,13 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
   doc.font('Devanagari-Bold').fontSize(11).text('Subject: Bank Advice for transfer', marginLeft, y, { underline: true }); y += 18;
   doc.font('Devanagari').fontSize(10);
   
-  doc.text(`Ref: SB Account number : Satbarwa Aajeevika Mahila Sankul Astariva Prathmik Swalambi Sahkari Samitil , SB A/c No. ${displayBankAccNo}`, marginLeft, y, { width: contentWidth }); y += 24;
+  doc.text(`Ref: SB Account number : ${clf.name}, SB A/c No. ${displayBankAccNo}`, marginLeft, y, { width: contentWidth }); y += 24;
   doc.text('Dear Sir,', marginLeft, y); y += 14;
 
   doc.text(`Please debit a sum of Rs. ${grandTotal.toLocaleString('en-IN')}/- (${formatAmountInWords(grandTotal)})`, marginLeft, y, { width: contentWidth, align: 'justify' });
   y = doc.y + 6;
 
-  doc.text(`From our saving bank account of Satbarwa Aajeevika Mahila Sankul Sangh , SB A/c No. ${displayBankAccNo}, vide Ch. No. ________________ by the fastest mode of remittance as per the details given below:`, marginLeft, y, { width: contentWidth, align: 'justify' });
+  doc.text(`From our saving bank account of ${clf.name}, SB A/c No. ${displayBankAccNo}, vide Ch. No. ________________ by the fastest mode of remittance as per the details given below:`, marginLeft, y, { width: contentWidth, align: 'justify' });
   y = doc.y + 15;
 
   // Table Title
@@ -211,19 +209,13 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
 
   let x = startX;
   const headers = [
-    { w: colWidths.sl, label: 'Sl.' },
-    { w: colWidths.cader, label: 'TYPE OF CADER' },
-    { w: colWidths.month, label: 'MONTH' },
-    { w: colWidths.total, label: 'TOTAL\nCADER' },
-    { w: colWidths.bank, label: 'TRANSFER\nTO BANK' },
-    { w: colWidths.amount, label: 'AMOUNT' },
-    { w: colWidths.cheque, label: 'CHECK\nNO.' },
-    { w: colWidths.block, label: 'BLOCK\nLETTER NO.' },
+    { w: colWidths.sl, label: 'Sl.' }, { w: colWidths.cader, label: 'TYPE OF CADER' }, { w: colWidths.month, label: 'MONTH' },
+    { w: colWidths.total, label: 'TOTAL\nCADER' }, { w: colWidths.bank, label: 'TRANSFER\nTO BANK' },
+    { w: colWidths.amount, label: 'AMOUNT' }, { w: colWidths.cheque, label: 'CHECK\nNO.' }, { w: colWidths.block, label: 'BLOCK\nLETTER NO.' },
   ];
 
   doc.rect(startX, y, totalTableWidth, rowHeight * 1.5).fill('#F3F4F6');
-  doc.fillColor('black');
-  doc.font('Devanagari-Bold').fontSize(7.5);
+  doc.fillColor('black').font('Devanagari-Bold').fontSize(7.5);
 
   headers.forEach((h) => {
     doc.rect(x, y, h.w, rowHeight * 1.5).stroke();
@@ -234,11 +226,27 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
 
   // Table Rows
   doc.font('Devanagari').fontSize(8);
-  // Table Rows
-  doc.font('Devanagari').fontSize(8);
   tableRows.forEach((row) => {
+    if (y > 700) {
+      doc.addPage({ size: 'A4', margin: 0 });
+      y = 30;
+      drawStrip(y); y += 18;
+      doc.font('Devanagari').fontSize(10).text(`TOPSHEET-${monthStr} (Contd...)`, marginLeft, y, { width: contentWidth, align: 'center' }); 
+      y += 20;
+
+      x = startX;
+      doc.rect(startX, y, totalTableWidth, rowHeight * 1.5).fill('#F3F4F6');
+      doc.fillColor('black').font('Devanagari-Bold').fontSize(7.5);
+      headers.forEach((h) => {
+        doc.rect(x, y, h.w, rowHeight * 1.5).stroke();
+        doc.text(h.label, x + 2, y + 5, { width: h.w - 4, align: 'center' });
+        x += h.w;
+      });
+      y += rowHeight * 1.5;
+      doc.font('Devanagari').fontSize(8);
+    }
+
     x = startX;
-    
     const caderText = String(row.designation || 'Mixed');
     const caderHeight = doc.heightOfString(caderText, { width: colWidths.cader - 4 });
     const currentRowHeight = Math.max(rowHeight, caderHeight + 6);
@@ -257,13 +265,7 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
     vals.forEach((v) => {
       doc.rect(x, y, v.w, currentRowHeight).stroke();
       const textY = y + (v.wrap ? 5 : (currentRowHeight - 8) / 2 + 2);
-      
-      doc.text(String(v.v), x + 2, textY, { 
-        width: v.w - 4, 
-        align: v.align, 
-        lineBreak: v.wrap ? true : false, 
-        ellipsis: !v.wrap 
-      });
+      doc.text(String(v.v), x + 2, textY, { width: v.w - 4, align: v.align, lineBreak: v.wrap ? true : false, ellipsis: !v.wrap });
       x += v.w;
     });
     y += currentRowHeight;
@@ -288,11 +290,21 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
   doc.text(`Rs. ${grandTotal.toLocaleString('en-IN')}/- (${formatAmountInWords(grandTotal)})`, marginLeft, y, { width: contentWidth });
   y = doc.y + 15;
 
-  // Footer (Signatures)
+  // Signatures & Footer
+  if (y > 650) {
+    doc.addPage({ size: 'A4', margin: 0 });
+    y = 30;
+    drawStrip(y); y += 18;
+  }
+
   const footerTop = pageHeight - 90;
   const sigY = footerTop - 40;
   const sigWidth = 80, gap = 20;
-  const sigLabels = ['अध्यक्ष', 'सचिव', 'कोषाध्यक्ष'];
+  const sigLabels = [
+    clf.signatures?.first || 'अध्यक्ष', 
+    clf.signatures?.second || 'सचिव', 
+    clf.signatures?.third || 'कोषाध्यक्ष'
+  ];
 
   doc.font('Devanagari-Bold').fontSize(10).fillColor('black');
   sigLabels.forEach((label, i) => {
@@ -304,24 +316,26 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
   doc.font('Devanagari-Bold').fontSize(9);
   const rightX = marginLeft + contentWidth - 180;
   doc.text('Thanking You.', rightX, sigY - 30, { width: 180, align: 'right' });
-  doc.text('सतबरवा आजीविका महिला संकुल स्तरीय', rightX, sigY - 16, { width: 180, align: 'right' });
-  doc.text('प्राथमिक स्वावलम्बी सहकारी समिति लिमिटेड', rightX, sigY - 4, { width: 180, align: 'right' });
+  doc.text(clf.name || '', rightX, sigY - 16, { width: 180, align: 'right' });
+  doc.text(clf.letterhead?.subTitle || '', rightX, sigY - 4, { width: 180, align: 'right' });
 
   drawStrip(footerTop);
   let fy = footerTop + 12;
   doc.font('Devanagari').fontSize(7.5).fillColor('black');
+  
   const footerLines = [
-    'प्रखंड कार्यालय :- प्रखंड मिशन प्रबंधन इकाई, राँची रोड, सतबरवा पलामू 822126',
-    'जिला कार्यालय :- जिला मिशन प्रबंधन इकाई, पुराना DRDA कार्यालय भवन , पलामू , 822102',
-    'राज्य कार्यालय :- द्वितीय तल, झारखण्ड राज्य कृषि विपणन पर्षद, ईटकी रोड, हेहल,राँची – 834005 झारखण्ड',
-    'फोन नं0 0651 2360038 / 2360142',
-  ];
+    clf.footer?.blockOffice,
+    clf.footer?.districtOffice,
+    clf.footer?.stateOffice,
+    clf.footer?.phone,
+  ].filter(Boolean);
+
   footerLines.forEach((line) => {
     doc.text(line, 0, fy, { width: pageWidth, align: 'center' });
     fy += 10;
   });
 
-  // ✅ NAYA: PDF banne ke baad History Database me save karein (With Details)
+  // Save History
   try {
     const summaryAdvices = advices.map(adv => ({
       adviceId: adv._id,
@@ -329,12 +343,8 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
       designation: [...new Set(adv.employees.map(e => e.designation || 'N/A'))].join(', '),
       totalAmount: adv.totalAmount,
       employees: adv.employees.map(e => ({
-        name: e.name,
-        designation: e.designation,
-        amount: e.amount,
-        accountNumber: e.bankAccountNumber,
-        bankName: e.bankName,
-        ifscCode: e.ifscCode
+        name: e.name, designation: e.designation, amount: e.amount,
+        accountNumber: e.bankAccountNumber, bankName: e.bankName, ifscCode: e.ifscCode
       }))
     }));
 
@@ -346,7 +356,7 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
       adviceCount: advices.length,
       grandTotal,
       createdBy: req.user._id,
-      advices: summaryAdvices // ✅ Detail Save kiya
+      advices: summaryAdvices
     });
   } catch (err) {
     logger.error(`History save failed: ${err.message}`);

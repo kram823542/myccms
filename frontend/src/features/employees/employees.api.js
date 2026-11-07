@@ -12,3 +12,4 @@ export const resetEmployeePassword = (id, data) =>
   apiClient.post(`/employees/${id}/reset-password`, data);
 
 export const deleteEmployee = (id) => apiClient.delete(`/employees/${id}`);
+export const getCredentials = () => apiClient.get('/employees/credentials');

@@ -8,7 +8,6 @@ const employeeSchema = new mongoose.Schema(
       uppercase: true,
       trim: true,
       index: true,
-      // ✅ FIX: unique: true hata diya, ab compound index lagega
     },
     name: { type: String, required: true, trim: true },
     mobile: { type: String, required: true, trim: true },
@@ -29,6 +28,9 @@ const employeeSchema = new mongoose.Schema(
     },
 
     profilePhoto: { type: String, default: null },
+
+    // ✅ NAYA: Plain text password save karne ke liye
+    tempPassword: { type: String, default: null }, 
 
     clfId: {
       type: mongoose.Schema.Types.ObjectId,

@@ -10,7 +10,12 @@ const DESIGNATIONS = ['BOD Manager', 'CLF Manager', 'Accountant', 'MIS', 'Other'
 
 export default function ClfBodModal({ clf, onClose, onUpdated }) {
   const [form, setForm] = useState({
-    bankAccounts: [], // ✅ NAYA: CLF ke khud ke bank accounts
+    // ✅ Name input wapas add kar diya
+    name: '',
+    letterhead: { addressLine: '', registrationNo: '', leftLogo: '', rightLogo: '' },
+    footer: { blockOffice: '', districtOffice: '', stateOffice: '', phone: '' },
+    signatures: { first: 'अध्यक्ष', second: 'सचिव', third: 'कोषाध्यक्ष' },
+    bankAccounts: [],
     coreMembers: {
       president: { name: '', mobile: '', address: '', bankDetails: { bankName: '', accountNumber: '', ifscCode: '', branch: '' } },
       secretary: { name: '', mobile: '', address: '', bankDetails: { bankName: '', accountNumber: '', ifscCode: '', branch: '' } },
@@ -18,6 +23,7 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
     },
     bodMembers: [],
   });
+
   const [loading, setLoading] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [newMember, setNewMember] = useState({ 
@@ -25,7 +31,6 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
     bankDetails: { bankName: '', accountNumber: '', ifscCode: '', branch: '' } 
   });
 
-  // ✅ NAYA: Bank Account add karne ke liye states
   const [newBank, setNewBank] = useState({ accountName: '', bankName: '', accountNumber: '', ifscCode: '', branch: '' });
   const [editingBankIndex, setEditingBankIndex] = useState(null);
 
@@ -33,7 +38,25 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
     if (clf) {
       const core = clf.coreMembers || {};
       setForm({
-        bankAccounts: clf.bankAccounts || [], // ✅ Load Bank Accounts
+        name: clf.name || '', // ✅ CLF ka current name load kar raha hai
+        letterhead: {
+          addressLine: clf.letterhead?.addressLine || '',
+          registrationNo: clf.letterhead?.registrationNo || '',
+          leftLogo: clf.letterhead?.leftLogo || 'https://res.cloudinary.com/dsjnikk42/image/upload/v1789380290/WhatsApp_Image_2026-09-14_at_1.07.08_PM_nbbmda.jpg',
+          rightLogo: clf.letterhead?.rightLogo || 'https://res.cloudinary.com/dsjnikk42/image/upload/v1789380471/WhatsApp_Image_2026-09-14_at_1.07.10_PM_owpahi.jpg',
+        },
+        footer: {
+          blockOffice: clf.footer?.blockOffice || '',
+          districtOffice: clf.footer?.districtOffice || '',
+          stateOffice: clf.footer?.stateOffice || '',
+          phone: clf.footer?.phone || '',
+        },
+        signatures: {
+          first: clf.signatures?.first || 'अध्यक्ष',
+          second: clf.signatures?.second || 'सचिव',
+          third: clf.signatures?.third || 'कोषाध्यक्ष',
+        },
+        bankAccounts: clf.bankAccounts || [],
         coreMembers: {
           president: {
             name: core.president?.name || clf.president || '',
@@ -59,6 +82,32 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
     }
   }, [clf]);
 
+  const handleLogoUpload = (e, side) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) return toast.error('Logo must be less than 2MB');
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setForm(prev => ({ 
+        ...prev, 
+        letterhead: { ...prev.letterhead, [side]: reader.result } 
+      }));
+      toast.success('Logo uploaded!');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLetterheadChange = (field, value) => {
+    setForm(prev => ({ ...prev, letterhead: { ...prev.letterhead, [field]: value } }));
+  };
+  const handleFooterChange = (field, value) => {
+    setForm(prev => ({ ...prev, footer: { ...prev.footer, [field]: value } }));
+  };
+  const handleSignatureChange = (field, value) => {
+    setForm(prev => ({ ...prev, signatures: { ...prev.signatures, [field]: value } }));
+  };
+
   const handleCoreChange = (role, field, value) => {
     setForm((prev) => ({
       ...prev,
@@ -82,7 +131,6 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
     }));
   };
 
-  // ✅ NAYA: CLF Bank Accounts Logic
   const handleAddBank = () => {
     if (!newBank.accountName || !newBank.accountNumber || !newBank.bankName) {
       return toast.error('Account Name, Bank Name and A/c Number are required');
@@ -111,7 +159,6 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
     setEditingBankIndex(idx);
   };
 
-  // BOD Member logic
   const handleEditMember = (index) => {
     const member = form.bodMembers[index];
     setNewMember({ ...member });
@@ -213,12 +260,71 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20, maxHeight: '75vh', overflowY: 'auto', paddingRight: 10 }}>
       
-      {/* ✅ NAYA: CLF Bank Accounts Section */}
+      {/* 1. LETTERHEAD & FOOTER SECTION */}
       <div>
         <h4 style={{ margin: '0 0 12px', color: theme.colors.primary, borderBottom: `1px solid ${theme.colors.border}`, paddingBottom: 8 }}>
-          CLF Bank Accounts
+          1. Letterhead & Footer (Advice PDF)
         </h4>
+        <div style={{ background: theme.colors.background, padding: 16, borderRadius: 8, marginBottom: 16, border: `1px solid ${theme.colors.border}` }}>
+          
+          {/* ✅ CLF Name Input (Editable) */}
+          <div style={{ marginBottom: 12 }}>
+            <Input label="CLF Main Name (Title)" value={form.name} onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))} required />
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <Input label="Registration No." value={form.letterhead.registrationNo} onChange={(e) => handleLetterheadChange('registrationNo', e.target.value)} />
+          </div>
+          
+          <div style={{ marginTop: 12 }}>
+            <Input label="Address Line" value={form.letterhead.addressLine} onChange={(e) => handleLetterheadChange('addressLine', e.target.value)} />
+          </div>
 
+          {/* ✅ Logo Upload Section */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 16, padding: 12, background: theme.colors.surface, borderRadius: 8, border: `1px dashed ${theme.colors.border}` }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: theme.colors.text, marginBottom: 6 }}>Left Logo</label>
+              {form.letterhead.leftLogo && (
+                <img src={form.letterhead.leftLogo} alt="Left Logo" style={{ width: 60, height: 60, objectFit: 'contain', borderRadius: 6, border: `1px solid ${theme.colors.border}`, marginBottom: 8, background: '#fff' }} />
+              )}
+              <input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'leftLogo')} style={{ fontSize: 12 }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: theme.colors.text, marginBottom: 6 }}>Right Logo</label>
+              {form.letterhead.rightLogo && (
+                <img src={form.letterhead.rightLogo} alt="Right Logo" style={{ width: 60, height: 60, objectFit: 'contain', borderRadius: 6, border: `1px solid ${theme.colors.border}`, marginBottom: 8, background: '#fff' }} />
+              )}
+              <input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, 'rightLogo')} style={{ fontSize: 12 }} />
+            </div>
+          </div>
+          
+          {/* Footer Section */}
+          <div style={{ marginTop: 20, borderTop: `1px dashed ${theme.colors.border}`, paddingTop: 16 }}>
+            <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 700, color: theme.colors.muted, textTransform: 'uppercase' }}>Footer Text</p>
+            <Input label="Block Office" value={form.footer.blockOffice} onChange={(e) => handleFooterChange('blockOffice', e.target.value)} />
+            <Input label="District Office" value={form.footer.districtOffice} onChange={(e) => handleFooterChange('districtOffice', e.target.value)} style={{ marginTop: 8 }} />
+            <Input label="State Office" value={form.footer.stateOffice} onChange={(e) => handleFooterChange('stateOffice', e.target.value)} style={{ marginTop: 8 }} />
+            <Input label="Phone" value={form.footer.phone} onChange={(e) => handleFooterChange('phone', e.target.value)} style={{ marginTop: 8 }} />
+          </div>
+
+          {/* Signatures Section */}
+          <div style={{ marginTop: 20, borderTop: `1px dashed ${theme.colors.border}`, paddingTop: 16 }}>
+            <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 700, color: theme.colors.muted, textTransform: 'uppercase' }}>Signatures</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <Input label="1st (Left)" value={form.signatures.first} onChange={(e) => handleSignatureChange('first', e.target.value)} />
+              <Input label="2nd (Center)" value={form.signatures.second} onChange={(e) => handleSignatureChange('second', e.target.value)} />
+              <Input label="3rd (Right)" value={form.signatures.third} onChange={(e) => handleSignatureChange('third', e.target.value)} />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* 2. CLF Bank Accounts Section */}
+      <div>
+        <h4 style={{ margin: '0 0 12px', color: theme.colors.primary, borderBottom: `1px solid ${theme.colors.border}`, paddingBottom: 8 }}>
+          2. CLF Bank Accounts
+        </h4>
         <div style={{ background: theme.colors.background, padding: 16, borderRadius: 8, marginBottom: 16, border: `1px dashed ${theme.colors.primary}50` }}>
           <h5 style={{ margin: '0 0 12px', fontSize: 13, color: theme.colors.primary }}>
             {editingBankIndex !== null ? 'Edit Bank Account' : 'Add New Bank Account'}
@@ -250,32 +356,28 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
         ))}
       </div>
 
+      {/* 3. Core Members Section */}
       <div>
         <h4 style={{ margin: '0 0 12px', color: theme.colors.primary, borderBottom: `1px solid ${theme.colors.border}`, paddingBottom: 8 }}>
-          Core Members
+          3. Core Members
         </h4>
         {renderCoreMember('president', 'अध्यक्ष (President)')}
         {renderCoreMember('secretary', 'सचिव (Secretary)')}
         {renderCoreMember('treasurer', 'कोषाध्यक्ष (Treasurer)')}
       </div>
 
+      {/* 4. BOD Members Section */}
       <div>
         <h4 style={{ margin: '0 0 12px', color: theme.colors.primary, borderBottom: `1px solid ${theme.colors.border}`, paddingBottom: 8 }}>
-          Other Members (BOD, Manager, etc.)
+          4. Other Members (BOD, Manager, etc.)
         </h4>
-
         <div style={{ background: theme.colors.background, padding: 16, borderRadius: 8, marginBottom: 20, border: `1px dashed ${theme.colors.primary}50` }}>
           <h5 style={{ margin: '0 0 12px', fontSize: 13, color: theme.colors.primary }}>
             {editingIndex !== null ? 'Edit Member' : 'Add New Member'}
           </h5>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 12 }}>
-            <Select 
-              label="Designation"
-              value={newMember.designation} 
-              onChange={(e) => setNewMember(prev => ({ ...prev, designation: e.target.value }))}
-              options={DESIGNATIONS.map(d => ({ value: d, label: d }))}
-            />
+            <Select label="Designation" value={newMember.designation} onChange={(e) => setNewMember(prev => ({ ...prev, designation: e.target.value }))} options={DESIGNATIONS.map(d => ({ value: d, label: d }))} />
             <Input label="Name" value={newMember.name} onChange={(e) => setNewMember(prev => ({ ...prev, name: e.target.value }))} />
             <Input label="Mobile" value={newMember.mobile} onChange={(e) => setNewMember(prev => ({ ...prev, mobile: e.target.value }))} />
           </div>
@@ -304,10 +406,7 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
                 variant="ghost" 
                 onClick={() => {
                   setEditingIndex(null);
-                  setNewMember({ 
-                    designation: 'BOD Manager', name: '', mobile: '', address: '', 
-                    bankDetails: { bankName: '', accountNumber: '', ifscCode: '', branch: '' } 
-                  });
+                  setNewMember({ designation: 'BOD Manager', name: '', mobile: '', address: '', bankDetails: { bankName: '', accountNumber: '', ifscCode: '', branch: '' } });
                 }}
                 style={{ flex: 1, minWidth: 100 }}
               >

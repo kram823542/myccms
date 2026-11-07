@@ -21,9 +21,9 @@ const workDoneSchema = new mongoose.Schema(
     },
     date: { type: String, required: true, index: true },
     description: { type: String, required: true, trim: true, maxlength: 3000 },
-    imageUrl: { type: String, required: true },
 
-    // ✅ FIX #7: Cloudinary publicId store karo delete ke liye
+    // ✅ CHANGED: Image ab optional hai
+    imageUrl: { type: String, default: null },
     imagePublicId: { type: String, default: null },
 
     submittedAt: { type: Date, default: Date.now },

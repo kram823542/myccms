@@ -14,6 +14,10 @@ import auditRoutes from '../modules/auditLogs/auditLog.routes.js';
 import adviceRoutes from '../modules/advice/advice.routes.js';
 import leaveRoutes from '../modules/leaves/leave.routes.js';
 
+
+// ✅ NEW: CLF Resources (Lokos CRP + VO)
+import clfResourceRoutes from '../modules/clfResources/clfResource.routes.js';
+
 const router = Router();
 
 router.get('/health', (req, res) => {
@@ -34,4 +38,8 @@ router.use('/audit-logs', auditRoutes);
 router.use('/advice', adviceRoutes);
 router.use('/leaves', leaveRoutes);
 
+
+
+// ✅ NEW: mount clf-resources
+router.use('/clf-resources', clfResourceRoutes);
 export default router;

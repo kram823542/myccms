@@ -33,6 +33,10 @@ export default function EmployeesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [openForm, setOpenForm] = useState(false);
+  
+  // ✅ NAYA: Edit Target State
+  const [editTarget, setEditTarget] = useState(null);
+
   const [tempCred, setTempCred] = useState(null);
 
   const [resetTarget, setResetTarget] = useState(null);
@@ -45,6 +49,10 @@ export default function EmployeesPage() {
   const canCreate = user.role === 'CLF';
   const canReset = ['CLF', 'SUPER_ADMIN'].includes(user.role);
   const canDelete = ['CLF', 'SUPER_ADMIN'].includes(user.role);
+  
+  // ✅ NAYA: Sirf CLF Admin edit kar sakta hai
+  const canEdit = user.role === 'CLF';
+
   const basePath = user.role === 'BPM' ? '/bpm' : user.role === 'CLF' ? '/clf' : '';
 
   const load = async () => {
@@ -97,7 +105,7 @@ export default function EmployeesPage() {
     <>
       <PageHeader
         title="Employees"
-        actions={canCreate && <Button onClick={() => setOpenForm(true)}>+ Add Employee</Button>}
+        actions={canCreate && <Button onClick={() => { setEditTarget(null); setOpenForm(true); }}>+ Add Employee</Button>}
       />
 
       <div style={{ marginBottom: 14, maxWidth: 320 }}>
@@ -132,18 +140,36 @@ export default function EmployeesPage() {
                 basePath={basePath}
                 canReset={canReset}
                 canDelete={canDelete}
+                canEdit={canEdit} // ✅ Pass kiya
                 onReset={(employee) => setResetTarget(employee)}
-                onEditCode={(employee) => setResetTarget(employee)}
                 onDelete={(employee) => setDeleteTarget(employee)}
                 onToggleStatus={(employee) => setStatusTarget(employee)}
+                onEdit={(employee) => { 
+                  setEditTarget(employee); 
+                  setOpenForm(true); 
+                }} // ✅ Edit handler
               />
             ))}
           </tbody>
         </ResponsiveTable>
       )}
 
-      <Modal open={openForm} onClose={() => setOpenForm(false)} title="Add Employee">
-        <EmployeeForm onCreated={(login) => { setTempCred(login); setOpenForm(false); load(); }} />
+      {/* ✅ Modal: Add + Edit dono handle karega */}
+      <Modal 
+        open={openForm} 
+        onClose={() => { setOpenForm(false); setEditTarget(null); }} 
+        title={editTarget ? 'Edit Employee Details' : 'Add Employee'}
+      >
+        <EmployeeForm 
+          initialData={editTarget}
+          onCreated={(login) => { 
+            if (login) setTempCred(login);
+            setOpenForm(false); 
+            setEditTarget(null);
+            load(); 
+          }} 
+          onCancel={() => { setOpenForm(false); setEditTarget(null); }}
+        />
       </Modal>
 
       <Modal open={!!tempCred} onClose={() => setTempCred(null)} title="Employee Credentials">

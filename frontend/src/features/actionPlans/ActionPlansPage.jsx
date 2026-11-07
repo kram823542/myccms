@@ -4,17 +4,27 @@ import ActionPlanForm from './ActionPlanForm.jsx';
 import { theme } from '../../config/theme.js';
 import { getAuthUser } from '../../utils/authStorage.js';
 import * as actionApi from './actionPlans.api.js';
+import toast from 'react-hot-toast';
 
 export default function ActionPlansPage() {
   const user = getAuthUser() || {};
   const isEmployee = user.role === 'EMPLOYEE';
-  const isBPM = user.role === 'BPM'; // ✅ NAYA: BPM check
+  const isBPM = user.role === 'BPM';
 
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(!isEmployee);
   const [todayPlan, setTodayPlan] = useState(null);
   const [history, setHistory] = useState([]);
   const [showForm, setShowForm] = useState(false);
+
+  // ✅ Backend me window 8 AM se 11 AM IST hai
+  const checkTimeWindow = () => {
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const hour = now.getHours();
+    return hour >= 8 && hour < 11;
+  };
+
+  const isWindowOpen = checkTimeWindow();
 
   /* ─── Load data ─── */
   const load = async () => {
@@ -93,24 +103,32 @@ export default function ActionPlansPage() {
             </p>
           </div>
         ) : (
-          <button
-            onClick={() => setShowForm(true)}
-            style={{
-              padding: '12px 24px',
-              background: theme.colors.primary,
-              color: theme.colors.textLight,
-              border: 'none',
-              borderRadius: 999,
-              fontWeight: 700,
-              fontSize: 13,
-              cursor: 'pointer',
-              marginBottom: 20,
-              boxShadow: theme.shadow.md,
-              transition: 'all 0.25s ease',
-            }}
-          >
-            + Submit Today's Action Plan
-          </button>
+          <div style={{ marginBottom: 20 }}>
+            <button
+              onClick={() => {
+                if (!isWindowOpen) {
+                  toast.error('Action Plan submission window is closed (8 AM – 11 AM IST).');
+                  return;
+                }
+                setShowForm(true);
+              }}
+              style={{
+                padding: '12px 24px',
+                background: isWindowOpen ? theme.colors.primary : theme.colors.muted,
+                color: theme.colors.textLight,
+                border: 'none',
+                borderRadius: 999,
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: isWindowOpen ? 'pointer' : 'not-allowed',
+                boxShadow: isWindowOpen ? theme.shadow.md : 'none',
+                transition: 'all 0.25s ease',
+                opacity: isWindowOpen ? 1 : 0.7,
+              }}
+            >
+              {isWindowOpen ? "+ Submit Today's Action Plan" : "Window Closed (8 AM - 11 AM)"}
+            </button>
+          </div>
         )}
 
         <h3 style={{ marginTop: 8, marginBottom: 12, fontSize: 15, fontWeight: 700, color: theme.colors.text }}>
@@ -146,7 +164,6 @@ export default function ActionPlansPage() {
 
   /* ═══════════ ADMIN (BPM/CLF) VIEW ═══════════ */
   
-  // ✅ Base Columns (Sabke liye)
   const columns = [
     { header: 'Employee', render: (r) => r.employeeId?.name || '—' },
     { header: 'Code', render: (r) => r.employeeId?.employeeCode || '—' },
@@ -154,7 +171,6 @@ export default function ActionPlansPage() {
     { header: 'Plan', render: (r) => <div style={{ maxWidth: 500 }}>{r.plan}</div> },
   ];
 
-  // ✅ NAYA: Agar BPM hai, toh "Date" ke pehle "CLF" ka column add karo
   if (isBPM) {
     columns.splice(2, 0, {
       header: 'CLF',

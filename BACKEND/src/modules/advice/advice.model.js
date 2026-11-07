@@ -29,8 +29,8 @@ const adviceSchema = new mongoose.Schema(
       {
         sl: { type: Number },
         name: { type: String, required: true },
-        designation: { type: String, trim: true, default: '' }, // ✅ NEW: Designation Short
-        month: { type: String }, // Can hold single or multiple months e.g., "Jun26, Jul26"
+        designation: { type: String, trim: true, default: '' }, 
+        month: { type: String }, 
         bankAccountNumber: { type: String, default: '' },
         bankName: { type: String, default: '' },
         branch: { type: String, default: '' },
@@ -49,17 +49,8 @@ const adviceSchema = new mongoose.Schema(
   { timestamps: true, versionKey: false }
 );
 
-// ✅ FIXED: Blank ("") adviceNumber pe unique error nahi aayega
-adviceSchema.index(
-  { clfId: 1, adviceNumber: 1 },
-  {
-    unique: true,
-    partialFilterExpression: { 
-      // Sirf un documents pe unique lagega jinka adviceNumber khali string se bada ho
-      adviceNumber: { $type: 'string', $gt: '' } 
-    },
-  }
-);
+// ✅ FIX: Unique index hata diya taaki same number se multiple advices ban sake
+adviceSchema.index({ clfId: 1, adviceNumber: 1 }); 
 
 adviceSchema.index({ clfId: 1, adviceType: 1, createdAt: -1 });
 adviceSchema.index({ blockId: 1, adviceType: 1, createdAt: -1 });

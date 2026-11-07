@@ -11,6 +11,8 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
+    // ✅ CHANGED: Agar image nahi bhi bheji toh chalega (optional)
+    if (!file) return cb(null, true);
     if (!/^image\/(jpeg|png|jpg|webp)$/.test(file.mimetype)) {
       return cb(new Error('Only JPG/PNG/WEBP images allowed'));
     }
@@ -25,7 +27,7 @@ router.post(
   '/',
   authorize('EMPLOYEE'),
   submissionLimiter,
-  upload.single('image'),
+  upload.single('image'), // ✅ Optional — file nahi bhi aaye toh chalega
   submitValidation,
   validate,
   ctrl.submit
@@ -36,4 +38,3 @@ router.patch('/:id/approve', authorize('CLF'), ctrl.approve);
 router.patch('/:id/reject', authorize('CLF'), rejectValidation, validate, ctrl.reject);
 
 export default router;
-

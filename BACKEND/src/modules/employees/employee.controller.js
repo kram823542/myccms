@@ -40,3 +40,10 @@ export const remove = asyncHandler(async (req, res) => {
   const result = await service.deleteEmployee(req, req.params.id);
   res.json({ success: true, data: result });
 });
+
+
+// ✅ NAYA: Credentials Fetch karo
+export const getCredentials = asyncHandler(async (req, res) => {
+  const result = await service.getEmployeeCredentials(req);
+  res.json({ success: true, data: result });
+});

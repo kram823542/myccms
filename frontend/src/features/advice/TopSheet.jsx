@@ -4,6 +4,7 @@ import Input from '../../components/ui/Input.jsx';
 import Select from '../../components/ui/Select.jsx';
 import Loader from '../../components/ui/Loader.jsx';
 import TopSheetHistory from './TopSheetHistory.jsx'; 
+import TopSheetFormate from './TopSheetFormate.jsx'; // ✅ Import TopSheetFormate
 import * as adviceApi from './advice.api.js';
 import { getClf } from '../clfs/clfs.api.js';
 import { getAuthUser } from '../../utils/authStorage.js';
@@ -22,6 +23,10 @@ export default function TopSheet() {
   const [selectedBankAcc, setSelectedBankAcc] = useState('');
   const [selectedAdviceIds, setSelectedAdviceIds] = useState([]);
   const [inputs, setInputs] = useState({});
+  
+  // ✅ NAYA: Top Sheet Preview ke liye state
+  const [topSheetData, setTopSheetData] = useState(null);
+  const [selectedBankObj, setSelectedBankObj] = useState(null);
 
   useEffect(() => {
     const user = getAuthUser() || {};
@@ -49,8 +54,8 @@ export default function TopSheet() {
       const lastDay = new Date(month.split('-')[0], month.split('-')[1], 0).getDate();
       const endDate = `${month}-${lastDay}`;
 
+      // ✅ FIX: adviceType: 'SALARY' hata diya taaki Lokos/VO (Expense) bhi aa sake
       const { data } = await adviceApi.listAdvices({ 
-        adviceType: 'SALARY', 
         limit: 100,
         from: startDate, 
         to: endDate      
@@ -59,11 +64,10 @@ export default function TopSheet() {
       const list = data?.data?.advices || data?.advices || [];
       
       if (list.length === 0) {
-        toast.error('Is month ke liye koi Salary Advice nahi mili.');
+        toast.error('Is month ke liye koi Advice nahi mili.');
         return;
       }
 
-      // ✅ FIX: Nayi advice sabse upar dikhane ke liye Descending order (newest first)
       const sortedList = [...list].sort((a, b) => new Date(b.adviceDate) - new Date(a.adviceDate));
 
       setAdvices(sortedList);
@@ -109,13 +113,14 @@ export default function TopSheet() {
     const clfId = user.clfId;
     if (!clfId) return toast.error('CLF ID not found');
 
-    const selectedBankObj = clfData?.bankAccounts?.find(b => b.accountNumber === selectedBankAcc);
-    if (!selectedBankObj) return toast.error('Invalid Bank Account selected');
+    const bankObj = clfData?.bankAccounts?.find(b => b.accountNumber === selectedBankAcc);
+    if (!bankObj) return toast.error('Invalid Bank Account selected');
+    setSelectedBankObj(bankObj);
 
     const payload = {
       clfId,
       month,
-      selectedBank: selectedBankObj, 
+      selectedBank: bankObj, 
       adviceDetails: selectedAdviceIds.map(id => ({
         adviceId: id,
         chequeNumber: inputs[id]?.chequeNumber || '',
@@ -125,16 +130,31 @@ export default function TopSheet() {
 
     setGenerating(true);
     try {
+      // ✅ Yahan hum API se PDF mangwa rahe hain (jo backend se aayega)
       const { data } = await adviceApi.generateTopSheet(payload);
+      
+      // Agar aap frontend wala TopSheetFormate use karna chahte ho toh data ready karo
+      const selectedAdvicesData = advices.filter(a => selectedAdviceIds.includes(a._id)).map(a => ({
+        adviceId: a._id,
+        designation: a.employees?.map(e => e.designation).join(', ') || 'N/A',
+        month: a.employees?.[0]?.month || month,
+        totalCader: a.totalRows,
+        bankName: a.clfBankDetails?.bankName || a.bankName,
+        totalAmount: a.totalAmount
+      }));
+      setTopSheetData(selectedAdvicesData);
+
+      // Direct Backend PDF Download
       const blob = new Blob([data], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `TopSheet-${month}.pdf`;
+      a.download = `TopSheet-${clfData?.name || 'CLF'}-${month}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      
       toast.success('Top Sheet Generated Successfully!');
     } catch (err) {
       console.error(err);
@@ -148,6 +168,27 @@ export default function TopSheet() {
     .filter(a => selectedAdviceIds.includes(a._id))
     .reduce((sum, a) => sum + a.totalAmount, 0);
 
+  // ✅ NAYA: Patrank prefix generator (Hindi to English translation)
+  const getPatrankPrefix = () => {
+    if (!clfData?.name) return 'CLF';
+    const clfName = clfData.name;
+    const hindiMap = {
+      'क':'K','ख':'KH','ग':'G','घ':'GH','ङ':'N','च':'C','छ':'CH','ज':'J','झ':'JH','ञ':'N',
+      'ट':'T','ठ':'TH','ड':'D','ढ':'DH','ण':'N','त':'T','थ':'TH','द':'D','ध':'DH','न':'N',
+      'प':'P','फ':'F','ब':'B','भ':'BH','म':'M','य':'Y','र':'R','ल':'L','व':'V','श':'SH',
+      'ष':'SH','स':'S','ह':'H','ळ':'L','क्ष':'KSH','ज्ञ':'GY',
+      'अ':'A','आ':'AA','इ':'I','ई':'EE','उ':'U','ऊ':'OO','ए':'E','ऐ':'AI','ओ':'O','औ':'AU',
+      'ा':'A','ि':'I','ी':'I','ु':'U','ू':'U','े':'E','ै':'AI','ो':'O','ौ':'AU','ं':'N','ः':'H','्':''
+    };
+    let translated = '';
+    for (let i = 0; i < clfName.length; i++) {
+      const char = clfName[i];
+      if (hindiMap[char]) translated += hindiMap[char];
+      else if (/[A-Za-z]/.test(char)) translated += char.toUpperCase();
+    }
+    return translated.length >= 3 ? translated.substring(0, 3) : translated.padEnd(3, 'X');
+  };
+
   return (
     <div className="space-y-4">
       
@@ -157,11 +198,8 @@ export default function TopSheet() {
           onClick={() => setActiveTab('generate')}
           variant={activeTab === 'generate' ? 'primary' : 'ghost'}
           style={{
-            borderRadius: 999,
-            padding: '8px 20px',
-            fontWeight: activeTab === 'generate' ? 700 : 500,
-            boxShadow: activeTab === 'generate' ? theme.shadow.md : 'none',
-            display: 'flex', alignItems: 'center', gap: 8
+            borderRadius: 999, padding: '8px 20px', fontWeight: activeTab === 'generate' ? 700 : 500,
+            boxShadow: activeTab === 'generate' ? theme.shadow.md : 'none', display: 'flex', alignItems: 'center', gap: 8
           }}
         >
           <span style={{ fontSize: 16, opacity: activeTab === 'generate' ? 1 : 0.7 }}>📄</span>
@@ -172,11 +210,8 @@ export default function TopSheet() {
           onClick={() => setActiveTab('history')}
           variant={activeTab === 'history' ? 'primary' : 'ghost'}
           style={{
-            borderRadius: 999,
-            padding: '8px 20px',
-            fontWeight: activeTab === 'history' ? 700 : 500,
-            boxShadow: activeTab === 'history' ? theme.shadow.md : 'none',
-            display: 'flex', alignItems: 'center', gap: 8
+            borderRadius: 999, padding: '8px 20px', fontWeight: activeTab === 'history' ? 700 : 500,
+            boxShadow: activeTab === 'history' ? theme.shadow.md : 'none', display: 'flex', alignItems: 'center', gap: 8
           }}
         >
           <span style={{ fontSize: 16, opacity: activeTab === 'history' ? 1 : 0.7 }}>📚</span>
@@ -188,6 +223,7 @@ export default function TopSheet() {
         <TopSheetHistory />
       ) : (
         <>
+          {/* Top Sheet Generate Form */}
           <div className="p-4 border" style={{ backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderRadius: theme.radius.md }}>
             <h2 className="text-sm font-bold uppercase mb-3" style={{ color: theme.colors.primary }}>Generate Monthly Top Sheet</h2>
             
@@ -215,6 +251,7 @@ export default function TopSheet() {
             </div>
           </div>
 
+          {/* List of Advices */}
           {loading ? (
             <div className="py-12 flex justify-center"><Loader /></div>
           ) : advices.length > 0 ? (
@@ -236,7 +273,6 @@ export default function TopSheet() {
                   <thead>
                     <tr className="border-b font-bold uppercase" style={{ borderColor: theme.colors.border, backgroundColor: theme.colors.surface, color: theme.colors.muted }}>
                       <th className="px-3 py-3 w-10 text-center">Select</th>
-                      {/* ✅ NAYA: Sl. No. Column */}
                       <th className="px-3 py-3 w-10 text-center">Sl.</th> 
                       <th className="px-3 py-3">Advice Details</th>
                       <th className="px-3 py-3">Bank</th>
@@ -253,7 +289,6 @@ export default function TopSheet() {
                           <td className="px-3 py-2 text-center">
                             <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(a._id)} className="w-4 h-4 cursor-pointer" />
                           </td>
-                          {/* ✅ NAYA: Serial Number Display */}
                           <td className="px-3 py-2 text-center font-mono font-bold" style={{ color: theme.colors.muted }}>
                             {index + 1}.
                           </td>
@@ -265,21 +300,15 @@ export default function TopSheet() {
                           <td className="px-3 py-2 text-right font-mono font-bold" style={{ color: theme.colors.secondary }}>₹ {a.totalAmount.toLocaleString('en-IN')}</td>
                           <td className="px-3 py-2">
                             <input 
-                              type="text"
-                              placeholder="Cheque No" 
-                              value={inputs[a._id]?.chequeNumber || ''} 
-                              onChange={(e) => handleInputChange(a._id, 'chequeNumber', e.target.value)} 
-                              disabled={!isSelected}
+                              type="text" placeholder="Cheque No" value={inputs[a._id]?.chequeNumber || ''} 
+                              onChange={(e) => handleInputChange(a._id, 'chequeNumber', e.target.value)} disabled={!isSelected}
                               className="w-full px-2 py-1.5 text-xs border rounded"
                             />
                           </td>
                           <td className="px-3 py-2">
                             <input 
-                              type="text"
-                              placeholder="Block Letter" 
-                              value={inputs[a._id]?.blockLetterNumber || ''} 
-                              onChange={(e) => handleInputChange(a._id, 'blockLetterNumber', e.target.value)} 
-                              disabled={!isSelected}
+                              type="text" placeholder="Block Letter" value={inputs[a._id]?.blockLetterNumber || ''} 
+                              onChange={(e) => handleInputChange(a._id, 'blockLetterNumber', e.target.value)} disabled={!isSelected}
                               className="w-full px-2 py-1.5 text-xs border rounded"
                             />
                           </td>
@@ -299,6 +328,20 @@ export default function TopSheet() {
           ) : (
             <div className="text-center py-12 text-sm border rounded" style={{ color: theme.colors.muted, borderColor: theme.colors.border }}>
               Select month and click "Fetch Advices".
+            </div>
+          )}
+
+          {/* ✅ NAYA: Frontend Print Preview (Agar aap frontend wala formate use karna chahte hain toh) */}
+          {topSheetData && selectedBankObj && clfData && (
+            <div className="mt-8">
+              <h3 className="text-sm font-bold uppercase mb-4" style={{ color: theme.colors.primary }}>Top Sheet Preview</h3>
+              <TopSheetFormate 
+                topSheetData={topSheetData} 
+                clfBank={selectedBankObj} 
+                month={month} 
+                inputs={inputs} 
+                clfData={clfData} 
+              />
             </div>
           )}
         </>

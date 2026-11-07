@@ -5,12 +5,10 @@ import { fileURLToPath } from 'url';
 import { Leave } from './leave.model.js';
 import { Employee } from '../employees/employee.model.js';
 import { Attendance } from '../attendance/attendance.model.js';
+import { CLF } from '../clfs/clf.model.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { logger } from '../../utils/logger.js';
 
-/* ────────────────────────────────────────────
-   Fonts — ✅ FIX #23: System fallback add
-   ──────────────────────────────────────────── */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -86,7 +84,6 @@ export const applyLeave = async (req, res, next) => {
       throw ApiError.badRequest('Start Time and End Time are required for Half Day leave');
     }
 
-    // ✅ FIX #22: UTC-based date diff (timezone safe)
     const start = new Date(`${startDate}T00:00:00Z`);
     const end = new Date(`${endDate}T00:00:00Z`);
 
@@ -131,7 +128,14 @@ export const getMyLeaves = async (req, res, next) => {
     const emp = await Employee.findOne({ userId: targetUserId });
     if (!emp) throw ApiError.notFound('Employee profile not found');
 
-    const leaves = await Leave.find({ employeeId: emp._id }).sort({ createdAt: -1 });
+    // ✅ FIX: Double populate lagaya taaki employee ke andar se clfId aa sake
+    const leaves = await Leave.find({ employeeId: emp._id })
+      .populate({
+        path: 'employeeId',
+        select: 'name employeeCode designation clfId',
+        populate: { path: 'clfId', select: 'name letterhead' } 
+      })
+      .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, data: leaves });
   } catch (error) {
@@ -187,7 +191,6 @@ export const getAllLeavesForAdmin = async (req, res, next) => {
     } else if (user.role === 'BPM') {
       filter.blockId = user.blockId;
     }
-    // SUPER_ADMIN → no filter (all leaves)
 
     const leaves = await Leave.find(filter)
       .populate('employeeId', 'name employeeCode designation')
@@ -199,7 +202,7 @@ export const getAllLeavesForAdmin = async (req, res, next) => {
   }
 };
 
-// ✅ Update Leave Status — MAJOR FIX (#3, #9, #10)
+// ✅ Update Leave Status
 export const updateLeaveStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -213,7 +216,6 @@ export const updateLeaveStatus = async (req, res, next) => {
     const leave = await Leave.findById(id);
     if (!leave) return res.status(404).json({ success: false, message: 'Leave not found' });
 
-    // ✅ FIX #3: BPM/CLF scope check
     if (user.role === 'CLF' && String(leave.clfId) !== String(user.clfId)) {
       return res.status(403).json({ success: false, message: 'Not authorized to review this leave' });
     }
@@ -226,11 +228,14 @@ export const updateLeaveStatus = async (req, res, next) => {
     leave.reviewedBy = user._id || user.userId;
     await leave.save();
 
-    // ✅ Attendance update on APPROVED
     if (status === 'APPROVED') {
-      // ✅ FIX #10: Half Day → HALF_DAY status, sirf startDate pe
       const isHalfDay = leave.leaveType === 'Half Day';
-      const attendanceStatus = isHalfDay ? 'HALF_DAY' : 'LEAVE';
+      const isTraining = leave.leaveType === 'Training';
+
+      let attendanceStatus;
+      if (isHalfDay) attendanceStatus = 'HALF_DAY';
+      else if (isTraining) attendanceStatus = 'TRAINING';
+      else attendanceStatus = 'LEAVE';
 
       const start = new Date(`${leave.startDate}T00:00:00Z`);
       const end = new Date(`${leave.endDate}T00:00:00Z`);
@@ -251,7 +256,6 @@ export const updateLeaveStatus = async (req, res, next) => {
         });
 
         if (existingAtt) {
-          // ✅ FIX #9: WorkDone-approved PRESENT ko overwrite mat karo
           if (existingAtt.source === 'WORK_DONE_APPROVAL' && existingAtt.status === 'PRESENT') {
             logger.warn(`Attendance already PRESENT via WorkDone on ${dateStr} — skipping leave mark`);
             continue;
@@ -285,7 +289,7 @@ export const updateLeaveStatus = async (req, res, next) => {
   }
 };
 
-// ✅ Download Leave PDF
+// ✅ Download Leave PDF (100% DYNAMIC)
 export const downloadLeavePDF = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -301,6 +305,12 @@ export const downloadLeavePDF = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 
+    // ✅ FETCH CLF DATA FOR DYNAMIC LETTERHEAD
+    const clf = await CLF.findById(leave.clfId);
+    const clfName = clf?.name || 'CLF Name';
+    const subTitle = clf?.letterhead?.subTitle || '';
+    const addressLine = clf?.letterhead?.addressLine || '';
+
     const doc = new PDFDocument({ size: 'A4', margin: 50 });
     registerFonts(doc);
 
@@ -313,9 +323,14 @@ export const downloadLeavePDF = async (req, res, next) => {
     const pageWidth = 595.28;
     const formatDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
-    doc.font('Devanagari-Bold').fontSize(18).text('सतबरवा आजीविका महिला संकुल स्तरीय', { align: 'center' });
-    doc.font('Devanagari-Bold').fontSize(14).text('प्राथमिक स्वावलम्बी सहकारी समिति लिमिटेड', { align: 'center' });
-    doc.font('Devanagari').fontSize(10).text('ग्राम- सतबरवा, प्रखंड- सतबरवा, जिला- पलामू (झा0)', { align: 'center' });
+    // ✅ DYNAMIC HEADER
+    doc.font('Devanagari-Bold').fontSize(18).text(clfName, { align: 'center' });
+    if (subTitle) {
+      doc.font('Devanagari-Bold').fontSize(14).text(subTitle, { align: 'center' });
+    }
+    if (addressLine) {
+      doc.font('Devanagari').fontSize(10).text(addressLine, { align: 'center' });
+    }
     doc.moveDown(1);
 
     doc.moveTo(50, doc.y).lineTo(pageWidth - 50, doc.y).stroke();
@@ -325,28 +340,35 @@ export const downloadLeavePDF = async (req, res, next) => {
     doc.text(`दिनांक: ${formatDate(leave.createdAt)}`, { align: 'right' });
     doc.moveDown(1);
     doc.text('प्रति,', { continued: true });
-    doc.text('CLF Admin', { align: 'left' });
-    doc.text('सतबरवा CLF');
+    doc.text('The Manager / Admin', { align: 'left' });
+    
+    // ✅ Dynamic CLF Name
+    doc.text(clfName);
     doc.moveDown(2);
 
-    doc.font('Devanagari-Bold').fontSize(14).text('विषय: अवकाश (Leave) हेतु आवेदन', { align: 'center', underline: true });
+    // ✅ DYNAMIC SUBJECT & BODY
+    const isTraining = leave.leaveType === 'Training';
+    const subjectText = isTraining ? 'विषय: प्रशिक्षण (Training) हेतु आवेदन' : 'विषय: अवकाश (Leave) हेतु आवेदन';
+    const bodyLeaveText = isTraining ? 'प्रशिक्षण' : 'अवकाश';
+
+    doc.font('Devanagari-Bold').fontSize(14).text(subjectText, { align: 'center', underline: true });
     doc.moveDown(2);
 
     doc.font('Devanagari').fontSize(12).text('महोदय/महोदया,', { align: 'left' });
     doc.moveDown(1);
 
-    const bodyText = `सविनय निवेदन है कि मुझे ${leave.totalDays} दिनों का अवकाश चाहिए। मुझे दिनांक ${formatDate(leave.startDate)} से ${formatDate(leave.endDate)} तक अवकाश की आवश्यकता है${leave.leaveType === 'Half Day' ? ` (समय: ${leave.startTime} से ${leave.endTime} तक)` : ''}।`;
+    const bodyText = `सविनय निवेदन है कि मुझे ${leave.totalDays} दिनों का ${bodyLeaveText} चाहिए। मुझे दिनांक ${formatDate(leave.startDate)} से ${formatDate(leave.endDate)} तक ${bodyLeaveText} की आवश्यकता है${leave.leaveType === 'Half Day' ? ` (समय: ${leave.startTime} से ${leave.endTime} तक)` : ''}।`;
 
     doc.text(bodyText, { align: 'justify', lineGap: 4 });
     doc.moveDown(1);
 
-    doc.text('अवकाश का कारण निम्नलिखित है:', { align: 'left' });
+    doc.text(`${bodyLeaveText} का कारण निम्नलिखित है:`, { align: 'left' });
     doc.moveDown(0.5);
     doc.font('Devanagari-Bold').text(`"${leave.reason}"`, { indent: 20, align: 'justify' });
     doc.font('Devanagari');
     doc.moveDown(1);
 
-    doc.text('अतः आपसे निवेदन है कि मेरे इस अवकाश आवेदन को स्वीकृत (Approve) करने की कृपा करें।', { align: 'justify' });
+    doc.text(`अतः आपसे निवेदन है कि मेरे इस ${bodyLeaveText} आवेदन को स्वीकृत (Approve) करने की कृपा करें।`, { align: 'justify' });
     doc.moveDown(4);
 
     doc.text('धन्यवाद,', { align: 'left' });

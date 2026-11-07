@@ -16,7 +16,7 @@ export default function Work() {
       key: 'action-plan',
       label: 'Action Plan',
       icon: '📝',
-      hint: '10 AM – 11 AM',
+      hint: '8 AM – 11 AM', // ✅ Updated from 10 AM to 8 AM
     },
     {
       key: 'work-done',

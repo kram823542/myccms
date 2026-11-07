@@ -11,7 +11,10 @@ router.use(authenticate);
 
 router.get('/dashboard/bpm', authorize('BPM'), ctrl.bpmDashboard);
 router.get('/', authorize('SUPER_ADMIN', 'BPM'), ctrl.list);
-router.get('/:id', authorize('SUPER_ADMIN', 'BPM', 'CLF'), ctrl.getOne);
+
+// ✅ FIX: Employee ko CLF dekhne ki permission di (leave letter ke liye zaroori)
+router.get('/:id', authorize('SUPER_ADMIN', 'BPM', 'CLF', 'EMPLOYEE'), ctrl.getOne);
+
 router.post('/', authorize('SUPER_ADMIN', 'BPM'), createCLFValidation, validate, ctrl.create);
 
 // ✅ NAYA: CLF apne BOD members update kare

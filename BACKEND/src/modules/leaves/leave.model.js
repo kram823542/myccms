@@ -19,8 +19,8 @@ const leaveSchema = new mongoose.Schema(
     },
     leaveType: {
       type: String,
-      // ✅ Aapke bataye hue exact leave types
-      enum: ['Casual Leave', 'Medical Leave', 'Half Day', 'Emergency Leave', 'Other'],
+      // ✅ NEW: TRAINING add kiya
+      enum: ['Casual Leave', 'Medical Leave', 'Half Day', 'Emergency Leave', 'Training', 'Other'],
       required: true,
     },
     startDate: {

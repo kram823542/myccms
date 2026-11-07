@@ -45,9 +45,16 @@ export default function Profile() {
       setProfile(me);
       let empDetail = null;
       if (me.role === 'EMPLOYEE' && me.employeeId) {
-        try { const empRes = await getEmployee(me.employeeId); empDetail = empRes.data.data; setExtra(empDetail); } catch (e) {}
+        try { 
+          const empRes = await getEmployee(me.employeeId); 
+          empDetail = empRes.data.data; 
+          setExtra(empDetail); 
+        } catch (e) {}
       } else if (me.role === 'CLF' && me.clfId) {
-        try { const clfRes = await getClf(me.clfId); setExtra(clfRes.data.data); } catch (e) {}
+        try { 
+          const clfRes = await getClf(me.clfId); 
+          setExtra(clfRes.data.data); 
+        } catch (e) {}
       }
       setForm({ email: me.email || '', mobile: me.mobile || empDetail?.mobile || '' });
       setEmailEdit(!me.email);
@@ -105,7 +112,10 @@ export default function Profile() {
   if (loading) return <Loader />;
   if (!profile) return <p>Profile not found</p>;
 
-  const initial = (profile.name || profile.username || '?').charAt(0).toUpperCase();
+  // ✅ FIXED: Agar Employee hai, toh Employee Table ka naam use karo
+  const displayName = role === 'EMPLOYEE' ? (extra?.name || profile.name) : profile.name;
+  const initial = (displayName || profile.username || '?').charAt(0).toUpperCase();
+  
   const tabs = [{ key: 'profile', label: '👤 Profile' }, { key: 'reports', label: '📄 Reports' }];
 
   return (
@@ -133,7 +143,8 @@ export default function Profile() {
                 <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" style={{ display: 'none' }} />
               </div>
               <div style={{ minWidth: 0 }}>
-                <h3 style={{ margin: 0, fontSize: 17, color: theme.colors.text }}>{profile.name}</h3>
+                {/* ✅ Yahan Employee ka Asli Naam dikhega */}
+                <h3 style={{ margin: 0, fontSize: 17, color: theme.colors.text }}>{displayName}</h3>
                 <p style={{ margin: '2px 0 6px', fontSize: 12, color: theme.colors.muted, fontFamily: 'monospace' }}>@{profile.username}</p>
                 <Badge variant="info">{profile.role?.replace('_', ' ')}</Badge>
               </div>
@@ -189,11 +200,20 @@ export default function Profile() {
                 <InfoRow label="Status" value={<Badge variant={extra.status === 'ACTIVE' ? 'success' : 'danger'}>{extra.status}</Badge>} />
               </div>
 
-              {/* ✅ NAYA: CLF Bank Accounts Section */}
+              <div style={{ background: theme.colors.surface, borderRadius: theme.radius.md, border: `1px solid ${theme.colors.border}`, boxShadow: theme.shadow.sm, padding: 20 }}>
+                <SectionTitle>📄 Letterhead & Footer (PDF)</SectionTitle>
+                <InfoRow label="Title (CLF Name)" value={extra.name} />
+                <InfoRow label="Address Line" value={extra.letterhead?.addressLine} />
+                <InfoRow label="Reg. No." value={extra.letterhead?.registrationNo} mono />
+                <InfoRow label="Signatures" value={`${extra.signatures?.first || '-'} | ${extra.signatures?.second || '-'} | ${extra.signatures?.third || '-'}`} />
+                <InfoRow label="Left Logo" value={extra.letterhead?.leftLogo ? '✅ Uploaded' : '❌ Not Set'} />
+                <InfoRow label="Right Logo" value={extra.letterhead?.rightLogo ? '✅ Uploaded' : '❌ Not Set'} />
+              </div>
+
               <div style={{ background: theme.colors.surface, borderRadius: theme.radius.md, border: `1px solid ${theme.colors.border}`, boxShadow: theme.shadow.sm, padding: 20 }}>
                 <SectionTitle>🏦 CLF Bank Accounts</SectionTitle>
                 {!extra.bankAccounts || extra.bankAccounts.length === 0 ? (
-                  <p style={{ fontSize: 13, color: theme.colors.muted, margin: 0 }}>No bank accounts added. Click "Edit Members" below to add.</p>
+                  <p style={{ fontSize: 13, color: theme.colors.muted, margin: 0 }}>No bank accounts added. Click "Edit Details" below to add.</p>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {extra.bankAccounts.map((bank, i) => (
@@ -214,7 +234,7 @@ export default function Profile() {
               <div style={{ background: theme.colors.surface, borderRadius: theme.radius.md, border: `1px solid ${theme.colors.border}`, boxShadow: theme.shadow.sm, padding: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, borderBottom: `1px solid ${theme.colors.border}`, paddingBottom: 8 }}>
                   <SectionTitle style={{ margin: 0, border: 'none', padding: 0 }}>👥 Members Info</SectionTitle>
-                  <Button size="sm" onClick={() => setOpenBodModal(true)}>✏️ Edit Members</Button>
+                  <Button size="sm" onClick={() => setOpenBodModal(true)}>✏️ Edit Details</Button>
                 </div>
 
                 <h4 style={{ margin: '0 0 10px', fontSize: 13, color: theme.colors.muted, textTransform: 'uppercase' }}>Core Members</h4>
@@ -264,8 +284,21 @@ export default function Profile() {
 
       {tab === 'reports' && (<div style={{ marginTop: 8 }}><ReportsPage /></div>)}
 
-      <Modal open={openBodModal} onClose={() => setOpenBodModal(false)} title="Manage Core & BOD Members">
-        <ClfBodModal clf={extra} onClose={() => setOpenBodModal(false)} onUpdated={load} />
+      <Modal open={openBodModal} onClose={() => setOpenBodModal(false)} title="Manage Profile, Letterhead & Members">
+        <ClfBodModal 
+          clf={extra} 
+          onClose={() => setOpenBodModal(false)} 
+          onUpdated={() => {
+            load();
+            getClf(extra._id).then(({ data }) => {
+              const updatedName = data.data.name;
+              const stored = getAuthUser() || {};
+              setAuthUser({ ...stored, name: updatedName });
+              setProfile(prev => ({ ...prev, name: updatedName }));
+              window.dispatchEvent(new Event('storage')); 
+            }).catch(console.error);
+          }} 
+        />
       </Modal>
 
       <Modal open={!!selectedMember} onClose={() => setSelectedMember(null)} title="Member Details">

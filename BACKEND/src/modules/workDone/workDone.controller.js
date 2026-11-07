@@ -2,9 +2,11 @@ import { asyncHandler } from '../../utils/asyncHandler.js';
 import * as service from './workDone.service.js';
 import { ApiError } from '../../utils/ApiError.js';
 
+// ✅ CHANGED: Image file ab mandatory nahi hai
 export const submit = asyncHandler(async (req, res) => {
-  if (!req.file) throw ApiError.badRequest('Image file is required');
-  const doc = await service.submitWorkDone(req, req.body, req.file.buffer);
+  // Agar file aayi hai toh buffer pass karo, warna undefined
+  const fileBuffer = req.file ? req.file.buffer : null;
+  const doc = await service.submitWorkDone(req, req.body, fileBuffer);
   res.status(201).json({ success: true, data: doc });
 });
 

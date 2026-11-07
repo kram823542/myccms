@@ -32,6 +32,8 @@ import NotificationsPage from '../features/notifications/NotificationsPage.jsx';
 import ReportsPage from '../features/reports/ReportsPage.jsx';
 import AuditLogsPage from '../features/auditLogs/AuditLogsPage.jsx';
 import Advice from '../features/advice/Advice.jsx';   
+// ✅ Import karo
+import ClfResourcesPage from '../features/clfResources/ClfResourcesPage.jsx';
 
 // ✅ NAYA: TopSheet import kiya
 import TopSheet from '../features/advice/TopSheet.jsx'; 
@@ -109,6 +111,8 @@ export default function AppRouter() {
         
         {/* ✅ FIXED: Top Sheet Route add kiya */}
         <Route path="/clf/topsheet" element={<TopSheet />} /> 
+        // ✅ CLF Layout ke andar add karo
+<Route path="/clf/resources" element={<ClfResourcesPage />} />
         
         <Route path="/clf/attendance" element={<AttendancePage />} />
         <Route path="/clf/notifications" element={<NotificationsPage />} />
