@@ -6,6 +6,14 @@ import { getISTDateString } from '../../utils/security.js';
 import { generateCentralPDF } from '../../services/advicePdfEngine.js'; 
 import { generatePatrankPrefix } from '../../utils/generatePatrank.js';
 
+export const assertAdviceScope = (user, clf) => {
+  if (user.role === 'SUPER_ADMIN') return;
+  if (user.role === 'BPM' && String(user.blockId) === String(clf.blockId?._id || clf.blockId)) return;
+  const clfId = clf.clfId?._id || clf.clfId || clf._id;
+  if (user.role === 'CLF' && String(user.clfId) === String(clfId)) return;
+  throw ApiError.forbidden('Access denied');
+};
+
 export const createAdvice = async (req, data) => {
   const user = req.user;
   const clfId = user.role === 'CLF' ? user.clfId : data.clfId;
@@ -13,6 +21,7 @@ export const createAdvice = async (req, data) => {
   
   const clf = await CLF.findById(clfId);
   if (!clf) throw ApiError.notFound('CLF not found');
+  assertAdviceScope(user, clf);
 
   if (!data.employees || !data.employees.length) {
     throw ApiError.badRequest('At least one employee required');
@@ -107,6 +116,15 @@ export const listAdvices = async (req, query) => {
     }
 
     if (query.adviceType) filter.adviceType = query.adviceType;
+    if (query.from || query.to) {
+      if ((query.from && !/^\d{4}-\d{2}-\d{2}$/.test(query.from)) ||
+          (query.to && !/^\d{4}-\d{2}-\d{2}$/.test(query.to))) {
+        throw ApiError.badRequest('Advice date filters must use YYYY-MM-DD format');
+      }
+      filter.adviceDate = {};
+      if (query.from) filter.adviceDate.$gte = query.from;
+      if (query.to) filter.adviceDate.$lte = query.to;
+    }
 
     const page = Math.max(1, parseInt(query.page) || 1);
     const limit = Math.min(100, parseInt(query.limit) || 20);
@@ -129,6 +147,7 @@ export const listAdvices = async (req, query) => {
 export const getAdvice = async (req, id) => {
   const advice = await Advice.findById(id);
   if (!advice || advice.isDeleted) throw ApiError.notFound('Advice not found');
+  assertAdviceScope(req.user, advice);
   return advice;
 };
 
@@ -162,9 +181,10 @@ export const deleteAdvice = async (req, id) => {
 /* ────────────────────────────────────────────
    GET CLF MEMBERS
    ──────────────────────────────────────────── */
-export const getClfMembersForAdvice = async (clfId) => {
+export const getClfMembersForAdvice = async (req, clfId) => {
   const clf = await CLF.findById(clfId);
   if (!clf) throw ApiError.notFound('CLF not found');
+  assertAdviceScope(req.user, clf);
   const members = [];
 
   const addMember = (m, designation) => {
@@ -193,6 +213,7 @@ export const getClfMembersForAdvice = async (clfId) => {
 export const generateAdvicePDF = async (req, id, res, { inline = false } = {}) => {
   const advice = await Advice.findById(id);
   if (!advice || advice.isDeleted) throw ApiError.notFound('Advice not found');
+  assertAdviceScope(req.user, advice);
   
   const clf = await CLF.findById(advice.clfId);
   if (!clf) throw ApiError.notFound('CLF not found');

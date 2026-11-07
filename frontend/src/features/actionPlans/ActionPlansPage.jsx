@@ -5,6 +5,8 @@ import { theme } from '../../config/theme.js';
 import { getAuthUser } from '../../utils/authStorage.js';
 import * as actionApi from './actionPlans.api.js';
 import toast from 'react-hot-toast';
+import { useSubmissionWindows } from '../../hooks/useSubmissionWindows.js';
+import { formatSubmissionWindow } from '../../utils/submissionWindow.js';
 
 export default function ActionPlansPage() {
   const user = getAuthUser() || {};
@@ -12,33 +14,30 @@ export default function ActionPlansPage() {
   const isBPM = user.role === 'BPM';
 
   const [plans, setPlans] = useState([]);
-  const [loading, setLoading] = useState(!isEmployee);
+  const [loading, setLoading] = useState(true);
   const [todayPlan, setTodayPlan] = useState(null);
   const [history, setHistory] = useState([]);
   const [showForm, setShowForm] = useState(false);
-
-  // ✅ Backend me window 8 AM se 11 AM IST hai
-  const checkTimeWindow = () => {
-    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-    const hour = now.getHours();
-    return hour >= 8 && hour < 11;
-  };
-
-  const isWindowOpen = checkTimeWindow();
+  const [loadError, setLoadError] = useState('');
+  const { windows, error: windowError } = useSubmissionWindows();
+  const actionPlanWindow = windows?.actionPlan;
+  const isWindowOpen = actionPlanWindow?.isOpen === true;
+  const formattedWindow = formatSubmissionWindow(actionPlanWindow);
 
   /* ─── Load data ─── */
   const load = async () => {
+    setLoading(true);
+    setLoadError('');
     if (isEmployee) {
       try {
-        const todayRes = await actionApi
-          .todayActionPlan()
-          .catch(() => ({ data: { data: null } }));
+        const todayRes = await actionApi.todayActionPlan();
         setTodayPlan(todayRes.data.data);
 
         const histRes = await actionApi.listActionPlans({});
         setHistory(histRes.data.data.actionPlans || []);
       } catch (err) {
         console.error('Action plan load error:', err);
+        setLoadError(err.response?.data?.message || 'Action plans could not be loaded. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -48,6 +47,7 @@ export default function ActionPlansPage() {
         setPlans(data.data.actionPlans || []);
       } catch (err) {
         console.error('Load plans error:', err);
+        setLoadError(err.response?.data?.message || 'Action plans could not be loaded. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -81,6 +81,8 @@ export default function ActionPlansPage() {
 
     return (
       <>
+        {loadError && <p role="alert" style={{ color: theme.colors.danger }}>{loadError}</p>}
+        {windowError && <p role="alert" style={{ color: theme.colors.danger }}>{windowError}</p>}
         {todayPlan ? (
           <div
             style={{
@@ -106,12 +108,17 @@ export default function ActionPlansPage() {
           <div style={{ marginBottom: 20 }}>
             <button
               onClick={() => {
+                if (windowError || !actionPlanWindow) {
+                  toast.error(windowError || 'Submission time is unavailable.');
+                  return;
+                }
                 if (!isWindowOpen) {
-                  toast.error('Action Plan submission window is closed (8 AM – 11 AM IST).');
+                  toast.error(`Action Plan submission window is closed (${formattedWindow} IST).`);
                   return;
                 }
                 setShowForm(true);
               }}
+              disabled={!actionPlanWindow || !isWindowOpen || !!windowError || !!loadError}
               style={{
                 padding: '12px 24px',
                 background: isWindowOpen ? theme.colors.primary : theme.colors.muted,
@@ -126,7 +133,7 @@ export default function ActionPlansPage() {
                 opacity: isWindowOpen ? 1 : 0.7,
               }}
             >
-              {isWindowOpen ? "+ Submit Today's Action Plan" : "Window Closed (8 AM - 11 AM)"}
+              {!actionPlanWindow ? 'Loading submission time…' : isWindowOpen ? "+ Submit Today's Action Plan" : `Window Closed (${formattedWindow})`}
             </button>
           </div>
         )}

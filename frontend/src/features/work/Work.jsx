@@ -4,10 +4,13 @@ import ActionPlansPage from '../actionPlans/ActionPlansPage.jsx';
 import WorkDonePage from '../workDone/WorkDonePage.jsx';
 import { theme } from '../../config/theme.js';
 import { getAuthUser } from '../../utils/authStorage.js';
+import { useSubmissionWindows } from '../../hooks/useSubmissionWindows.js';
+import { formatSubmissionWindow } from '../../utils/submissionWindow.js';
 
 export default function Work() {
   const user = getAuthUser() || {};
   const isEmployee = user.role === 'EMPLOYEE';
+  const { windows, error } = useSubmissionWindows();
 
   const [tab, setTab] = useState('action-plan');
 
@@ -16,13 +19,13 @@ export default function Work() {
       key: 'action-plan',
       label: 'Action Plan',
       icon: '📝',
-      hint: '8 AM – 11 AM', // ✅ Updated from 10 AM to 8 AM
+      hint: windows ? formatSubmissionWindow(windows.actionPlan) : error ? 'Restart API' : 'Loading…',
     },
     {
       key: 'work-done',
       label: 'Work Done',
       icon: '✅',
-      hint: '5 PM – 10 PM',
+      hint: windows ? formatSubmissionWindow(windows.workDone) : error ? 'Restart API' : 'Loading…',
     },
   ];
 

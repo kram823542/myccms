@@ -10,6 +10,8 @@ import Input from '../../components/ui/Input.jsx';
 import WorkDoneForm from './WorkDoneForm.jsx';
 import { theme } from '../../config/theme.js';
 import * as api from './workDone.api.js';
+import { useSubmissionWindows } from '../../hooks/useSubmissionWindows.js';
+import { formatSubmissionWindow } from '../../utils/submissionWindow.js';
 
 // Image Thumbnail Component
 function ImageThumb({ url, onPreview }) {
@@ -34,7 +36,7 @@ function ReasonCell({ item }) {
   );
 }
 
-export default function WorkDonePage() {
+export default function WorkDonePage({ initialTab = 'all' }) {
   const user = getAuthUser() || {};
   const isEmployee = user.role === 'EMPLOYEE';
   const isCLF = user.role === 'CLF';
@@ -43,12 +45,15 @@ export default function WorkDonePage() {
   const [loading, setLoading] = useState(!isEmployee);
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState(null); // ✅ Edit ke liye
-  const [tab, setTab] = useState('all');
+  const [tab, setTab] = useState(initialTab);
   const [previewImg, setPreviewImg] = useState(null);
   
   const [selected, setSelected] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState(false);
+  const { windows, error: windowError } = useSubmissionWindows();
+  const workDoneWindow = windows?.workDone;
+  const workDoneWindowLabel = formatSubmissionWindow(workDoneWindow);
 
   const load = async () => {
     setLoading(true);
@@ -94,7 +99,10 @@ export default function WorkDonePage() {
   if (isEmployee) {
     return (
       <>
-        <PageHeader title="Work Done" subtitle="Window: 5:00 PM – 10:00 PM IST" />
+        <PageHeader
+          title="Work Done"
+          subtitle={workDoneWindow ? `Submission window: ${workDoneWindowLabel} ${workDoneWindow.timezone}` : windowError ? 'Submission window unavailable' : 'Loading submission window…'}
+        />
         
         {showForm || editTarget ? (
           <WorkDoneForm 
@@ -104,9 +112,15 @@ export default function WorkDonePage() {
           />
         ) : (
           <>
-            <button onClick={() => setShowForm(true)} style={{ padding: '12px 20px', background: theme.colors.primary, color: theme.colors.textLight, border: 'none', borderRadius: 10, fontWeight: 600, cursor: 'pointer', marginBottom: 20 }}>
+            <button
+              onClick={() => setShowForm(true)}
+              disabled={!workDoneWindow?.isOpen}
+              title={windowError || (workDoneWindow && !workDoneWindow.isOpen ? `Submission window: ${workDoneWindowLabel} ${workDoneWindow.timezone}` : '')}
+              style={{ padding: '12px 20px', background: workDoneWindow?.isOpen ? theme.colors.primary : theme.colors.muted, color: theme.colors.textLight, border: 'none', borderRadius: 10, fontWeight: 600, cursor: workDoneWindow?.isOpen ? 'pointer' : 'not-allowed', marginBottom: 20 }}
+            >
               + Submit Work Done
             </button>
+            {windowError && <p role="alert" style={{ color: theme.colors.danger }}>{windowError}</p>}
             <Table
               columns={[
                 { header: 'Date', key: 'date' },
@@ -181,7 +195,7 @@ export default function WorkDonePage() {
         title="Work Done"
         subtitle="All submissions with images — pending, approved, and rejected"
         actions={
-          isCLF && (
+          isCLF ? tab !== 'pending' ? (
             <Link to="/clf/work-done/approval" style={{ textDecoration: 'none' }}>
               <span style={{ padding: '10px 16px', background: theme.colors.primary, color: theme.colors.textLight, borderRadius: 10, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 Full Approvals Page
@@ -190,7 +204,11 @@ export default function WorkDonePage() {
                 )}
               </span>
             </Link>
-          )
+          ) : (
+            <Link to="/clf/work-done" style={{ textDecoration: 'none' }}>
+              <span style={{ padding: '10px 16px', background: theme.colors.primary, color: theme.colors.textLight, borderRadius: 10, fontWeight: 600 }}>All Submissions</span>
+            </Link>
+          ) : null
         }
       />
 

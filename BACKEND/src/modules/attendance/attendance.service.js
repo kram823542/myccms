@@ -15,7 +15,7 @@ export const listAttendance = async (req, query) => {
     filter.blockId = user.blockId;
   }
 
-  if (query.employeeId) filter.employeeId = query.employeeId;
+  if (query.employeeId && user.role !== 'EMPLOYEE') filter.employeeId = query.employeeId;
   if (query.date) filter.date = query.date;
   if (query.from || query.to) {
     filter.date = {};

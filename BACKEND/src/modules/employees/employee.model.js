@@ -29,9 +29,6 @@ const employeeSchema = new mongoose.Schema(
 
     profilePhoto: { type: String, default: null },
 
-    // ✅ NAYA: Plain text password save karne ke liye
-    tempPassword: { type: String, default: null }, 
-
     clfId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'CLF',

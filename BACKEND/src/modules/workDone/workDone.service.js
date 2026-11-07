@@ -7,15 +7,15 @@ import { isWithinTimeWindow, getISTDateString } from '../../utils/security.js';
 import { uploadBuffer, deleteImage } from '../../services/cloudinary.service.js';
 import { createAudit } from '../../middlewares/audit.middleware.js';
 import { logger } from '../../utils/logger.js';
+import { env } from '../../config/env.js';
 
-const WINDOW_START = 17; // 5 PM
-const WINDOW_END = 22;   // 10 PM
+const submissionWindow = env.SUBMISSION_WINDOWS.WORK_DONE;
 
 export const submitWorkDone = async (req, { description }, fileBuffer) => {
   if (req.user.role !== 'EMPLOYEE') throw ApiError.forbidden();
 
-  if (!isWithinTimeWindow(WINDOW_START, WINDOW_END)) {
-    throw ApiError.forbidden('Work Done submission window closed (5-10 PM IST)');
+  if (!isWithinTimeWindow(submissionWindow.start, submissionWindow.end)) {
+    throw ApiError.forbidden('Work Done submission window is closed');
   }
 
   // ✅ CHANGED: Description mandatory, image optional
@@ -110,7 +110,7 @@ export const listWorkDone = async (req, query) => {
   }
   if (query.status) filter.status = query.status;
   if (query.date) filter.date = query.date;
-  if (query.employeeId) filter.employeeId = query.employeeId;
+  if (query.employeeId && user.role !== 'EMPLOYEE') filter.employeeId = query.employeeId;
 
   const page = Math.max(1, parseInt(query.page) || 1);
   const limit = Math.min(100, parseInt(query.limit) || 50);

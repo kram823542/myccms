@@ -10,7 +10,6 @@ import * as api from './reports.api.js';
 import EmployeeReportRow from './components/EmployeeReportRow.jsx';
 import ReportDownloadModal from './components/ReportDownloadModal.jsx';
 import ReportCard from './ReportCard.jsx';
-import Badge from '../../components/ui/Badge.jsx';
 
 const downloadBlob = (blob, filename) => {
   const url = URL.createObjectURL(blob);
@@ -41,8 +40,8 @@ function AdminReportsView() {
   const load = async () => {
     setLoading(true);
     try {
-      const { data } = await api.fetchEmployeesForReports({ page: 1, limit: 500, search });
-      setEmployees(data.data.employees || []);
+      const allEmployees = await api.fetchAllEmployeesForReports({ search });
+      setEmployees(allEmployees);
     } catch (err) { console.error('Load employees error:', err); } finally { setLoading(false); }
   };
 

@@ -8,6 +8,31 @@ const required = [
   'ENCRYPTION_KEY',
 ];
 
+const parseTimeWindow = (key, fallback) => {
+  const value = process.env[key] || fallback;
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) {
+    throw new Error(`❌ ${key} must use HH:mm 24-hour format`);
+  }
+  return value;
+};
+
+const actionPlanStart = parseTimeWindow('ACTION_PLAN_WINDOW_START', '08:00');
+const actionPlanEnd = parseTimeWindow('ACTION_PLAN_WINDOW_END', '11:00');
+const workDoneStart = parseTimeWindow('WORK_DONE_WINDOW_START', '17:00');
+const workDoneEnd = parseTimeWindow('WORK_DONE_WINDOW_END', '22:00');
+
+const timeToMinutes = (time) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+if (timeToMinutes(actionPlanStart) >= timeToMinutes(actionPlanEnd)) {
+  throw new Error('❌ ACTION_PLAN_WINDOW_END must be later than ACTION_PLAN_WINDOW_START');
+}
+if (timeToMinutes(workDoneStart) >= timeToMinutes(workDoneEnd)) {
+  throw new Error('❌ WORK_DONE_WINDOW_END must be later than WORK_DONE_WINDOW_START');
+}
+
 required.forEach((key) => {
   if (!process.env[key]) {
     throw new Error(`❌ Missing required env variable: ${key}`);
@@ -38,6 +63,11 @@ export const env = {
   RATE_LIMIT: {
     WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 900000,
     MAX: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100,
+  },
+  SUBMISSION_WINDOWS: {
+    ACTION_PLAN: { start: actionPlanStart, end: actionPlanEnd },
+    WORK_DONE: { start: workDoneStart, end: workDoneEnd },
+    TIME_ZONE: 'Asia/Kolkata',
   },
   IS_PROD: process.env.NODE_ENV === 'production',
 };

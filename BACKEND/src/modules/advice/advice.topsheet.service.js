@@ -8,6 +8,7 @@ import { TopSheet } from './topSheet.model.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { logger } from '../../utils/logger.js';
 import { generatePatrankPrefix } from '../../utils/generatePatrank.js';
+import { assertAdviceScope } from './advice.service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -78,7 +79,11 @@ const getBankShortName = (fullName) => {
 export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, selectedBank, res) => {
   const clf = await CLF.findById(clfId);
   if (!clf) throw ApiError.notFound('CLF not found');
-  if (!monthStr.includes('-')) throw ApiError.badRequest('Month format must be YYYY-MM');
+  assertAdviceScope(req.user, clf);
+  if (!Array.isArray(adviceDetails)) throw ApiError.badRequest('Advice details must be a list');
+  if (typeof monthStr !== 'string' || !/^\d{4}-\d{2}$/.test(monthStr)) {
+    throw ApiError.badRequest('Month format must be YYYY-MM');
+  }
   
   const selectedAdviceIds = adviceDetails.map(d => d.adviceId);
 

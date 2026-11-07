@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import PageHeader from '../../components/common/PageHeader.jsx';
+import ResponsiveTable from '../../components/common/ResponsiveTable.jsx';
 import Button from '../../components/ui/Button.jsx';
 import Modal from '../../components/ui/Modal.jsx';
 import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
@@ -11,22 +12,6 @@ import ResetPasswordModal from '../../components/common/ResetPasswordModal.jsx';
 import { theme } from '../../config/theme.js';
 import { getAuthUser } from '../../utils/authStorage.js';
 import * as api from './employees.api.js';
-
-function ResponsiveTable({ children, minWidth = 800 }) {
-  return (
-    <div style={{ background: theme.colors.surface, borderRadius: theme.radius.md, boxShadow: theme.shadow.sm, width: '100%', maxWidth: '100%', overflowX: 'auto', overflowY: 'hidden', WebkitOverflowScrolling: 'touch' }} className="clf-table-wrap">
-      <style>{`
-        .clf-table-wrap { scrollbar-width: thin; scrollbar-color: ${theme.colors.muted} transparent; }
-        .clf-table-wrap::-webkit-scrollbar { height: 6px; }
-        .clf-table-wrap::-webkit-scrollbar-track { background: transparent; }
-        .clf-table-wrap::-webkit-scrollbar-thumb { background: ${theme.colors.muted}40; border-radius: 3px; }
-        .clf-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: ${minWidth}px; }
-        .clf-table th, .clf-table td { white-space: nowrap; }
-      `}</style>
-      <table className="clf-table">{children}</table>
-    </div>
-  );
-}
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState([]);

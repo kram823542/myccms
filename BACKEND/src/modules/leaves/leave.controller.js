@@ -86,6 +86,15 @@ export const applyLeave = async (req, res, next) => {
 
     const start = new Date(`${startDate}T00:00:00Z`);
     const end = new Date(`${endDate}T00:00:00Z`);
+    if (
+      Number.isNaN(start.getTime()) ||
+      Number.isNaN(end.getTime()) ||
+      start.toISOString().slice(0, 10) !== startDate ||
+      end.toISOString().slice(0, 10) !== endDate ||
+      end < start
+    ) {
+      throw ApiError.badRequest('End date must be on or after a valid start date');
+    }
 
     let totalDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
     if (leaveType === 'Half Day') totalDays = 0.5;
@@ -293,11 +302,17 @@ export const updateLeaveStatus = async (req, res, next) => {
 export const downloadLeavePDF = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const leave = await Leave.findById(id).populate('employeeId', 'name employeeCode designation');
+    const leave = await Leave.findById(id).populate('employeeId', 'name employeeCode designation userId');
 
     if (!leave) return res.status(404).json({ success: false, message: 'Leave not found' });
 
     const user = req.user;
+    if (
+      user.role === 'EMPLOYEE' &&
+      String(leave.employeeId?.userId) !== String(user._id)
+    ) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
     if (user.role === 'CLF' && String(leave.clfId) !== String(user.clfId)) {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }

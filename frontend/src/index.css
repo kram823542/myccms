@@ -17,6 +17,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+#root,
+#root * {
+  text-transform: uppercase !important;
+}
+
 .theme-hover-row:hover {
   background-color: var(--theme-hover-color);
 }

@@ -1,3 +1,232 @@
+// import { useEffect, useMemo, useState } from 'react';
+// import PageHeader from '../../components/common/PageHeader.jsx';
+// import Button from '../../components/ui/Button.jsx';
+// import Loader from '../../components/ui/Loader.jsx';
+// import Badge from '../../components/ui/Badge.jsx';
+// import AttendanceFilter from './AttendanceFilter.jsx';
+// import { theme } from '../../config/theme.js';
+// import { listAllEmployeesInScope } from '../employees/employees.api.js';
+// import { getAuthUser } from '../../utils/authStorage.js';
+// import * as api from './attendance.api.js';
+// import toast from 'react-hot-toast';
+
+// const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+// // ✅ NAYA: Training (T) ka Purple color add kiya
+// const STATUS_UI = {
+//   PRESENT: { label: 'P', bg: `${theme.colors.success}20`, color: theme.colors.success, border: `${theme.colors.success}50` },
+//   ABSENT:  { label: 'A', bg: `${theme.colors.danger}20`, color: theme.colors.danger, border: `${theme.colors.danger}50` },
+//   HALF_DAY:{ label: 'H', bg: `${theme.colors.warning}20`, color: theme.colors.warning, border: `${theme.colors.warning}50` },
+//   LEAVE:   { label: 'L', bg: `${theme.colors.info}20`, color: theme.colors.info, border: `${theme.colors.info}50` }, 
+//   TRAINING:{ label: 'T', bg: '#EDE9FE', color: '#7C3AED', border: '#C4B5FD' }, // ✅ Training color
+// };
+
+// const daysInMonth = (year, month) => new Date(year, month, 0).getDate();
+// const fmt = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+// export default function AttendancePage() {
+//   const user = getAuthUser() || {};
+//   const isEmployee = user.role === 'EMPLOYEE';
+
+//   const now = new Date();
+//   const [filters, setFilters] = useState({ month: now.getMonth() + 1, year: now.getFullYear(), employeeId: '' });
+//   const [employees, setEmployees] = useState([]);
+//   const [attendance, setAttendance] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [exporting, setExporting] = useState(false);
+
+//   useEffect(() => {
+//     if (isEmployee) return;
+//     (async () => {
+//       try {
+//         const allEmployees = await listAllEmployeesInScope();
+//         setEmployees(allEmployees);
+//       } catch (err) { console.error(err); }
+//     })();
+//   }, [isEmployee]);
+
+//   useEffect(() => {
+//     let cancelled = false;
+//     const load = async () => {
+//       setLoading(true);
+//       setAttendance([]); 
+//       try {
+//         const y = Number(filters.year);
+//         const m = Number(filters.month);
+//         const lastDay = daysInMonth(y, m);
+//         const params = { from: fmt(y, m, 1), to: fmt(y, m, lastDay) };
+//         if (filters.employeeId) params.employeeId = filters.employeeId;
+//         const { data } = await api.listAttendance(params);
+//         if (!cancelled) setAttendance(data.data.attendance || []);
+//       } catch (err) {
+//         console.error(err);
+//         if (!cancelled) setAttendance([]);
+//       } finally {
+//         if (!cancelled) setLoading(false);
+//       }
+//     };
+//     load();
+//     return () => { cancelled = true; };
+//   }, [filters.month, filters.year, filters.employeeId]);
+
+//   const year = Number(filters.year);
+//   const month = Number(filters.month);
+//   const totalDays = daysInMonth(year, month);
+
+//   const matrix = useMemo(() => {
+//     const map = new Map();
+//     if (!isEmployee) {
+//       const list = filters.employeeId ? employees.filter((e) => e._id === filters.employeeId) : employees;
+//       list.forEach((e) => {
+//         map.set(e._id, { employee: { _id: e._id, name: e.name, code: e.employeeCode, designation: e.designation || '—' }, days: {} });
+//       });
+//     }
+//     attendance.forEach((a) => {
+//       const empId = a.employeeId?._id || a.employeeId;
+//       const day = Number(a.date.split('-')[2]);
+//       if (!map.has(empId)) {
+//         map.set(empId, { employee: { _id: empId, name: a.employeeId?.name || user.name || '—', code: a.employeeId?.employeeCode || user.username || '—', designation: a.employeeId?.designation || '—' }, days: {} });
+//       }
+//       map.get(empId).days[day] = a.status;
+//     });
+//     return Array.from(map.values()).sort((a, b) => String(a.employee.code).localeCompare(String(b.employee.code)));
+//   }, [attendance, employees, filters.employeeId, isEmployee, user]);
+
+//   // ✅ FIXED: Training (T) ka total count bhi add kiya
+//   const totals = useMemo(() => {
+//     let p = 0, a = 0, h = 0, l = 0, t = 0;
+//     attendance.forEach((row) => {
+//       if (row.status === 'PRESENT') p++;
+//       else if (row.status === 'ABSENT') a++;
+//       else if (row.status === 'HALF_DAY') h++;
+//       else if (row.status === 'LEAVE') l++; 
+//       else if (row.status === 'TRAINING') t++; 
+//     });
+//     return { p, a, h, l, t };
+//   }, [attendance]);
+
+//   const handleExport = async () => {
+//     try {
+//       setExporting(true);
+//       const res = await api.exportAttendanceCSV({ from: fmt(year, month, 1), to: fmt(year, month, totalDays) });
+//       const blobData = res?.data instanceof Blob ? res.data : res;
+//       const blob = new Blob([blobData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+//       const url = window.URL.createObjectURL(blob);
+//       const link = document.createElement('a');
+//       link.href = url;
+//       link.setAttribute('download', `Attendance_${MONTHS[month - 1]}_${year}.xlsx`);
+//       document.body.appendChild(link);
+//       link.click();
+//       link.remove();
+//       window.URL.revokeObjectURL(url);
+//       toast.success('Excel Downloaded!');
+//     } catch (err) {
+//       toast.error('Failed to export attendance.');
+//     } finally {
+//       setExporting(false);
+//     }
+//   };
+
+//   return (
+//     <>
+//       <PageHeader
+//         title="Attendance"
+//         subtitle={`${MONTHS[month - 1]} ${year} — ${matrix.length} employee(s)`}
+//         actions={['SUPER_ADMIN', 'BPM', 'CLF'].includes(user.role) && <Button variant="ghost" onClick={handleExport} loading={exporting}>Export Excel</Button>}
+//       />
+
+//       <AttendanceFilter filters={filters} onChange={setFilters} showEmployeeFilter={!isEmployee} employees={employees} />
+
+//       {/* ✅ Summary Badges me T (Training) bhi add kiya */}
+//       <div style={{ display: 'flex', gap: 12, marginBottom: 16, fontSize: 13, alignItems: 'center', flexWrap: 'wrap' }}>
+//         <Badge variant="success" showDot={false}>P: {totals.p}</Badge>
+//         <Badge variant="danger" showDot={false}>A: {totals.a}</Badge>
+//         <Badge variant="warning" showDot={false}>H: {totals.h}</Badge>
+//         <Badge variant="info" showDot={false}>L: {totals.l}</Badge>
+//         {/* Training Counter */}
+//         <span style={{ padding: '4px 8px', borderRadius: 6, fontSize: 11, fontWeight: 700, background: '#EDE9FE', color: '#7C3AED', border: '1px solid #C4B5FD' }}>
+//           T: {totals.t}
+//         </span>
+//       </div>
+
+//       {loading ? (
+//         <Loader />
+//       ) : matrix.length === 0 ? (
+//         <div style={{ padding: 40, background: theme.colors.surface, borderRadius: theme.radius.md, boxShadow: theme.shadow.sm, border: `1px solid ${theme.colors.border}`, textAlign: 'center', color: theme.colors.muted, fontSize: 13 }}>
+//           <b>{MONTHS[month - 1]} {year}</b> ke liye koi attendance record nahi mila.
+//         </div>
+//       ) : (
+//         <AttendanceMatrix matrix={matrix} totalDays={totalDays} />
+//       )}
+//     </>
+//   );
+// }
+
+// function AttendanceMatrix({ matrix, totalDays }) {
+//   const days = Array.from({ length: totalDays }, (_, i) => i + 1);
+//   const nameColWidth = 180;
+//   const dayColWidth = 28;
+//   const totalColWidth = 36;
+
+//   return (
+//     <div style={{ background: theme.colors.surface, borderRadius: theme.radius.md, boxShadow: theme.shadow.sm, border: `1px solid ${theme.colors.border}`, overflowX: 'auto', width: '100%' }}>
+//       <table style={{ borderCollapse: 'separate', borderSpacing: 0, fontSize: 11, width: '100%', minWidth: nameColWidth + (totalDays * dayColWidth) + (totalColWidth * 3) }}>
+//         <colgroup>
+//           <col style={{ width: nameColWidth }} />
+//           {days.map((d) => <col key={d} style={{ width: dayColWidth }} />)}
+//           <col style={{ width: totalColWidth }} />
+//           <col style={{ width: totalColWidth }} />
+//           <col style={{ width: totalColWidth }} />
+//           <col style={{ width: totalColWidth }} /> {/* ✅ Training Column */}
+//         </colgroup>
+//         <thead>
+//           <tr>
+//             <th style={{ position: 'sticky', top: 0, left: 0, zIndex: 4, background: theme.colors.background, padding: '10px 12px', textAlign: 'left', fontWeight: 700, fontSize: 10, color: theme.colors.text, borderBottom: `1px solid ${theme.colors.border}` }}>EMPLOYEE</th>
+//             {days.map((d) => <th key={d} style={{ position: 'sticky', top: 0, zIndex: 2, background: theme.colors.background, padding: '8px 0', textAlign: 'center', fontWeight: 600, fontSize: 10, color: theme.colors.muted, borderBottom: `1px solid ${theme.colors.border}` }}>{d}</th>)}
+//             <th style={{ position: 'sticky', top: 0, right: totalColWidth * 3, zIndex: 4, background: theme.colors.background, padding: '8px 4px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: theme.colors.success, borderBottom: `1px solid ${theme.colors.border}`, borderLeft: `1px solid ${theme.colors.border}` }}>P</th>
+//             <th style={{ position: 'sticky', top: 0, right: totalColWidth * 2, zIndex: 4, background: theme.colors.background, padding: '8px 4px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: theme.colors.danger, borderBottom: `1px solid ${theme.colors.border}` }}>A</th>
+//             <th style={{ position: 'sticky', top: 0, right: totalColWidth, zIndex: 4, background: theme.colors.background, padding: '8px 4px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: theme.colors.info, borderBottom: `1px solid ${theme.colors.border}` }}>L</th>
+//             <th style={{ position: 'sticky', top: 0, right: 0, zIndex: 4, background: theme.colors.background, padding: '8px 4px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: '#7C3AED', borderBottom: `1px solid ${theme.colors.border}` }}>T</th>
+//           </tr>
+//         </thead>
+//         <tbody>
+//           {matrix.map(({ employee, days: dayMap }) => {
+//             let pCount = 0, aCount = 0, lCount = 0, tCount = 0;
+//             days.forEach((d) => {
+//               if (dayMap[d] === 'PRESENT') pCount++;
+//               else if (dayMap[d] === 'ABSENT') aCount++;
+//               else if (dayMap[d] === 'LEAVE') lCount++; 
+//               else if (dayMap[d] === 'TRAINING') tCount++; 
+//             });
+//             return (
+//               <tr key={employee._id}>
+//                 <td style={{ position: 'sticky', left: 0, zIndex: 3, background: theme.colors.surface, padding: '8px 12px', borderBottom: `1px solid ${theme.colors.border}` }}>
+//                   <div style={{ fontWeight: 600, fontSize: 12, color: theme.colors.text }}>{employee.name}</div>
+//                   <div style={{ fontSize: 10, color: theme.colors.muted }}>{employee.code} • {employee.designation}</div>
+//                 </td>
+//                 {days.map((d) => {
+//                   const status = dayMap[d];
+//                   const ui = STATUS_UI[status];
+//                   return (
+//                     <td key={d} style={{ padding: '2px 0', textAlign: 'center', borderBottom: `1px solid ${theme.colors.border}` }}>
+//                       <div style={{ width: 20, height: 20, margin: '0 auto', borderRadius: 4, background: ui?.bg || theme.colors.background, color: ui?.color || theme.colors.muted, border: `1px solid ${ui?.border || theme.colors.border}`, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }} title={status || 'No record'}>{ui?.label || ''}</div>
+//                     </td>
+//                   );
+//                 })}
+//                 <td style={{ position: 'sticky', right: totalColWidth * 3, zIndex: 3, background: theme.colors.surface, padding: '6px 4px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: theme.colors.success, borderBottom: `1px solid ${theme.colors.border}`, borderLeft: `1px solid ${theme.colors.border}` }}>{pCount}</td>
+//                 <td style={{ position: 'sticky', right: totalColWidth * 2, zIndex: 3, background: theme.colors.surface, padding: '6px 4px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: theme.colors.danger, borderBottom: `1px solid ${theme.colors.border}` }}>{aCount}</td>
+//                 <td style={{ position: 'sticky', right: totalColWidth, zIndex: 3, background: theme.colors.surface, padding: '6px 4px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: theme.colors.info, borderBottom: `1px solid ${theme.colors.border}` }}>{lCount}</td>
+//                 <td style={{ position: 'sticky', right: 0, zIndex: 3, background: theme.colors.surface, padding: '6px 4px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: '#7C3AED', borderBottom: `1px solid ${theme.colors.border}` }}>{tCount}</td>
+//               </tr>
+//             );
+//           })}
+//         </tbody>
+//       </table>
+//     </div>
+//   );
+// }
+
+
 import { useEffect, useMemo, useState } from 'react';
 import PageHeader from '../../components/common/PageHeader.jsx';
 import Button from '../../components/ui/Button.jsx';
@@ -5,20 +234,19 @@ import Loader from '../../components/ui/Loader.jsx';
 import Badge from '../../components/ui/Badge.jsx';
 import AttendanceFilter from './AttendanceFilter.jsx';
 import { theme } from '../../config/theme.js';
-import { listEmployees } from '../employees/employees.api.js';
+import { listAllEmployeesInScope } from '../employees/employees.api.js';
 import { getAuthUser } from '../../utils/authStorage.js';
 import * as api from './attendance.api.js';
 import toast from 'react-hot-toast';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-// ✅ NAYA: Training (T) ka Purple color add kiya
 const STATUS_UI = {
   PRESENT: { label: 'P', bg: `${theme.colors.success}20`, color: theme.colors.success, border: `${theme.colors.success}50` },
   ABSENT:  { label: 'A', bg: `${theme.colors.danger}20`, color: theme.colors.danger, border: `${theme.colors.danger}50` },
   HALF_DAY:{ label: 'H', bg: `${theme.colors.warning}20`, color: theme.colors.warning, border: `${theme.colors.warning}50` },
   LEAVE:   { label: 'L', bg: `${theme.colors.info}20`, color: theme.colors.info, border: `${theme.colors.info}50` }, 
-  TRAINING:{ label: 'T', bg: '#EDE9FE', color: '#7C3AED', border: '#C4B5FD' }, // ✅ Training color
+  TRAINING:{ label: 'T', bg: '#EDE9FE', color: '#7C3AED', border: '#C4B5FD' }, 
 };
 
 const daysInMonth = (year, month) => new Date(year, month, 0).getDate();
@@ -39,8 +267,8 @@ export default function AttendancePage() {
     if (isEmployee) return;
     (async () => {
       try {
-        const { data } = await listEmployees({ page: 1, limit: 500 });
-        setEmployees(data.data.employees || []);
+        const allEmployees = await listAllEmployeesInScope();
+        setEmployees(allEmployees);
       } catch (err) { console.error(err); }
     })();
   }, [isEmployee]);
@@ -92,16 +320,16 @@ export default function AttendancePage() {
     return Array.from(map.values()).sort((a, b) => String(a.employee.code).localeCompare(String(b.employee.code)));
   }, [attendance, employees, filters.employeeId, isEmployee, user]);
 
-  // ✅ FIXED: Training (T) ka total count bhi add kiya
   const totals = useMemo(() => {
-    let p = 0, a = 0, l = 0, t = 0; 
+    let p = 0, a = 0, h = 0, l = 0, t = 0;
     attendance.forEach((row) => {
       if (row.status === 'PRESENT') p++;
       else if (row.status === 'ABSENT') a++;
+      else if (row.status === 'HALF_DAY') h++;
       else if (row.status === 'LEAVE') l++; 
       else if (row.status === 'TRAINING') t++; 
     });
-    return { p, a, l, t };
+    return { p, a, h, l, t };
   }, [attendance]);
 
   const handleExport = async () => {
@@ -127,23 +355,21 @@ export default function AttendancePage() {
   };
 
   return (
-    <>
+    <div style={{ width: '100%', maxWidth: '100vw', overflowX: 'hidden', boxSizing: 'border-box' }}>
       <PageHeader
         title="Attendance"
         subtitle={`${MONTHS[month - 1]} ${year} — ${matrix.length} employee(s)`}
-        actions={<Button variant="ghost" onClick={handleExport} loading={exporting}>Export Excel</Button>}
+        actions={['SUPER_ADMIN', 'BPM', 'CLF'].includes(user.role) && <Button variant="ghost" onClick={handleExport} loading={exporting}>Export Excel</Button>}
       />
 
       <AttendanceFilter filters={filters} onChange={setFilters} showEmployeeFilter={!isEmployee} employees={employees} />
 
-      {/* ✅ Summary Badges me T (Training) bhi add kiya */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16, fontSize: 13, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, fontSize: 12, alignItems: 'center', flexWrap: 'wrap', width: '100%' }}>
         <Badge variant="success" showDot={false}>P: {totals.p}</Badge>
         <Badge variant="danger" showDot={false}>A: {totals.a}</Badge>
         <Badge variant="warning" showDot={false}>H: {totals.h}</Badge>
         <Badge variant="info" showDot={false}>L: {totals.l}</Badge>
-        {/* Training Counter */}
-        <span style={{ padding: '4px 8px', borderRadius: 6, fontSize: 11, fontWeight: 700, background: '#EDE9FE', color: '#7C3AED', border: '1px solid #C4B5FD' }}>
+        <span style={{ padding: '3px 6px', borderRadius: 6, fontSize: 11, fontWeight: 700, background: '#EDE9FE', color: '#7C3AED', border: '1px solid #C4B5FD', display: 'inline-flex', alignItems: 'center' }}>
           T: {totals.t}
         </span>
       </div>
@@ -151,41 +377,139 @@ export default function AttendancePage() {
       {loading ? (
         <Loader />
       ) : matrix.length === 0 ? (
-        <div style={{ padding: 40, background: theme.colors.surface, borderRadius: theme.radius.md, boxShadow: theme.shadow.sm, border: `1px solid ${theme.colors.border}`, textAlign: 'center', color: theme.colors.muted, fontSize: 13 }}>
+        <div style={{ padding: '24px 12px', background: theme.colors.surface, borderRadius: theme.radius.md, boxShadow: theme.shadow.sm, border: `1px solid ${theme.colors.border}`, textAlign: 'center', color: theme.colors.muted, fontSize: 13 }}>
           <b>{MONTHS[month - 1]} {year}</b> ke liye koi attendance record nahi mila.
         </div>
+      ) : isEmployee ? (
+        // ✅ Employee ke liye Full Responsive Grid View (Overflow Fix)
+        <EmployeeCalendar matrix={matrix} totalDays={totalDays} month={month} year={year} />
       ) : (
+        // ✅ Admin ke liye Full Responsive Table View (Overflow Fix)
         <AttendanceMatrix matrix={matrix} totalDays={totalDays} />
       )}
-    </>
+    </div>
   );
 }
 
-function AttendanceMatrix({ matrix, totalDays }) {
+// ✅ Employee Calendar View (Fixed Grid Overflow for Small Screens)
+function EmployeeCalendar({ matrix, totalDays, month, year }) {
   const days = Array.from({ length: totalDays }, (_, i) => i + 1);
-  const nameColWidth = 180;
-  const dayColWidth = 28;
-  const totalColWidth = 36;
+  
+  const firstDayOfWeek = new Date(year, month - 1, 1).getDay();
+  const emptyCells = Array.from({ length: firstDayOfWeek }, (_, i) => i);
+
+  const employeeData = matrix[0];
+  if (!employeeData) return null;
+
+  const { employee, days: dayMap } = employeeData;
 
   return (
-    <div style={{ background: theme.colors.surface, borderRadius: theme.radius.md, boxShadow: theme.shadow.sm, border: `1px solid ${theme.colors.border}`, overflowX: 'auto', width: '100%' }}>
-      <table style={{ borderCollapse: 'separate', borderSpacing: 0, fontSize: 11, width: '100%', minWidth: nameColWidth + (totalDays * dayColWidth) + (totalColWidth * 3) }}>
+    <div style={{ 
+      background: theme.colors.surface, 
+      borderRadius: theme.radius.md, 
+      boxShadow: theme.shadow.sm, 
+      border: `1px solid ${theme.colors.border}`, 
+      padding: '8px 6px',
+      width: '100%',
+      maxWidth: '100%',
+      boxSizing: 'border-box',
+      overflow: 'hidden'
+    }}>
+      
+      {/* Header */}
+      <div style={{ marginBottom: 12, textAlign: 'center', wordBreak: 'break-word' }}>
+        <h3 style={{ margin: 0, fontSize: 'clamp(14px, 4vw, 18px)', color: theme.colors.text }}>{employee.name}</h3>
+        <p style={{ margin: '2px 0 0', fontSize: 'clamp(10px, 3vw, 12px)', color: theme.colors.muted }}>{employee.code} • {employee.designation}</p>
+      </div>
+
+      {/* Calendar Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3, width: '100%', boxSizing: 'border-box' }}>
+        {/* Week Days Header */}
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+          <div key={d} style={{ textAlign: 'center', fontSize: 'clamp(9px, 2.8vw, 11px)', fontWeight: 700, color: theme.colors.muted, paddingBottom: 4 }}>
+            {d}
+          </div>
+        ))}
+
+        {/* Empty Cells */}
+        {emptyCells.map((i) => (
+          <div key={`empty-${i}`} />
+        ))}
+
+        {/* Actual Days */}
+        {days.map((d) => {
+          const status = dayMap[d];
+          const ui = STATUS_UI[status];
+          return (
+            <div 
+              key={d} 
+              style={{ 
+                minHeight: 34,
+                maxHeight: 52,
+                borderRadius: 5, 
+                border: `1px solid ${ui?.border || theme.colors.border}`, 
+                background: ui?.bg || theme.colors.background, 
+                display: 'flex', 
+                flexDirection: 'column',
+                alignItems: 'center', 
+                justifyContent: 'center',
+                padding: '1px',
+                boxSizing: 'border-box',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              title={status || 'No record'}
+            >
+              <span style={{ fontSize: 'clamp(9px, 3vw, 11px)', fontWeight: 700, color: theme.colors.text, lineHeight: 1 }}>{d}</span>
+              {ui && (
+                <span style={{ fontSize: 'clamp(7.5px, 2.5vw, 9.5px)', fontWeight: 800, color: ui.color, marginTop: 1, lineHeight: 1 }}>
+                  {ui.label}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ✅ Admin Table View (Fixed Horizontal Touch Scroll & Sticky Column Overflow)
+function AttendanceMatrix({ matrix, totalDays }) {
+  const days = Array.from({ length: totalDays }, (_, i) => i + 1);
+  const nameColWidth = 140;
+  const dayColWidth = 26;
+  const totalColWidth = 28;
+
+  return (
+    <div style={{ 
+      background: theme.colors.surface, 
+      borderRadius: theme.radius.md, 
+      boxShadow: theme.shadow.sm, 
+      border: `1px solid ${theme.colors.border}`, 
+      overflowX: 'auto', 
+      WebkitOverflowScrolling: 'touch',
+      width: '100%',
+      maxWidth: '100%',
+      boxSizing: 'border-box'
+    }}>
+      <table style={{ borderCollapse: 'separate', borderSpacing: 0, fontSize: 11, width: '100%', minWidth: nameColWidth + (totalDays * dayColWidth) + (totalColWidth * 4) }}>
         <colgroup>
-          <col style={{ width: nameColWidth }} />
-          {days.map((d) => <col key={d} style={{ width: dayColWidth }} />)}
-          <col style={{ width: totalColWidth }} />
-          <col style={{ width: totalColWidth }} />
-          <col style={{ width: totalColWidth }} />
-          <col style={{ width: totalColWidth }} /> {/* ✅ Training Column */}
+          <col style={{ width: nameColWidth, minWidth: nameColWidth }} />
+          {days.map((d) => <col key={d} style={{ width: dayColWidth, minWidth: dayColWidth }} />)}
+          <col style={{ width: totalColWidth, minWidth: totalColWidth }} />
+          <col style={{ width: totalColWidth, minWidth: totalColWidth }} />
+          <col style={{ width: totalColWidth, minWidth: totalColWidth }} />
+          <col style={{ width: totalColWidth, minWidth: totalColWidth }} />
         </colgroup>
         <thead>
           <tr>
-            <th style={{ position: 'sticky', top: 0, left: 0, zIndex: 4, background: theme.colors.background, padding: '10px 12px', textAlign: 'left', fontWeight: 700, fontSize: 10, color: theme.colors.text, borderBottom: `1px solid ${theme.colors.border}` }}>EMPLOYEE</th>
-            {days.map((d) => <th key={d} style={{ position: 'sticky', top: 0, zIndex: 2, background: theme.colors.background, padding: '8px 0', textAlign: 'center', fontWeight: 600, fontSize: 10, color: theme.colors.muted, borderBottom: `1px solid ${theme.colors.border}` }}>{d}</th>)}
-            <th style={{ position: 'sticky', top: 0, right: totalColWidth * 3, zIndex: 4, background: theme.colors.background, padding: '8px 4px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: theme.colors.success, borderBottom: `1px solid ${theme.colors.border}`, borderLeft: `1px solid ${theme.colors.border}` }}>P</th>
-            <th style={{ position: 'sticky', top: 0, right: totalColWidth * 2, zIndex: 4, background: theme.colors.background, padding: '8px 4px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: theme.colors.danger, borderBottom: `1px solid ${theme.colors.border}` }}>A</th>
-            <th style={{ position: 'sticky', top: 0, right: totalColWidth, zIndex: 4, background: theme.colors.background, padding: '8px 4px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: theme.colors.info, borderBottom: `1px solid ${theme.colors.border}` }}>L</th>
-            <th style={{ position: 'sticky', top: 0, right: 0, zIndex: 4, background: theme.colors.background, padding: '8px 4px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: '#7C3AED', borderBottom: `1px solid ${theme.colors.border}` }}>T</th>
+            <th style={{ position: 'sticky', top: 0, left: 0, zIndex: 4, background: theme.colors.background, padding: '8px 6px', textAlign: 'left', fontWeight: 700, fontSize: 10, color: theme.colors.text, borderBottom: `1px solid ${theme.colors.border}` }}>EMPLOYEE</th>
+            {days.map((d) => <th key={d} style={{ position: 'sticky', top: 0, zIndex: 2, background: theme.colors.background, padding: '6px 0', textAlign: 'center', fontWeight: 600, fontSize: 10, color: theme.colors.muted, borderBottom: `1px solid ${theme.colors.border}` }}>{d}</th>)}
+            <th style={{ position: 'sticky', top: 0, right: totalColWidth * 3, zIndex: 4, background: theme.colors.background, padding: '6px 2px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: theme.colors.success, borderBottom: `1px solid ${theme.colors.border}`, borderLeft: `1px solid ${theme.colors.border}` }}>P</th>
+            <th style={{ position: 'sticky', top: 0, right: totalColWidth * 2, zIndex: 4, background: theme.colors.background, padding: '6px 2px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: theme.colors.danger, borderBottom: `1px solid ${theme.colors.border}` }}>A</th>
+            <th style={{ position: 'sticky', top: 0, right: totalColWidth, zIndex: 4, background: theme.colors.background, padding: '6px 2px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: theme.colors.info, borderBottom: `1px solid ${theme.colors.border}` }}>L</th>
+            <th style={{ position: 'sticky', top: 0, right: 0, zIndex: 4, background: theme.colors.background, padding: '6px 2px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: '#7C3AED', borderBottom: `1px solid ${theme.colors.border}` }}>T</th>
           </tr>
         </thead>
         <tbody>
@@ -199,23 +523,23 @@ function AttendanceMatrix({ matrix, totalDays }) {
             });
             return (
               <tr key={employee._id}>
-                <td style={{ position: 'sticky', left: 0, zIndex: 3, background: theme.colors.surface, padding: '8px 12px', borderBottom: `1px solid ${theme.colors.border}` }}>
-                  <div style={{ fontWeight: 600, fontSize: 12, color: theme.colors.text }}>{employee.name}</div>
-                  <div style={{ fontSize: 10, color: theme.colors.muted }}>{employee.code} • {employee.designation}</div>
+                <td style={{ position: 'sticky', left: 0, zIndex: 3, background: theme.colors.surface, padding: '6px 6px', borderBottom: `1px solid ${theme.colors.border}`, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontWeight: 600, fontSize: 11, color: theme.colors.text, overflow: 'hidden', textOverflow: 'ellipsis' }}>{employee.name}</div>
+                  <div style={{ fontSize: 9, color: theme.colors.muted, overflow: 'hidden', textOverflow: 'ellipsis' }}>{employee.code} • {employee.designation}</div>
                 </td>
                 {days.map((d) => {
                   const status = dayMap[d];
                   const ui = STATUS_UI[status];
                   return (
                     <td key={d} style={{ padding: '2px 0', textAlign: 'center', borderBottom: `1px solid ${theme.colors.border}` }}>
-                      <div style={{ width: 20, height: 20, margin: '0 auto', borderRadius: 4, background: ui?.bg || theme.colors.background, color: ui?.color || theme.colors.muted, border: `1px solid ${ui?.border || theme.colors.border}`, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }} title={status || 'No record'}>{ui?.label || ''}</div>
+                      <div style={{ width: 17, height: 17, margin: '0 auto', borderRadius: 4, background: ui?.bg || theme.colors.background, color: ui?.color || theme.colors.muted, border: `1px solid ${ui?.border || theme.colors.border}`, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }} title={status || 'No record'}>{ui?.label || ''}</div>
                     </td>
                   );
                 })}
-                <td style={{ position: 'sticky', right: totalColWidth * 3, zIndex: 3, background: theme.colors.surface, padding: '6px 4px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: theme.colors.success, borderBottom: `1px solid ${theme.colors.border}`, borderLeft: `1px solid ${theme.colors.border}` }}>{pCount}</td>
-                <td style={{ position: 'sticky', right: totalColWidth * 2, zIndex: 3, background: theme.colors.surface, padding: '6px 4px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: theme.colors.danger, borderBottom: `1px solid ${theme.colors.border}` }}>{aCount}</td>
-                <td style={{ position: 'sticky', right: totalColWidth, zIndex: 3, background: theme.colors.surface, padding: '6px 4px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: theme.colors.info, borderBottom: `1px solid ${theme.colors.border}` }}>{lCount}</td>
-                <td style={{ position: 'sticky', right: 0, zIndex: 3, background: theme.colors.surface, padding: '6px 4px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: '#7C3AED', borderBottom: `1px solid ${theme.colors.border}` }}>{tCount}</td>
+                <td style={{ position: 'sticky', right: totalColWidth * 3, zIndex: 3, background: theme.colors.surface, padding: '4px 2px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: theme.colors.success, borderBottom: `1px solid ${theme.colors.border}`, borderLeft: `1px solid ${theme.colors.border}` }}>{pCount}</td>
+                <td style={{ position: 'sticky', right: totalColWidth * 2, zIndex: 3, background: theme.colors.surface, padding: '4px 2px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: theme.colors.danger, borderBottom: `1px solid ${theme.colors.border}` }}>{aCount}</td>
+                <td style={{ position: 'sticky', right: totalColWidth, zIndex: 3, background: theme.colors.surface, padding: '4px 2px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: theme.colors.info, borderBottom: `1px solid ${theme.colors.border}` }}>{lCount}</td>
+                <td style={{ position: 'sticky', right: 0, zIndex: 3, background: theme.colors.surface, padding: '4px 2px', textAlign: 'center', fontWeight: 700, fontSize: 10, color: '#7C3AED', borderBottom: `1px solid ${theme.colors.border}` }}>{tCount}</td>
               </tr>
             );
           })}

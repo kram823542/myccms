@@ -53,13 +53,20 @@ export const generatePassword = (length = 10) => {
   return pwd;
 };
 
-export const isWithinTimeWindow = (startHour, endHour) => {
-  const now = new Date();
-  const istTime = new Date(
-    now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })
-  );
-  const hour = istTime.getHours();
-  return hour >= startHour && hour < endHour;
+export const isWithinTimeWindow = (startTime, endTime) => {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  const currentMinutes = Number(values.hour) * 60 + Number(values.minute);
+  const toMinutes = (time) => {
+    const [hours, minutes] = typeof time === 'number' ? [time, 0] : time.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+  return currentMinutes >= toMinutes(startTime) && currentMinutes < toMinutes(endTime);
 };
 
 // ✅ FIX #22: Intl.DateTimeFormat (timezone safe, no locale parsing)

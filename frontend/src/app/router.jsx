@@ -26,7 +26,6 @@ import EmployeesPage from '../features/employees/EmployeesPage.jsx';
 import EmployeeProfilePage from '../features/employees/EmployeeProfilePage.jsx';
 import ActionPlansPage from '../features/actionPlans/ActionPlansPage.jsx';
 import WorkDonePage from '../features/workDone/WorkDonePage.jsx';
-import WorkDoneApprovalPage from '../features/workDone/WorkDoneApprovalPage.jsx';
 import AttendancePage from '../features/attendance/AttendancePage.jsx';
 import NotificationsPage from '../features/notifications/NotificationsPage.jsx';
 import ReportsPage from '../features/reports/ReportsPage.jsx';
@@ -106,13 +105,12 @@ export default function AppRouter() {
         <Route path="/clf/profile" element={<Profile />} />
         <Route path="/clf/action-plans" element={<ActionPlansPage />} />
         <Route path="/clf/work-done" element={<WorkDonePage />} />
-        <Route path="/clf/work-done/approval" element={<WorkDoneApprovalPage />} />
+        <Route path="/clf/work-done/approval" element={<WorkDonePage initialTab="pending" key="pending" />} />
         <Route path="/clf/advice" element={<Advice />} />   
         
         {/* ✅ FIXED: Top Sheet Route add kiya */}
         <Route path="/clf/topsheet" element={<TopSheet />} /> 
-        // ✅ CLF Layout ke andar add karo
-<Route path="/clf/resources" element={<ClfResourcesPage />} />
+        <Route path="/clf/resources" element={<ClfResourcesPage />} />
         
         <Route path="/clf/attendance" element={<AttendancePage />} />
         <Route path="/clf/notifications" element={<NotificationsPage />} />

@@ -5,7 +5,8 @@ import Button from '../../components/ui/Button.jsx';
 import Input from '../../components/ui/Input.jsx';
 import Select from '../../components/ui/Select.jsx';
 import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
-import { listEmployees } from '../employees/employees.api.js';
+import { listAllEmployeesInScope } from '../employees/employees.api.js';
+import { generatePatrankPrefix } from '../../utils/patrankGenerator.js';
 import { getClf } from '../clfs/clfs.api.js';
 import { getAuthUser } from '../../utils/authStorage.js';
 import * as adviceApi from './advice.api.js';
@@ -51,38 +52,7 @@ export default function SalaryAdvice() {
           setSelectedBankAcc(data.data.bankAccounts[0].accountNumber);
         }
         
-        // ✅ FIX: Hindi se English Transliteration for Patrank Prefix
-        const clfName = data.data?.name || '';
-        
-        // Hindi aksharon ka English me map
-        const hindiMap = {
-          'क':'K','ख':'KH','ग':'G','घ':'GH','ङ':'N',
-          'च':'C','छ':'CH','ज':'J','झ':'JH','ञ':'N',
-          'ट':'T','ठ':'TH','ड':'D','ढ':'DH','ण':'N',
-          'त':'T','थ':'TH','द':'D','ध':'DH','न':'N',
-          'प':'P','फ':'F','ब':'B','भ':'BH','म':'M',
-          'य':'Y','र':'R','ल':'L','व':'V','श':'SH',
-          'ष':'SH','स':'S','ह':'H','ळ':'L','क्ष':'KSH','ज्ञ':'GY',
-          // Matras (vowels)
-          'अ':'A','आ':'AA','इ':'I','ई':'EE','उ':'U','ऊ':'OO','ए':'E','ऐ':'AI','ओ':'O','औ':'AU',
-          'ा':'A','ि':'I','ी':'I','ु':'U','ू':'U','े':'E','ै':'AI','ो':'O','ौ':'AU','ं':'N','ः':'H','्':''
-        };
-
-        // Naam ko translate karo
-        let translatedName = '';
-        for (let i = 0; i < clfName.length; i++) {
-          const char = clfName[i];
-          if (hindiMap[char]) {
-            translatedName += hindiMap[char];
-          } else if (/[A-Za-z]/.test(char)) {
-            translatedName += char.toUpperCase(); // English letters as it is
-          }
-        }
-
-        // Agar translation ke baad 3 se kam letters hain, toh 'X' add karo
-        const prefix = translatedName.length >= 3 
-          ? translatedName.substring(0, 3).toUpperCase() 
-          : translatedName.padEnd(3, 'X').toUpperCase();
+        const prefix = generatePatrankPrefix(data.data?.name || '');
           
         const currentYear = new Date().getFullYear();
         setAdviceNumber(`${prefix}/CLF/${currentYear}/`);
@@ -101,8 +71,7 @@ export default function SalaryAdvice() {
     const load = async () => {
       setLoading(true);
       try {
-        const { data } = await listEmployees({ page: 1, limit: 500 });
-        setEmployees(data?.data?.employees || []);
+        setEmployees(await listAllEmployeesInScope());
       } catch (err) {
         toast.error('Failed to load employees');
       } finally {

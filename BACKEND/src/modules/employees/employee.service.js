@@ -74,7 +74,6 @@ export const createEmployee = async (req, data) => {
           },
           workLocation: { panchayat: data.workLocation.panchayat },
           profilePhoto: data.profilePhoto,
-          tempPassword: tempPassword, // ✅ Yahan plain password save kiya
           clfId: clf._id,
           blockId: clf.blockId,
           userId: empUser[0]._id,
@@ -283,9 +282,6 @@ export const resetEmployeePassword = async (req, id, data) => {
     empUser.password = password;
     empUser.mustChangePassword = true;
     
-    // ✅ Reset hote hi naya password Employee me save karo
-    emp.tempPassword = password; 
-    await emp.save();
   }
 
   empUser.loginAttempts = 0;
@@ -309,7 +305,7 @@ export const getEmployeeCredentials = async (req) => {
 
   const employees = await Employee.find({ clfId: req.user.clfId })
     .populate('userId', 'username') 
-    .select('name employeeCode tempPassword userId designation')
+    .select('name employeeCode userId designation')
     .sort({ name: 1 })
     .lean();
 
@@ -319,7 +315,7 @@ export const getEmployeeCredentials = async (req) => {
     employeeCode: emp.employeeCode,
     designation: emp.designation,
     username: emp.userId?.username || emp.employeeCode.toLowerCase(),
-    password: emp.tempPassword || '******', // Agar purana employee hai toh ****** dikhega
+    password: '******',
   }));
 };
 

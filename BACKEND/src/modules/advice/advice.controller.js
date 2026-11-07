@@ -1,5 +1,6 @@
 import { asyncHandler } from '../../utils/asyncHandler.js';
-import { ApiError } from '../../utils/ApiError.js'; // ✅ NAYA: ApiError import kiya
+import { ApiError } from '../../utils/ApiError.js';
+import { CLF } from '../clfs/clf.model.js';
 import { TopSheet } from './topSheet.model.js'; // ✅ NAYA: TopSheet model import kiya
 import * as service from './advice.service.js';
 
@@ -32,7 +33,7 @@ export const downloadPDF = asyncHandler(async (req, res) => {
 /** ✅ CLF Members fetch */
 export const getClfMembers = asyncHandler(async (req, res) => {
   const { clfId } = req.params;
-  const members = await service.getClfMembersForAdvice(clfId);
+  const members = await service.getClfMembersForAdvice(req, clfId);
   res.json({ success: true, data: members });
 });
 
@@ -40,6 +41,10 @@ export const getClfMembers = asyncHandler(async (req, res) => {
 export const getTopSheetHistory = asyncHandler(async (req, res) => {
   const clfId = req.user.role === 'CLF' ? req.user.clfId : req.query.clfId;
   if (!clfId) throw ApiError.badRequest('CLF ID required');
+
+  const clf = await CLF.findById(clfId);
+  if (!clf) throw ApiError.notFound('CLF not found');
+  service.assertAdviceScope(req.user, clf);
 
   const history = await TopSheet.find({ clfId }).sort({ createdAt: -1 }).limit(50);
   res.json({ success: true, data: history });

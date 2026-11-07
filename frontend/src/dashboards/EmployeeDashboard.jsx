@@ -9,22 +9,14 @@ import * as workApi from '../features/workDone/workDone.api.js';
 import * as attendanceApi from '../features/attendance/attendance.api.js';
 import * as notificationApi from '../features/notifications/notifications.api.js';
 import { getEmployee } from '../features/employees/employees.api.js'; 
+import { useSubmissionWindows } from '../hooks/useSubmissionWindows.js';
+import { formatSubmissionWindow } from '../utils/submissionWindow.js';
 
-// ... (getGreeting, getCurrentWindow, getTodayStr, getMonthRange same rahenge)
 const getGreeting = () => {
   const hour = new Date().getHours();
   if (hour < 12) return 'Good Morning';
   if (hour < 17) return 'Good Afternoon';
   return 'Good Evening';
-};
-
-const getCurrentWindow = () => {
-  const now = new Date();
-  const istTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-  const hour = istTime.getHours();
-  if (hour >= 8 && hour < 11) return 'ACTION_PLAN_OPEN';
-  if (hour >= 17 && hour < 22) return 'WORK_DONE_OPEN';
-  return 'CLOSED';
 };
 
 const getTodayStr = () => {
@@ -45,7 +37,12 @@ const getMonthRange = () => {
 export default function EmployeeDashboard() {
   const user = getAuthUser() || {};
   const greeting = getGreeting();
-  const currentWindow = getCurrentWindow();
+  const { windows } = useSubmissionWindows();
+  const currentWindow = windows?.actionPlan?.isOpen
+    ? 'ACTION_PLAN_OPEN'
+    : windows?.workDone?.isOpen
+      ? 'WORK_DONE_OPEN'
+      : 'CLOSED';
 
   const [loading, setLoading] = useState(true);
   const [todayPlan, setTodayPlan] = useState(null);
@@ -129,13 +126,12 @@ export default function EmployeeDashboard() {
   return (
     <>
       <PageHeader title={`${greeting}, ${displayName} 👋`} subtitle="What would you like to do today?" />
-      {/* ... (Baaki UI same rahega jo aapne bheja tha, bas time 8 AM - 11 AM kar diya hai) */}
       {currentWindow !== 'CLOSED' && (
         <div style={{ background: `linear-gradient(90deg, ${theme.colors.primary}15, ${theme.colors.secondary}10)`, border: `1px solid ${theme.colors.primary}40`, borderRadius: theme.radius.md, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: theme.colors.primary }}>
           <span style={{ fontSize: 16 }}>⏰</span>
           <span>
-            {currentWindow === 'ACTION_PLAN_OPEN' && "Action Plan window is open — submit before 11:00 AM"}
-            {currentWindow === 'WORK_DONE_OPEN' && "Work Done window is open — submit before 10:00 PM"}
+            {currentWindow === 'ACTION_PLAN_OPEN' && `Action Plan window is open — ${formatSubmissionWindow(windows.actionPlan)} IST`}
+            {currentWindow === 'WORK_DONE_OPEN' && `Work Done window is open — ${formatSubmissionWindow(windows.workDone)} IST`}
           </span>
         </div>
       )}
@@ -148,8 +144,8 @@ export default function EmployeeDashboard() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-        <Card to="/employee/work" title="📝 Today's Action Plan" subtitle={todayPlan ? `✅ Submitted at ${new Date(todayPlan.submittedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}` : 'Submit between 8:00 AM – 11:00 AM'} color={theme.colors.primary} badge={planBadge.text} badgeVariant={planBadge.variant} />
-        <Card to="/employee/work" title="✅ Today's Work Done" subtitle={todayWork ? todayWork.status === 'REJECTED' ? `❌ Rejected — ${(todayWork.rejectionReason || '').slice(0, 50)}` : `${todayWork.status === 'APPROVED' ? '✅ Approved' : '⏳ Pending approval'}` : 'Submit between 5:00 PM – 10:00 PM'} color={theme.colors.success} badge={workBadge.text} badgeVariant={workBadge.variant} />
+        <Card to="/employee/work" title="📝 Today's Action Plan" subtitle={todayPlan ? `✅ Submitted at ${new Date(todayPlan.submittedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}` : windows ? `Submit between ${formatSubmissionWindow(windows.actionPlan)} IST` : 'Submission time unavailable'} color={theme.colors.primary} badge={planBadge.text} badgeVariant={planBadge.variant} />
+        <Card to="/employee/work" title="✅ Today's Work Done" subtitle={todayWork ? todayWork.status === 'REJECTED' ? `❌ Rejected — ${(todayWork.rejectionReason || '').slice(0, 50)}` : `${todayWork.status === 'APPROVED' ? '✅ Approved' : '⏳ Pending approval'}` : windows ? `Submit between ${formatSubmissionWindow(windows.workDone)} IST` : 'Submission time unavailable'} color={theme.colors.success} badge={workBadge.text} badgeVariant={workBadge.variant} />
         <Card to="/employee/attendance" title="📅 My Attendance" subtitle={`${monthAttendance.present} Present, ${monthAttendance.absent} Absent this month`} color={theme.colors.info} />
         <Card to="/employee/notifications" title="🔔 Notifications" subtitle={unreadCount > 0 ? `${unreadCount} unread message${unreadCount > 1 ? 's' : ''}` : 'All caught up!'} color={theme.colors.accent} badge={unreadCount > 0 ? `${unreadCount}` : null} badgeVariant="danger" />
         <Card to="/employee/reports" title="📄 My Reports" subtitle="Download monthly Action Plan & Work Done PDFs" color={theme.colors.warning} />

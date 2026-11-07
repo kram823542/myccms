@@ -2,16 +2,15 @@ import { ActionPlan } from './actionPlan.model.js';
 import { Employee } from '../employees/employee.model.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { isWithinTimeWindow, getISTDateString } from '../../utils/security.js';
+import { env } from '../../config/env.js';
 
-// ✅ time (8-11 AM IST)
-const WINDOW_START = 8;
-const WINDOW_END = 11;
+const submissionWindow = env.SUBMISSION_WINDOWS.ACTION_PLAN;
 
 export const submitActionPlan = async (req, { plan }) => {
   if (req.user.role !== 'EMPLOYEE') throw ApiError.forbidden('Only employees submit');
 
-  if (!isWithinTimeWindow(WINDOW_START, WINDOW_END)) {
-    throw ApiError.forbidden('Action Plan submission window closed (10-11 AM IST)');
+  if (!isWithinTimeWindow(submissionWindow.start, submissionWindow.end)) {
+    throw ApiError.forbidden('Action Plan submission window is closed');
   }
 
   const employee = await Employee.findOne({ userId: req.user._id });
@@ -51,7 +50,7 @@ export const listActionPlans = async (req, query) => {
     if (query.clfId) filter.clfId = query.clfId;
   }
 
-  if (query.employeeId) filter.employeeId = query.employeeId;
+  if (query.employeeId && user.role !== 'EMPLOYEE') filter.employeeId = query.employeeId;
   if (query.date) filter.date = query.date;
   if (query.from || query.to) {
     filter.date = {};

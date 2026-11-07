@@ -2,19 +2,23 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
-import { User } from '../src/modules/users/user.model.js';
 
 // ✅ Path set karo taaki .env parent folder se load ho
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
-// 🔥 YAHAN APNI ID AUR PASSWORD HARDCODE KAREIN
-const USERNAME = '@CLFSATBARWA';
-const PASSWORD = 'KUNDAN@CLF'; // Minimum 8 characters
-const NAME = 'Kundan Ram';
+const USERNAME = process.env.SUPER_ADMIN_USERNAME?.trim();
+const PASSWORD = process.env.SUPER_ADMIN_PASSWORD;
+const NAME = process.env.SUPER_ADMIN_NAME?.trim() || 'Super Admin';
 
 const run = async () => {
+  const { User } = await import('../src/modules/users/user.model.js');
+
+  if (!USERNAME || !PASSWORD) {
+    console.error('❌ Set SUPER_ADMIN_USERNAME and SUPER_ADMIN_PASSWORD in the environment.');
+    process.exit(1);
+  }
   if (PASSWORD.length < 8) {
     console.error('❌ Password must be at least 8 characters');
     process.exit(1);
@@ -51,7 +55,6 @@ const run = async () => {
 
       console.log('═══════════════════════════════════════');
       console.log(`✅ Super Admin password RESET: ${uname}`);
-      console.log(`   New Password: ${PASSWORD}`);
       console.log('═══════════════════════════════════════');
     } else {
       await User.create({
@@ -65,7 +68,6 @@ const run = async () => {
 
       console.log('═══════════════════════════════════════');
       console.log(`✅ Super Admin CREATED: ${uname}`);
-      console.log(`   Password: ${PASSWORD}`);
       console.log('═══════════════════════════════════════');
     }
 

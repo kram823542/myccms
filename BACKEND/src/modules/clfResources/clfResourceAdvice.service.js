@@ -321,10 +321,10 @@ export const generateResourceAdvicePDF = async (req, res, { type, ids, month, ad
       name: r.name || r.voName,
       designation: r.designation || 'VO Member',
       month: month,
-      bankName: r.voName ? r.sachiv?.bankDetails?.bankName : r.bankName,
-      bankAccountNumber: r.voName ? r.sachiv?.bankDetails?.accountNumber : r.accountNumber,
-      branch: r.voName ? r.sachiv?.bankDetails?.branch : r.branch,
-      ifscCode: r.voName ? r.sachiv?.bankDetails?.ifscCode : r.ifscCode,
+      bankName: r.bankName,
+      bankAccountNumber: r.accountNumber,
+      branch: r.branch,
+      ifscCode: r.ifscCode,
       amount: amounts[i] || 0,
     }));
 

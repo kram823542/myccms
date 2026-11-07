@@ -61,10 +61,10 @@ export default function BottomBar({ menu = [] }) {
       <style>{`
         .custom-bb-container {
           position: fixed;
-          bottom: 16px;
+          bottom: 12px;
           left: 50%;
           transform: translateX(-50%);
-          width: calc(100% - 24px);
+          width: calc(100% - 16px);
           max-width: 440px;
           z-index: 1000;
           display: flex;
@@ -78,18 +78,18 @@ export default function BottomBar({ menu = [] }) {
         .custom-bb-container * { pointer-events: auto; }
         .custom-bb-main {
           flex: 1;
-          background: ${theme.colors.bbDarkBrown};
-          border-radius: ${theme.radius.full || '9999px'};
+          background: ${theme.colors.secondary};
+          border-radius: 9999px;
           padding: 4px 6px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 2px;
           box-shadow: ${theme.shadow.lg};
-          height: 56px;
+          height: 54px;
           box-sizing: border-box;
           min-width: 0;
-          border: 1px solid ${theme.colors.bbIndigo}40;
+          border: 1px solid ${theme.colors.primary}40;
           overflow: hidden;
         }
         .custom-bb-item {
@@ -98,51 +98,55 @@ export default function BottomBar({ menu = [] }) {
           justify-content: center;
           height: 100%;
           text-decoration: none;
-          border-radius: ${theme.radius.full || '9999px'};
-          transition: none;
-          color: ${theme.colors.bbLightLilac};
+          border-radius: 9999px;
+          transition: all 0.2s ease;
+          color: ${theme.colors.background};
           padding: 0 4px;
           flex: 1 1 0;
-          min-width: 28px;
+          min-width: 26px;
           white-space: nowrap;
+          overflow: hidden;
         }
         .custom-bb-item.active {
           flex: 0 1 auto;
-          max-width: calc(100% - 84px);
-          color: ${theme.colors.bbDarkBrown};
+          max-width: calc(100% - 50px);
+          color: ${theme.colors.primary};
           background: ${theme.colors.surface};
           box-shadow: ${theme.shadow.sm};
-          padding: 0 8px;
+          padding: 0 10px;
         }
         .custom-bb-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .custom-bb-label { display: block; font-size: 13px; font-weight: 700; margin-left: 6px; white-space: nowrap; }
+        .custom-bb-label { display: block; font-size: clamp(10px, 2.8vw, 12px); font-weight: 700; margin-left: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .custom-bb-circle-btn {
-          width: 56px;
-          height: 56px;
-          background: ${theme.colors.bbDarkBrown};
+          width: 54px;
+          height: 54px;
+          background: ${theme.colors.secondary};
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: ${theme.colors.bbLightLilac};
+          color: ${theme.colors.background};
           text-decoration: none;
           box-shadow: ${theme.shadow.lg};
           flex-shrink: 0;
           transition: all 0.3s ease;
-          border: 2px solid transparent;
+          border: 2px solid ${theme.colors.primary}50;
           overflow: hidden;
           position: relative;
         }
-        .custom-bb-circle-btn.active { border-color: ${theme.colors.surface}; box-shadow: 0 0 0 2px ${theme.colors.bbIndigo}; }
+        .custom-bb-circle-btn.active { 
+          border-color: ${theme.colors.surface}; 
+          background: ${theme.colors.primary};
+          box-shadow: 0 0 0 3px ${theme.colors.accent}60; 
+        }
         .custom-bb-profile-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-        .custom-bb-initial { font-size: 20px; font-weight: 800; color: ${theme.colors.bbLightLilac}; }
-        @media (max-width: 380px) {
-          .custom-bb-container { width: calc(100% - 16px); bottom: 12px; gap: 6px; }
-          .custom-bb-main { height: 52px; padding: 3px 4px; }
-          .custom-bb-circle-btn { width: 52px; height: 52px; }
-          .custom-bb-label { font-size: 11px; margin-left: 4px; }
-          .custom-bb-item { padding: 0 2px; min-width: 24px; }
-          .custom-bb-item.active { max-width: calc(100% - 72px); padding: 0 6px; }
+        .custom-bb-initial { font-size: 18px; font-weight: 800; color: ${theme.colors.textLight}; }
+        
+        @media (max-width: 320px) {
+          .custom-bb-container { bottom: 8px; gap: 4px; width: calc(100% - 10px); }
+          .custom-bb-main { height: 48px; padding: 3px 4px; }
+          .custom-bb-circle-btn { width: 48px; height: 48px; }
+          .custom-bb-item.active { max-width: calc(100% - 40px); padding: 0 6px; }
         }
         @media (min-width: 768px) { .custom-bb-container { display: none !important; } }
       `}</style>
@@ -157,7 +161,7 @@ export default function BottomBar({ menu = [] }) {
                 to={item.path}
                 className={`custom-bb-item ${isActive ? 'active' : ''}`}
               >
-                <span className="custom-bb-icon">{renderDynamicIcon(item, 18)}</span>
+                <span className="custom-bb-icon">{renderDynamicIcon(item, 16)}</span>
                 {isActive && <span className="custom-bb-label">{item.label}</span>}
               </Link>
             );

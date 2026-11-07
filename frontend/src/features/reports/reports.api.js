@@ -1,4 +1,5 @@
 import apiClient from '../../services/apiClient.js';
+import { listAllEmployees } from '../employees/listAllEmployees.js';
 
 export const downloadActionPlanPDF = (params) =>
   apiClient.get('/reports/action-plan', { params, responseType: 'blob' });
@@ -12,3 +13,5 @@ export const downloadAttendanceExcel = (params) =>
 // Fetch employees for reports list (BPM/CLF scope)
 export const fetchEmployeesForReports = (params) =>
   apiClient.get('/employees', { params });
+export const fetchAllEmployeesForReports = (params) =>
+  listAllEmployees(fetchEmployeesForReports, params);
