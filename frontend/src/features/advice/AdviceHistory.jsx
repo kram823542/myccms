@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Loader from '../../components/ui/Loader.jsx';
 import Badge from '../../components/ui/Badge.jsx';
 import Button from '../../components/ui/Button.jsx';
@@ -15,12 +15,11 @@ export default function AdviceHistory() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   
-  // ✅ NAYA: View Details Modal States
+  //  NAYA: View Details Modal States
   const [viewTarget, setViewTarget] = useState(null);
   const [fetchingDetails, setFetchingDetails] = useState(false);
 
-  const load = async () => {
-    setLoading(true);
+  const load = useCallback(async () => {
     try {
       const params = { limit: 200 };
       if (filter) params.adviceType = filter;
@@ -35,18 +34,18 @@ export default function AdviceHistory() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
   
-  useEffect(() => { load(); }, [filter]);
+  useEffect(() => { void Promise.resolve().then(load); }, [load]);
 
-  // ✅ NAYA: Detail Fetch Function
+  //  NAYA: Detail Fetch Function
   const handleViewDetails = async (id) => {
     setFetchingDetails(true);
     setViewTarget(null); // Puraane data ko clear karein
     try {
       const { data } = await adviceApi.getAdvice(id); // Backend se full data fetch karein
       setViewTarget(data.data); // Modal open karein data ke sath
-    } catch (err) {
+    } catch  {
       toast.error('Failed to load advice details');
     } finally {
       setFetchingDetails(false);
@@ -67,7 +66,7 @@ export default function AdviceHistory() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       toast.success('PDF downloaded');
-    } catch (err) {
+    } catch  {
       toast.error('Failed to download PDF');
     }
   };
@@ -79,8 +78,8 @@ export default function AdviceHistory() {
       const url = URL.createObjectURL(blob);
       const win = window.open(url, '_blank');
       if (!win) return toast.error('Please allow popups to print');
-      setTimeout(() => { try { win.print(); } catch (e) {} }, 900);
-    } catch (err) {
+      setTimeout(() => { try { win.print(); } catch  {} }, 900);
+    } catch  {
       toast.error('Failed to open print view');
     }
   };
@@ -169,14 +168,14 @@ export default function AdviceHistory() {
 
               {/* Card Footer Actions */}
               <div className="px-4 py-3 rounded-b-xl border-t flex justify-between items-center" style={{ borderColor: `${theme.colors.border}50`, backgroundColor: theme.colors.background }}>
-                {/* ✅ FIXED: View Details function call */}
+                {/*  FIXED: View Details function call */}
                 <Button size="sm" variant="outline" onClick={() => handleViewDetails(a._id)} style={{ padding: '4px 12px', fontSize: 11 }}>
                   {fetchingDetails ? 'Loading...' : 'View Details'}
                 </Button>
                 <div className="flex gap-1">
-                  <button onClick={() => handlePrint(a._id)} style={{ padding: 6, borderRadius: 6, background: 'transparent' }} title="Print">🖨️</button>
-                  <button onClick={() => handleDownload(a._id, a.adviceNumber)} style={{ padding: 6, borderRadius: 6, background: 'transparent' }} title="Download">⬇️</button>
-                  <button onClick={() => setDeleteTarget(a)} style={{ padding: 6, borderRadius: 6, background: 'transparent' }} title="Delete">🗑️</button>
+                  <button onClick={() => handlePrint(a._id)} style={{ padding: 6, borderRadius: 6, background: 'transparent' }} title="Print"></button>
+                  <button onClick={() => handleDownload(a._id, a.adviceNumber)} style={{ padding: 6, borderRadius: 6, background: 'transparent' }} title="Download"></button>
+                  <button onClick={() => setDeleteTarget(a)} style={{ padding: 6, borderRadius: 6, background: 'transparent' }} title="Delete"></button>
                 </div>
               </div>
             </div>
@@ -184,7 +183,7 @@ export default function AdviceHistory() {
         </div>
       )}
 
-      {/* ✅ Modal for View Details */}
+      {/*  Modal for View Details */}
       <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title={`Advice Details — ${viewTarget?.adviceNumber || ''}`} size="lg">
         {viewTarget && (
           <div className="space-y-4">

@@ -1,46 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Input from '../../components/ui/Input.jsx';
 import Button from '../../components/ui/Button.jsx';
 import { theme } from '../../config/theme.js';
 import * as api from './employees.api.js';
 
+//  सुरक्षित डेट फॉर्मेटिंग हेल्पर फंक्शन
+const formatDateForInput = (dateStr) => {
+  if (!dateStr) return '';
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      return dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+    }
+    return date.toISOString().split('T')[0];
+  } catch  {
+    return '';
+  }
+};
+
+const getInitialForm = (initialData) => ({
+  employeeCode: initialData?.employeeCode || '',
+  name: initialData?.name || '',
+  mobile: initialData?.mobile || '',
+  designation: initialData?.designation || '',
+  joiningDate: formatDateForInput(initialData?.joiningDate),
+  aadhaarNumber: initialData?.aadhaarNumber || '',
+  bankDetails: {
+    bankName: initialData?.bankDetails?.bankName || '',
+    accountNumber: initialData?.bankDetails?.accountNumber || '',
+    branch: initialData?.bankDetails?.branch || '',
+    ifsc: initialData?.bankDetails?.ifsc || '',
+  },
+  workLocation: { panchayat: initialData?.workLocation?.panchayat || '' },
+});
+
 export default function EmployeeForm({ initialData, onCreated, onCancel }) {
-  const [form, setForm] = useState({
-    employeeCode: '',
-    name: '',
-    mobile: '',
-    designation: '',
-    joiningDate: '',
-    aadhaarNumber: '',
-    bankDetails: { bankName: '', accountNumber: '', branch: '', ifsc: '' },
-    workLocation: { panchayat: '' },
-  });
+  const [form, setForm] = useState(() => getInitialForm(initialData));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState([]);
-
-  // ✅ FIX: Edit mode me asli Aadhaar aur Account Number load karo
-  useEffect(() => {
-    if (initialData) {
-      setForm({
-        employeeCode: initialData.employeeCode || '',
-        name: initialData.name || '',
-        mobile: initialData.mobile || '',
-        designation: initialData.designation || '',
-        joiningDate: initialData.joiningDate ? initialData.joiningDate.split('T')[0] : '',
-        // ✅ Asli Aadhaar load karo (masked nahi)
-        aadhaarNumber: initialData.aadhaarNumber || '', 
-        bankDetails: {
-          bankName: initialData.bankDetails?.bankName || '',
-          // ✅ Asli Account Number load karo (masked nahi)
-          accountNumber: initialData.bankDetails?.accountNumber || '',
-          branch: initialData.bankDetails?.branch || '',
-          ifsc: initialData.bankDetails?.ifsc || '',
-        },
-        workLocation: { panchayat: initialData.workLocation?.panchayat || '' },
-      });
-    }
-  }, [initialData]);
 
   const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   const handleNested = (section) => (e) => setForm((f) => ({ ...f, [section]: { ...f[section], [e.target.name]: e.target.value } }));
@@ -100,26 +98,11 @@ export default function EmployeeForm({ initialData, onCreated, onCancel }) {
       <Input label="Designation" name="designation" value={form.designation} onChange={handleChange} placeholder="Bank Sakhi" required />
       <Input label="Joining Date" name="joiningDate" type="date" value={form.joiningDate} onChange={handleChange} required />
       
-      {/* ✅ Ab yahan asli Aadhaar dikhega */}
-      <Input
-        label="Aadhaar Number"
-        name="aadhaarNumber"
-        value={form.aadhaarNumber}
-        onChange={handleChange}
-        placeholder="12 digits"
-      />
+      <Input label="Aadhaar Number" name="aadhaarNumber" value={form.aadhaarNumber} onChange={handleChange} placeholder="12 digits" />
 
       <h4 style={{ margin: '8px 0 0', fontSize: 14 }}>Bank Details</h4>
       <Input label="Bank Name" name="bankName" value={form.bankDetails.bankName} onChange={handleNested('bankDetails')} />
-      
-      {/* ✅ Ab yahan asli Account Number dikhega */}
-      <Input
-        label="Account Number"
-        name="accountNumber"
-        value={form.bankDetails.accountNumber}
-        onChange={handleNested('bankDetails')}
-      />
-      
+      <Input label="Account Number" name="accountNumber" value={form.bankDetails.accountNumber} onChange={handleNested('bankDetails')} />
       <Input label="Branch" name="branch" value={form.bankDetails.branch} onChange={handleNested('bankDetails')} />
       <Input label="IFSC" name="ifsc" value={form.bankDetails.ifsc} onChange={handleNested('bankDetails')} placeholder="SBIN0001234" />
 

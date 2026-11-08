@@ -11,7 +11,7 @@ const menu = [
   { label: 'Work', path: '/clf/work' },
   { label: 'Advice', path: '/clf/advice' },
   { label: 'Top Sheet', path: '/clf/topsheet' },
-    { label: 'Resources', path: '/clf/resources' },   // ✅ NEW
+    { label: 'Resources', path: '/clf/resources' },   //  NEW
   { label: 'Attendance', path: '/clf/attendance' },
   { label: 'Leaves', path: '/clf/leaves' },
   { label: 'Notifications', path: '/clf/notifications' },

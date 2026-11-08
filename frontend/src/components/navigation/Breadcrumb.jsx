@@ -1,19 +1,13 @@
 import { useLocation, Link } from 'react-router-dom';
 import { theme } from '../../config/theme.js';
 
-export default function Breadcrumb() {
-  const location = useLocation();
-  
-  // Path ko split karo (khali spaces hatao)
-  const parts = location.pathname.split('/').filter(Boolean);
-
-  // ✅ Modern Chevron Arrow Separator
-  const Separator = () => (
+function Separator() {
+  return (
     <svg
       width="14"
       height="14"
       fill="none"
-      stroke={`${theme.colors.muted}60`} // Halka muted color
+      stroke={`${theme.colors.muted}60`}
       strokeWidth="2.5"
       viewBox="0 0 24 24"
       style={{ flexShrink: 0, margin: '0 4px' }}
@@ -21,6 +15,13 @@ export default function Breadcrumb() {
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
     </svg>
   );
+}
+
+export default function Breadcrumb() {
+  const location = useLocation();
+  
+  // Path ko split karo (khali spaces hatao)
+  const parts = location.pathname.split('/').filter(Boolean);
 
   return (
     <div
@@ -39,7 +40,7 @@ export default function Breadcrumb() {
         boxShadow: theme.shadow.sm,
       }}
     >
-      {/* ✅ Home Icon / Link */}
+      {/*  Home Icon / Link */}
       <Link
         to="/"
         style={{
@@ -89,7 +90,7 @@ export default function Breadcrumb() {
         return (
           <div key={i} style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
             {isLast ? (
-              // ✅ Active Page (Solid Dark Pill)
+              //  Active Page (Solid Dark Pill)
               <span
                 style={{
                   padding: '6px 14px',
@@ -103,7 +104,7 @@ export default function Breadcrumb() {
                 {label}
               </span>
             ) : (
-              // ✅ Clickable Link (Transparent Pill)
+              //  Clickable Link (Transparent Pill)
               <Link
                 to={routeTo}
                 style={{

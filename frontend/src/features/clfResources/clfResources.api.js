@@ -17,14 +17,7 @@
 
 
 import apiClient from '../../services/apiClient.js';
-import { getAuthUser } from '../../utils/authStorage.js'; // ✅ User import karo
-
-// ✅ Helper: CLF ID resolve karo (CLF user ka apna, ya Super Admin ka selected)
-const getClfId = (customClfId) => {
-  if (customClfId) return customClfId;
-  const user = getAuthUser() || {};
-  return user.clfId || null; // Super Admin ka null hoga, isliye customClfId pass karna padega
-};
+import { getAuthUser } from '../../utils/authStorage.js'; //  User import karo
 
 /* ─── Lokos CRP ─── */
 export const listLokos = (params) => apiClient.get('/clf-resources/lokos', { params });
@@ -32,7 +25,7 @@ export const listLokos = (params) => apiClient.get('/clf-resources/lokos', { par
 export const getLokos = (id) => apiClient.get(`/clf-resources/lokos/${id}`);
 
 export const createLokos = (payload) => {
-  // ✅ Payload me clfId add karo
+  //  Payload me clfId add karo
   const user = getAuthUser() || {};
   const finalPayload = {
     ...payload,
@@ -51,7 +44,7 @@ export const listVos = (params) => apiClient.get('/clf-resources/vos', { params 
 export const getVo = (id) => apiClient.get(`/clf-resources/vos/${id}`);
 
 export const createVo = (payload) => {
-  // ✅ Payload me clfId add karo
+  //  Payload me clfId add karo
   const user = getAuthUser() || {};
   const finalPayload = {
     ...payload,

@@ -18,7 +18,6 @@ export const submitWorkDone = async (req, { description }, fileBuffer) => {
     throw ApiError.forbidden('Work Done submission window is closed');
   }
 
-  // ✅ CHANGED: Description mandatory, image optional
   if (!description || !description.trim()) {
     throw ApiError.badRequest('Work description is required');
   }
@@ -36,14 +35,12 @@ export const submitWorkDone = async (req, { description }, fileBuffer) => {
     throw ApiError.conflict('Work Done already approved for today');
   }
 
-  // ✅ Upload new image only if provided
   let upload = null;
   if (fileBuffer) {
     upload = await uploadBuffer(fileBuffer, `clf-portal/workdone/${employee._id}`);
   }
 
   if (doc && doc.status === 'REJECTED') {
-    // ✅ Delete old image from Cloudinary if exists
     if (doc.imagePublicId) {
       try {
         await deleteImage(doc.imagePublicId);
@@ -58,7 +55,6 @@ export const submitWorkDone = async (req, { description }, fileBuffer) => {
       rejectedAt: doc.rejectedAt,
     });
 
-    // ✅ Editable: text + image (image optional)
     doc.description = description;
     doc.imageUrl = upload ? upload.secure_url : null;
     doc.imagePublicId = upload ? upload.public_id : null;
@@ -72,7 +68,6 @@ export const submitWorkDone = async (req, { description }, fileBuffer) => {
 
     await doc.save();
   } else {
-    // Fresh submission — image optional
     doc = await WorkDone.create({
       employeeId: employee._id,
       clfId: employee.clfId,
@@ -136,6 +131,12 @@ export const approveWorkDone = async (req, id) => {
   if (String(doc.clfId) !== String(req.user.clfId)) throw ApiError.forbidden('Access denied');
   if (doc.status !== 'PENDING') throw ApiError.conflict(`Cannot approve in status: ${doc.status}`);
 
+  // ✅ ATTENDANCE CONFLICT FIX: चेक करें कि क्या उस तारीख को LEAVE या TRAINING अप्रूव्ड है
+  const existingAtt = await Attendance.findOne({ employeeId: doc.employeeId, date: doc.date });
+  if (existingAtt && ['LEAVE', 'TRAINING'].includes(existingAtt.status)) {
+    throw ApiError.conflict(`Cannot approve WorkDone: Employee is marked on ${existingAtt.status} for ${doc.date}`);
+  }
+
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
@@ -144,16 +145,14 @@ export const approveWorkDone = async (req, id) => {
       doc.approvedAt = new Date();
       await doc.save({ session });
 
-      // ✅ IMPORTANT: Attendance hamesha ORIGINAL doc.date pe mark hoga
-      // (chahe approval kitne bhi din baad ho)
       await Attendance.findOneAndUpdate(
         { employeeId: doc.employeeId, date: doc.date },
         {
-          $setOnInsert: {
+          $set: {
             employeeId: doc.employeeId,
             clfId: doc.clfId,
             blockId: doc.blockId,
-            date: doc.date,            // ✅ Original submission date
+            date: doc.date,
             status: 'PRESENT',
             source: 'WORK_DONE_APPROVAL',
             markedBy: req.user._id,

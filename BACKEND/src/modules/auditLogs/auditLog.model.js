@@ -19,7 +19,9 @@ const auditLogSchema = new mongoose.Schema(
 auditLogSchema.index({ createdAt: -1 });
 auditLogSchema.index({ userId: 1, createdAt: -1 });
 
-// ✅ FIX #14: TTL 1 year → 3 years (compliance friendly)
-auditLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 365 * 3 });
+// // ✅ FIX #14: TTL 1 year → 3 years (compliance friendly)
+// auditLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 365 * 3 });
+// ✅ Ye line 60 din (60 * 24 * 60 * 60 seconds) purane logs ko auto-delete kar degi
+auditLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 24 * 60 * 60 });
 
 export const AuditLog = mongoose.model('AuditLog', auditLogSchema);

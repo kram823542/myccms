@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { theme } from '../../config/theme.js';
 import { getAuthUser } from '../../utils/authStorage.js';
 import * as api from './notifications.api.js';
@@ -12,15 +12,15 @@ export default function NotificationPopup() {
   const user = getAuthUser() || {};
   const canReceive = ['EMPLOYEE', 'CLF'].includes(user.role);
 
-  const fetchUnread = async () => {
+  const fetchUnread = useCallback(async () => {
     if (!canReceive) return;
     try {
       const { data } = await api.myMessages({ status: 'UNREAD' });
       if (!mountedRef.current) return;
       const items = data.data || [];
       setUnread(items);
-      if (items.length > 0 && !expandedId) {
-        setExpandedId(items[0]._id);
+      if (items.length > 0) {
+        setExpandedId((current) => current || items[0]._id);
       }
     } catch (err) {
       // Silent — 429 ya network error
@@ -28,20 +28,20 @@ export default function NotificationPopup() {
         console.debug('Notification poll failed:', err.message);
       }
     }
-  };
+  }, [canReceive]);
 
-  // ✅ Fetch on mount + on window focus (no interval)
+  //  Fetch on mount + on window focus (no interval)
   useEffect(() => {
     if (!canReceive) return;
     mountedRef.current = true;
 
-    fetchUnread();
+    void Promise.resolve().then(fetchUnread);
 
-    // ✅ Jab user tab wapas focus kare
+    //  Jab user tab wapas focus kare
     const onFocus = () => fetchUnread();
     window.addEventListener('focus', onFocus);
 
-    // ✅ 5 minute ka ek slow refresh (safety)
+    //  5 minute ka ek slow refresh (safety)
     const interval = setInterval(fetchUnread, 300000);  // 5 min
 
     return () => {
@@ -49,7 +49,7 @@ export default function NotificationPopup() {
       window.removeEventListener('focus', onFocus);
       clearInterval(interval);
     };
-  }, [canReceive]);
+  }, [canReceive, fetchUnread]);
 
   const handleRead = async (id) => {
     setLoading(true);
@@ -154,7 +154,7 @@ export default function NotificationPopup() {
               animation: 'pulse 2s infinite',
             }}
           >
-            🔔
+            
           </div>
           <div style={{ flex: 1 }}>
             <h2
@@ -302,7 +302,7 @@ export default function NotificationPopup() {
               textAlign: 'center',
             }}
           >
-            ⚠️ इस message को Read या Ignore करने तक आप कुछ और नहीं कर सकते।
+             इस message को Read या Ignore करने तक आप कुछ और नहीं कर सकते।
           </p>
         </div>
       </div>

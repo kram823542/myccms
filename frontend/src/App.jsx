@@ -34,7 +34,7 @@ export default function App() {
         :root { ${cssVars} }
         body { margin: 0; font-family: system-ui, sans-serif; }
 
-        /* ✅ Floating sidebar offset for content */
+        /*  Floating sidebar offset for content */
         .clf-content {
           margin-left: 96px;
           transition: margin-left 0.3s ease;

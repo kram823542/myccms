@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import PageHeader from '../../components/common/PageHeader.jsx';
 import ResponsiveTable from '../../components/common/ResponsiveTable.jsx';
 import Button from '../../components/ui/Button.jsx';
@@ -11,19 +11,18 @@ import EmployeeRow from './EmployeeRow.jsx';
 import ResetPasswordModal from '../../components/common/ResetPasswordModal.jsx';
 import { theme } from '../../config/theme.js';
 import { getAuthUser } from '../../utils/authStorage.js';
+import toast from 'react-hot-toast';
 import * as api from './employees.api.js';
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const page = 1;
+  const limit = 20;
   const [openForm, setOpenForm] = useState(false);
-  
-  // ✅ NAYA: Edit Target State
   const [editTarget, setEditTarget] = useState(null);
-
   const [tempCred, setTempCred] = useState(null);
-
   const [resetTarget, setResetTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -34,23 +33,22 @@ export default function EmployeesPage() {
   const canCreate = user.role === 'CLF';
   const canReset = ['CLF', 'SUPER_ADMIN'].includes(user.role);
   const canDelete = ['CLF', 'SUPER_ADMIN'].includes(user.role);
-  
-  // ✅ NAYA: Sirf CLF Admin edit kar sakta hai
   const canEdit = user.role === 'CLF';
 
   const basePath = user.role === 'BPM' ? '/bpm' : user.role === 'CLF' ? '/clf' : '';
 
-  const load = async () => {
-    setLoading(true);
+  const load = useCallback(async () => {
     try {
-      const { data } = await api.listEmployees({ page: 1, limit: 100, search });
+      const { data } = await api.listEmployees({ page, limit, search });
       setEmployees(data.data.employees || []);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to load employees');
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, search]);
 
-  useEffect(() => { load(); }, [search]);
+  useEffect(() => { void Promise.resolve().then(load); }, [load]);
 
   const handleResetConfirm = async (data) => {
     const res = await api.resetEmployeePassword(resetTarget._id, data);
@@ -64,8 +62,9 @@ export default function EmployeesPage() {
       await api.deleteEmployee(deleteTarget._id);
       setDeleteTarget(null);
       load();
+      toast.success('Employee deleted successfully');
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete');
+      toast.error(err.response?.data?.message || 'Failed to delete');
     } finally {
       setDeleteLoading(false);
     }
@@ -79,8 +78,9 @@ export default function EmployeesPage() {
       await api.setEmployeeStatus(statusTarget._id, newStatus);
       setStatusTarget(null);
       load();
+      toast.success('Status updated successfully');
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update status');
+      toast.error(err.response?.data?.message || 'Failed to update status');
     } finally {
       setStatusLoading(false);
     }
@@ -97,7 +97,7 @@ export default function EmployeesPage() {
         <Input
           placeholder="Search by name, code, mobile..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setLoading(true); setSearch(e.target.value); }}
         />
       </div>
 
@@ -125,27 +125,27 @@ export default function EmployeesPage() {
                 basePath={basePath}
                 canReset={canReset}
                 canDelete={canDelete}
-                canEdit={canEdit} // ✅ Pass kiya
+                canEdit={canEdit}
                 onReset={(employee) => setResetTarget(employee)}
                 onDelete={(employee) => setDeleteTarget(employee)}
                 onToggleStatus={(employee) => setStatusTarget(employee)}
                 onEdit={(employee) => { 
                   setEditTarget(employee); 
                   setOpenForm(true); 
-                }} // ✅ Edit handler
+                }}
               />
             ))}
           </tbody>
         </ResponsiveTable>
       )}
 
-      {/* ✅ Modal: Add + Edit dono handle karega */}
       <Modal 
         open={openForm} 
         onClose={() => { setOpenForm(false); setEditTarget(null); }} 
         title={editTarget ? 'Edit Employee Details' : 'Add Employee'}
       >
         <EmployeeForm 
+          key={editTarget?._id || 'new'}
           initialData={editTarget}
           onCreated={(login) => { 
             if (login) setTempCred(login);
@@ -166,6 +166,7 @@ export default function EmployeesPage() {
       </Modal>
 
       <ResetPasswordModal
+        key={`${!!resetTarget}:${resetTarget?.employeeCode || ''}`}
         open={!!resetTarget}
         onClose={() => setResetTarget(null)}
         entityName={resetTarget?.name}
@@ -179,7 +180,7 @@ export default function EmployeesPage() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteConfirm}
         title="Delete Employee Permanently?"
-        message={`Are you sure you want to permanently delete "${deleteTarget?.name}" (${deleteTarget?.employeeCode})? This will also delete their user account. This action cannot be undone.`}
+        message={`Are you sure you want to permanently delete "${deleteTarget?.name}" (${deleteTarget?.employeeCode})? This action cannot be undone.`}
         confirmText="Delete Permanently"
         cancelText="Cancel"
         variant="danger"
@@ -191,7 +192,7 @@ export default function EmployeesPage() {
         onClose={() => setStatusTarget(null)}
         onConfirm={handleToggleStatusConfirm}
         title={statusTarget?.status === 'ACTIVE' ? 'Deactivate Employee?' : 'Activate Employee?'}
-        message={statusTarget?.status === 'ACTIVE' ? `"${statusTarget?.name}" को deactivate करने पर वो login नहीं कर पाएगा। Data सुरक्षित रहेगा, बाद में activate कर सकते हैं।` : `"${statusTarget?.name}" को activate करने पर वो फिर से login कर पाएगा।`}
+        message={statusTarget?.status === 'ACTIVE' ? `"${statusTarget?.name}" को deactivate करने पर वो login नहीं कर पाएगा।` : `"${statusTarget?.name}" को activate करने पर वो फिर से login कर पाएगा।`}
         confirmText={statusTarget?.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
         cancelText="Cancel"
         variant={statusTarget?.status === 'ACTIVE' ? 'warning' : 'success'}

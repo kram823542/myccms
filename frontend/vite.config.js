@@ -38,6 +38,6 @@ export default defineConfig({
   ],
   server: {
     port: 3000,
-    strictPort: true,     // ✅ अगर 3000 busy हो तो fail करे, next port न ले
+    strictPort: true,     //  अगर 3000 busy हो तो fail करे, next port न ले
   },
 });

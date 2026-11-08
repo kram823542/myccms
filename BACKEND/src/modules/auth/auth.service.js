@@ -5,6 +5,7 @@ import { Employee } from '../employees/employee.model.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { createAudit } from '../../middlewares/audit.middleware.js';
 import { logger } from '../../utils/logger.js';
+import { SystemState } from '../system/system.model.js'; // ✅ Import SystemState for Maintenance check
 
 const MAX_ATTEMPTS = 5;
 const LOCK_TIME = 15 * 60 * 1000;
@@ -77,13 +78,23 @@ const buildUserPayload = async (user) => {
 };
 
 export const login = async (req, { username, password }) => {
+  // ✅ FIX: Check if system is OFFLINE before processing login
+  const systemState = await SystemState.findById('singleton').lean();
+  
   const user = await User.findOne({ username: username.toLowerCase() }).select('+password');
+
+  // If system is offline AND user is NOT Super Admin, block login
+  if (systemState?.isOffline && user?.role !== 'SUPER_ADMIN') {
+    throw ApiError.forbidden(systemState.offlineMessage || 'System is under maintenance. Only Super Admin can login.');
+  }
+
   if (!user) {
     if (shouldAuditFail(username)) {
       await createAudit({ req, action: 'LOGIN_FAILED', metadata: { username, reason: 'USER_NOT_FOUND' }, status: 'FAILED' });
     }
     throw ApiError.unauthorized('Invalid credentials');
   }
+  
   if (user.isLocked()) throw ApiError.forbidden('Account locked. Try again later.');
   if (user.status !== 'ACTIVE') throw ApiError.forbidden(`Account is ${user.status.toLowerCase()}`);
 

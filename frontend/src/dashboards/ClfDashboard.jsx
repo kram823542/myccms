@@ -96,15 +96,15 @@ export default function ClfDashboard() {
   return (
     <>
       <PageHeader
-        title={`${greeting()}, ${user.name || 'CLF Admin'} 👋`}
+        title={`${greeting()}, ${user.name || 'CLF Admin'} `}
         subtitle="Here's your CLF overview for today"
       />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-        <Stat icon="👥" label="Employees" value={v(stats.emp)} color={theme.colors.primary} to="/clf/employees" />
-        <Stat icon="✅" label="Today's Present" value={v(stats.today)} color={theme.colors.success} to="/clf/attendance" />
-        <Stat icon="⏳" label="Pending Approval" value={v(stats.pending)} color={theme.colors.warning} to="/clf/work" />
-        <Stat icon="📊" label="Approved Work" value={v(stats.approved)} color={theme.colors.info} to="/clf/reports" />
+        <Stat icon="" label="Employees" value={v(stats.emp)} color={theme.colors.primary} to="/clf/employees" />
+        <Stat icon="" label="Today's Present" value={v(stats.today)} color={theme.colors.success} to="/clf/attendance" />
+        <Stat icon="" label="Pending Approval" value={v(stats.pending)} color={theme.colors.warning} to="/clf/work" />
+        <Stat icon="" label="Approved Work" value={v(stats.approved)} color={theme.colors.info} to="/clf/reports" />
       </div>
     </>
   );

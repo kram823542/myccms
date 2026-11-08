@@ -19,33 +19,33 @@ export default function LeaveLetterModal({ leave, onClose, children }) {
         let targetClfId = null;
         const user = getAuthUser() || {};
         
-        console.log("🔍 [Debug] User:", user);
-        console.log("🔍 [Debug] Leave:", leave);
+        console.log(" [Debug] User:", user);
+        console.log(" [Debug] Leave:", leave);
 
-        // ✅ FIX 1: Leave object ke andar hi check karo
+        //  FIX 1: Leave object ke andar hi check karo
         if (leave?.clfId) {
           targetClfId = typeof leave.clfId === 'object' ? leave.clfId._id : leave.clfId;
         }
-        // ✅ FIX 2: Agar employeeId populated hai
+        //  FIX 2: Agar employeeId populated hai
         else if (leave?.employeeId?.clfId) {
           targetClfId = typeof leave.employeeId.clfId === 'object' ? leave.employeeId.clfId._id : leave.employeeId.clfId;
         }
-        // ✅ FIX 3: Local Session Storage me check karo
+        //  FIX 3: Local Session Storage me check karo
         else if (user.clfId) {
           targetClfId = typeof user.clfId === 'object' ? user.clfId._id : user.clfId;
         }
 
-        console.log("🎯 [Debug] Target CLF ID Found:", targetClfId);
+        console.log(" [Debug] Target CLF ID Found:", targetClfId);
 
         if (targetClfId) {
           const res = await getClf(targetClfId);
-          console.log("✅ [Debug] CLF Data Fetched:", res.data.data);
+          console.log(" [Debug] CLF Data Fetched:", res.data.data);
           setClfData(res.data.data);
         } else {
-          console.warn("⚠️ [Debug] CLF ID nahi mila! Check Backend populate.");
+          console.warn(" [Debug] CLF ID nahi mila! Check Backend populate.");
         }
       } catch (err) {
-        console.error("❌ [Debug] Failed to load CLF details:", err);
+        console.error(" [Debug] Failed to load CLF details:", err);
       } finally {
         setLoadingClf(false);
       }
@@ -77,7 +77,7 @@ export default function LeaveLetterModal({ leave, onClose, children }) {
       window.URL.revokeObjectURL(url);
       
       toast.success('PDF Downloaded successfully');
-    } catch (error) {
+    } catch  {
       toast.error('Failed to download PDF');
     } finally {
       setDownloading(false);

@@ -8,6 +8,7 @@ import { Attendance } from '../attendance/attendance.model.js';
 import { CLF } from '../clfs/clf.model.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { logger } from '../../utils/logger.js';
+import { getISTDateString } from '../../utils/security.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,7 +51,7 @@ const SYSTEM_FONTS = {
 
 const findFont = (candidates) => {
   for (const p of candidates) {
-    try { if (fs.existsSync(p)) return p; } catch { /* ignore */ }
+    try { if (fs.existsSync(p)) return p; } catch {}
   }
   return null;
 };
@@ -62,7 +63,6 @@ const registerFonts = (doc) => {
   doc.registerFont('Devanagari-Bold', bold || regular || 'Helvetica-Bold');
 };
 
-// ✅ Apply Leave
 export const applyLeave = async (req, res, next) => {
   try {
     if (!req.user) {
@@ -84,19 +84,23 @@ export const applyLeave = async (req, res, next) => {
       throw ApiError.badRequest('Start Time and End Time are required for Half Day leave');
     }
 
-    const start = new Date(`${startDate}T00:00:00Z`);
-    const end = new Date(`${endDate}T00:00:00Z`);
-    if (
-      Number.isNaN(start.getTime()) ||
-      Number.isNaN(end.getTime()) ||
-      start.toISOString().slice(0, 10) !== startDate ||
-      end.toISOString().slice(0, 10) !== endDate ||
-      end < start
-    ) {
-      throw ApiError.badRequest('End date must be on or after a valid start date');
+    // ✅ TIMEZONE SAFE DATE PARSING (IST Safe)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(startDate) || !dateRegex.test(endDate)) {
+      throw ApiError.badRequest('Dates must be in YYYY-MM-DD format');
     }
 
-    let totalDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    const startParts = startDate.split('-').map(Number);
+    const endParts = endDate.split('-').map(Number);
+
+    const startObj = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+    const endObj = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+
+    if (endObj < startObj) {
+      throw ApiError.badRequest('End date must be on or after start date');
+    }
+
+    let totalDays = Math.floor((endObj - startObj) / (1000 * 60 * 60 * 24)) + 1;
     if (leaveType === 'Half Day') totalDays = 0.5;
 
     const leave = await Leave.create({
@@ -124,7 +128,6 @@ export const applyLeave = async (req, res, next) => {
   }
 };
 
-// ✅ Get My Leaves
 export const getMyLeaves = async (req, res, next) => {
   try {
     if (!req.user) {
@@ -137,7 +140,6 @@ export const getMyLeaves = async (req, res, next) => {
     const emp = await Employee.findOne({ userId: targetUserId });
     if (!emp) throw ApiError.notFound('Employee profile not found');
 
-    // ✅ FIX: Double populate lagaya taaki employee ke andar se clfId aa sake
     const leaves = await Leave.find({ employeeId: emp._id })
       .populate({
         path: 'employeeId',
@@ -152,7 +154,6 @@ export const getMyLeaves = async (req, res, next) => {
   }
 };
 
-// ✅ Cancel Leave
 export const cancelLeave = async (req, res, next) => {
   try {
     if (!req.user) {
@@ -188,7 +189,6 @@ export const cancelLeave = async (req, res, next) => {
   }
 };
 
-// ✅ Get All Leaves (Admin)
 export const getAllLeavesForAdmin = async (req, res, next) => {
   try {
     const user = req.user;
@@ -211,7 +211,6 @@ export const getAllLeavesForAdmin = async (req, res, next) => {
   }
 };
 
-// ✅ Update Leave Status
 export const updateLeaveStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -246,15 +245,22 @@ export const updateLeaveStatus = async (req, res, next) => {
       else if (isTraining) attendanceStatus = 'TRAINING';
       else attendanceStatus = 'LEAVE';
 
-      const start = new Date(`${leave.startDate}T00:00:00Z`);
-      const end = new Date(`${leave.endDate}T00:00:00Z`);
+      const startParts = leave.startDate.split('-').map(Number);
+      const endParts = leave.endDate.split('-').map(Number);
+      const startObj = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+      const endObj = new Date(endParts[0], endParts[1] - 1, endParts[2]);
 
       const dates = [];
       if (isHalfDay) {
         dates.push(leave.startDate);
       } else {
-        for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
-          dates.push(d.toISOString().split('T')[0]);
+        const temp = new Date(startObj);
+        while (temp <= endObj) {
+          const y = temp.getFullYear();
+          const m = String(temp.getMonth() + 1).padStart(2, '0');
+          const d = String(temp.getDate()).padStart(2, '0');
+          dates.push(`${y}-${m}-${d}`);
+          temp.setDate(temp.getDate() + 1);
         }
       }
 
@@ -298,7 +304,6 @@ export const updateLeaveStatus = async (req, res, next) => {
   }
 };
 
-// ✅ Download Leave PDF (100% DYNAMIC)
 export const downloadLeavePDF = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -320,7 +325,6 @@ export const downloadLeavePDF = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 
-    // ✅ FETCH CLF DATA FOR DYNAMIC LETTERHEAD
     const clf = await CLF.findById(leave.clfId);
     const clfName = clf?.name || 'CLF Name';
     const subTitle = clf?.letterhead?.subTitle || '';
@@ -336,9 +340,15 @@ export const downloadLeavePDF = async (req, res, next) => {
     doc.pipe(res);
 
     const pageWidth = 595.28;
-    const formatDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const formatDate = (d) => {
+      if (!d) return '';
+      const dateObj = new Date(d);
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      return `${day}/${m}/${y}`;
+    };
 
-    // ✅ DYNAMIC HEADER
     doc.font('Devanagari-Bold').fontSize(18).text(clfName, { align: 'center' });
     if (subTitle) {
       doc.font('Devanagari-Bold').fontSize(14).text(subTitle, { align: 'center' });
@@ -357,11 +367,9 @@ export const downloadLeavePDF = async (req, res, next) => {
     doc.text('प्रति,', { continued: true });
     doc.text('The Manager / Admin', { align: 'left' });
     
-    // ✅ Dynamic CLF Name
     doc.text(clfName);
     doc.moveDown(2);
 
-    // ✅ DYNAMIC SUBJECT & BODY
     const isTraining = leave.leaveType === 'Training';
     const subjectText = isTraining ? 'विषय: प्रशिक्षण (Training) हेतु आवेदन' : 'विषय: अवकाश (Leave) हेतु आवेदन';
     const bodyLeaveText = isTraining ? 'प्रशिक्षण' : 'अवकाश';
@@ -372,7 +380,7 @@ export const downloadLeavePDF = async (req, res, next) => {
     doc.font('Devanagari').fontSize(12).text('महोदय/महोदया,', { align: 'left' });
     doc.moveDown(1);
 
-    const bodyText = `सविनय निवेदन है कि मुझे ${leave.totalDays} दिनों का ${bodyLeaveText} चाहिए। मुझे दिनांक ${formatDate(leave.startDate)} से ${formatDate(leave.endDate)} तक ${bodyLeaveText} की आवश्यकता है${leave.leaveType === 'Half Day' ? ` (समय: ${leave.startTime} से ${leave.endTime} तक)` : ''}।`;
+    const bodyText = `सविनय निवेदन है कि मुझे ${leave.totalDays} दिनों का ${bodyLeaveText} चाहिए। मुझे दिनांक ${leave.startDate} से ${leave.endDate} तक ${bodyLeaveText} की आवश्यकता है${leave.leaveType === 'Half Day' ? ` (समय: ${leave.startTime} से ${leave.endTime} तक)` : ''}।`;
 
     doc.text(bodyText, { align: 'justify', lineGap: 4 });
     doc.moveDown(1);

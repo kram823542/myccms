@@ -6,12 +6,10 @@ import { theme } from '../../config/theme.js';
 
 const TopSheetFormate = ({ topSheetData, clfBank, month, inputs, clfData }) => {
   const printRef = useRef(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
+  const [mounted] = useState(typeof document !== 'undefined');
+  const [dateLabel] = useState(() =>
+    new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  );
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -76,7 +74,7 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs, clfData }) => {
   const grandTotal = topSheetData.reduce((sum, row) => sum + Number(row.totalAmount || 0), 0);
   const bank = clfBank || { bankName: '-', accountNumber: '-', branch: '-' };
 
-  // ✅ 100% Dynamic Data
+  //  100% Dynamic Data
   const letterhead = clfData?.letterhead || {};
   const footer = clfData?.footer || {};
   const signatures = clfData?.signatures || {};
@@ -84,7 +82,7 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs, clfData }) => {
   const leftLogo = letterhead.leftLogo || 'https://res.cloudinary.com/dsjnikk42/image/upload/v1789380290/WhatsApp_Image_2026-09-14_at_1.07.08_PM_nbbmda.jpg';
   const rightLogo = letterhead.rightLogo || 'https://res.cloudinary.com/dsjnikk42/image/upload/v1789380471/WhatsApp_Image_2026-09-14_at_1.07.10_PM_owpahi.jpg';
   
-  const clfName = clfData?.name || ''; // ✅ No Hardcoding
+  const clfName = clfData?.name || ''; //  No Hardcoding
   const subTitle = letterhead.subTitle || '';
   const addressLine = letterhead.addressLine || '';
   const regNo = letterhead.registrationNo || '';
@@ -121,7 +119,7 @@ const TopSheetFormate = ({ topSheetData, clfBank, month, inputs, clfData }) => {
 
           <div className="flex justify-between text-[16px] font-semibold my-2 shrink-0">
             <p className="m-0">पत्रांक - </p>
-            <p className="m-0">दिनांक - {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
+            <p className="m-0">दिनांक - {dateLabel}</p>
           </div>
 
           <div className="text-[16px] mb-2 font-medium shrink-0">

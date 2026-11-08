@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import PageHeader from '../../components/common/PageHeader.jsx';
 import Button from '../../components/ui/Button.jsx';
 import { getAuthUser, setAuthUser } from '../../utils/authStorage.js';
@@ -37,15 +37,14 @@ function AdminReportsView() {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [modal, setModal] = useState({ open: false, employee: null, type: null, bulk: 0 });
 
-  const load = async () => {
-    setLoading(true);
+  const load = useCallback(async () => {
     try {
       const allEmployees = await api.fetchAllEmployeesForReports({ search });
       setEmployees(allEmployees);
     } catch (err) { console.error('Load employees error:', err); } finally { setLoading(false); }
-  };
+  }, [search]);
 
-  useEffect(() => { load(); }, [search]);
+  useEffect(() => { void Promise.resolve().then(load); }, [load]);
 
   const toggleSelect = (id, checked) => {
     setSelected((prev) => {
@@ -104,7 +103,7 @@ function AdminReportsView() {
       />
 
       <div style={{ marginBottom: 14, maxWidth: 320 }}>
-        <Input placeholder="Search by name, code, mobile..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Input placeholder="Search by name, code, mobile..." value={search} onChange={(e) => { setLoading(true); setSearch(e.target.value); }} />
       </div>
 
       {loading ? (
@@ -142,12 +141,13 @@ function AdminReportsView() {
 }
 
 function EmployeeReportsView({ user }) {
+  const employeeIdFromUser = user.employeeId;
   const [modal, setModal] = useState({ open: false, type: null });
-  const [employeeId, setEmployeeId] = useState(user.employeeId || null);
-  const [loadingId, setLoadingId] = useState(!user.employeeId);
+  const [employeeId, setEmployeeId] = useState(employeeIdFromUser || null);
+  const [loadingId, setLoadingId] = useState(!employeeIdFromUser);
 
   useEffect(() => {
-    if (user.employeeId) { setEmployeeId(user.employeeId); setLoadingId(false); return; }
+    if (employeeIdFromUser) return;
     let cancelled = false;
     (async () => {
       try {
@@ -155,13 +155,13 @@ function EmployeeReportsView({ user }) {
         const empId = data?.data?.employeeId;
         if (!cancelled && empId) {
           setEmployeeId(empId);
-          const updated = { ...user, employeeId: empId };
+          const updated = { ...(getAuthUser() || {}), employeeId: empId };
           setAuthUser(updated);
         }
       } catch (err) { console.error('Failed to fetch employeeId:', err); } finally { if (!cancelled) setLoadingId(false); }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [employeeIdFromUser]);
 
   const handleDownload = async ({ year, month }) => {
     if (!employeeId) return alert('Employee record नहीं मिला। कृपया logout करके दुबारा login करें।');
@@ -179,10 +179,10 @@ function EmployeeReportsView({ user }) {
   return (
     <>
       <PageHeader title="Reports" subtitle="Download your monthly reports" />
-      {!employeeId && (<div style={{ padding: 14, background: `${theme.colors.danger}10`, color: theme.colors.danger, borderRadius: theme.radius.md, marginBottom: 16, fontSize: 13 }}>⚠️ Employee record नहीं मिला। कृपया <b>logout करके दुबारा login</b> करें।</div>)}
+      {!employeeId && (<div style={{ padding: 14, background: `${theme.colors.danger}10`, color: theme.colors.danger, borderRadius: theme.radius.md, marginBottom: 16, fontSize: 13 }}> Employee record नहीं मिला। कृपया <b>logout करके दुबारा login</b> करें।</div>)}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
-        <ReportCard icon="📝" title="Action Plan Report" description="Download your monthly action plan PDF (A4)" onDownload={() => employeeId && setModal({ open: true, type: 'action-plan' })} />
-        <ReportCard icon="✅" title="Work Done Report" description="Download your monthly work done PDF with approvals" onDownload={() => employeeId && setModal({ open: true, type: 'work-done' })} />
+        <ReportCard icon="" title="Action Plan Report" description="Download your monthly action plan PDF (A4)" onDownload={() => employeeId && setModal({ open: true, type: 'action-plan' })} />
+        <ReportCard icon="" title="Work Done Report" description="Download your monthly work done PDF with approvals" onDownload={() => employeeId && setModal({ open: true, type: 'work-done' })} />
       </div>
       <ReportDownloadModal open={modal.open} onClose={() => setModal({ open: false, type: null })} employee={employeeInfo} type={modal.type} onDownload={handleDownload} />
     </>

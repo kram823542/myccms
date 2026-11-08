@@ -9,7 +9,7 @@ export const updateEmployee = (id, payload) => apiClient.patch(`/employees/${id}
 export const setEmployeeStatus = (id, status) =>
   apiClient.patch(`/employees/${id}/status`, { status });
 
-// ✅ FIXED: Flattened data payload for reset
+//  FIXED: Flattened data payload for reset
 export const resetEmployeePassword = (id, data) =>
   apiClient.post(`/employees/${id}/reset-password`, data);
 

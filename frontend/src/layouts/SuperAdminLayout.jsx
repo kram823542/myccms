@@ -10,6 +10,8 @@ const menu = [
   { label: 'Blocks', path: '/super-admin/blocks' },
   { label: 'Audit Logs', path: '/super-admin/audit-logs' },
   { label: 'Reports', path: '/super-admin/reports' },
+  { label: 'System Control', path: '/super-admin/system' },
+  { label: 'Profile', path: '/super-admin/profile' },   //  ADDED
 ];
 
 export default function SuperAdminLayout() {

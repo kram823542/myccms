@@ -13,7 +13,6 @@ import { assertAdviceScope } from './advice.service.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ── Fonts Logic ──
 const getFontPath = (fontName) => {
   const paths = [
     path.join(process.cwd(), 'assets', 'fonts', fontName),
@@ -69,7 +68,6 @@ const formatAmountInWords = (num) => {
   return numToWords(Math.floor(num)) + ' Rupees Only';
 };
 
-// ✅ FIX: getBankShortName wapas add kiya
 const getBankShortName = (fullName) => {
   if (!fullName) return '';
   const map = { 'state bank of india': 'SBI', 'punjab national bank': 'PNB', 'bank of india': 'BOI', 'bank of baroda': 'BOB', 'canara bank': 'Canara', 'union bank of india': 'UBI', 'indian bank': 'Indian Bank', 'hdfc bank': 'HDFC', 'icici bank': 'ICICI', 'axis bank': 'Axis', 'jharkhand rajya gramin bank': 'JRGB', 'jharkhand gramin bank': 'JGB' };
@@ -147,7 +145,6 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
 
   drawStrip(y); y += 18;
 
-  // HEADER
   const logoSize = 70, logoY = y;
   const titleWidth = pageWidth - marginLeft - marginRight - logoSize * 2 - 20;
   const titleX = marginLeft + logoSize + 10;
@@ -162,14 +159,14 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
   doc.font('Devanagari').fontSize(9).text(clf.letterhead?.addressLine || '', titleX, ty, { width: titleWidth, align: 'center' });
   ty += 14;
 
+  // ✅ FIX: Registration Number ke aage label lagaya
   if (clf.letterhead?.registrationNo) {
-    doc.text(clf.letterhead.registrationNo, titleX, ty, { width: titleWidth, align: 'center' });
+    doc.text(`निबंधन संख्या :- ${clf.letterhead.registrationNo}`, titleX, ty, { width: titleWidth, align: 'center' });
   }
 
   y = Math.max(logoY + logoSize, ty + 10) + 6;
   drawStrip(y); y += 18;
 
-  // ✅ FIX: Patrank dynamic generate karo
   const prefix = generatePatrankPrefix(clf.name);
   const currentYear = new Date().getFullYear();
   const patrankDisplay = `${prefix}/CLF/${currentYear}/`;
@@ -203,10 +200,8 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
   doc.text(`From our saving bank account of ${clf.name}, SB A/c No. ${displayBankAccNo}, vide Ch. No. ________________ by the fastest mode of remittance as per the details given below:`, marginLeft, y, { width: contentWidth, align: 'justify' });
   y = doc.y + 15;
 
-  // Table Title
   doc.font('Devanagari-Bold').fontSize(10).text(`TOPSHEET-${monthStr}`, marginLeft, y, { width: contentWidth, align: 'center' }); y += 15;
 
-  // Table Setup
   const colWidths = { sl: 25, cader: 100, month: 55, total: 55, bank: 50, amount: 65, cheque: 55, block: 55 };
   const totalTableWidth = Object.values(colWidths).reduce((a, b) => a + b, 0);
   const startX = marginLeft + (contentWidth - totalTableWidth) / 2;
@@ -229,7 +224,6 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
   });
   y += rowHeight * 1.5;
 
-  // Table Rows
   doc.font('Devanagari').fontSize(8);
   tableRows.forEach((row) => {
     if (y > 700) {
@@ -276,7 +270,6 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
     y += currentRowHeight;
   });
 
-  // Total Row
   x = startX;
   const totalRow = [
     { w: colWidths.sl + colWidths.cader + colWidths.month + colWidths.total + colWidths.bank, v: 'TOTAL', align: 'center', bold: true },
@@ -295,7 +288,6 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
   doc.text(`Rs. ${grandTotal.toLocaleString('en-IN')}/- (${formatAmountInWords(grandTotal)})`, marginLeft, y, { width: contentWidth });
   y = doc.y + 15;
 
-  // Signatures & Footer
   if (y > 650) {
     doc.addPage({ size: 'A4', margin: 0 });
     y = 30;
@@ -328,11 +320,12 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
   let fy = footerTop + 12;
   doc.font('Devanagari').fontSize(7.5).fillColor('black');
   
+  // ✅ FIX: Footer me labels add kiye (प्रखंड कार्यालय, जिला कार्यालय, आदि)
   const footerLines = [
-    clf.footer?.blockOffice,
-    clf.footer?.districtOffice,
-    clf.footer?.stateOffice,
-    clf.footer?.phone,
+    clf.footer?.blockOffice ? `प्रखंड कार्यालय :- ${clf.footer.blockOffice}` : null,
+    clf.footer?.districtOffice ? `जिला कार्यालय :- ${clf.footer.districtOffice}` : null,
+    clf.footer?.stateOffice ? `राज्य कार्यालय :- ${clf.footer.stateOffice}` : null,
+    clf.footer?.phone ? `फोन नं0 :- ${clf.footer.phone}` : null,
   ].filter(Boolean);
 
   footerLines.forEach((line) => {
@@ -340,17 +333,14 @@ export const generateTopSheetPDF = async (req, clfId, monthStr, adviceDetails, s
     fy += 10;
   });
 
-  // Save History
+  // ✅ 16MB FIX: टॉपशीट हिस्ट्री में हलकी समरी ही सेव होगी
   try {
     const summaryAdvices = advices.map(adv => ({
       adviceId: adv._id,
       adviceNumber: adv.adviceNumber || 'N/A',
       designation: [...new Set(adv.employees.map(e => e.designation || 'N/A'))].join(', '),
       totalAmount: adv.totalAmount,
-      employees: adv.employees.map(e => ({
-        name: e.name, designation: e.designation, amount: e.amount,
-        accountNumber: e.bankAccountNumber, bankName: e.bankName, ifscCode: e.ifscCode
-      }))
+      totalEmployeesCount: adv.employees?.length || 0
     }));
 
     await TopSheet.create({

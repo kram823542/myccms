@@ -9,14 +9,14 @@ const topSheetSchema = new mongoose.Schema({
   grandTotal: { type: Number, required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   
-  // ✅ NAYA: Selected Advices ki detail save karo
+  // ✅ 16MB FIX: सिर्फ हलकी समरी स्टोर होगी (पूरी डीप नेस्टेड एरे नहीं)
   advices: [
     {
       adviceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Advice' },
       adviceNumber: { type: String },
       designation: { type: String },
       totalAmount: { type: Number },
-      employees: { type: Array } // Isme saare employees aur unka amount save hoga
+      totalEmployeesCount: { type: Number, default: 0 }
     }
   ]
 }, { timestamps: true });

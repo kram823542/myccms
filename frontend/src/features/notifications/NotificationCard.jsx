@@ -95,7 +95,7 @@ export default function NotificationCard({
             {item.status || 'SENT'}
           </Badge>
 
-          {/* ✅ UNREAD — Read + Ignore buttons */}
+          {/*  UNREAD — Read + Ignore buttons */}
           {isEmployee && item.status === 'UNREAD' && (
             <div style={{ display: 'flex', gap: 6 }}>
               <Button size="sm" variant="success" onClick={() => onMarkRead?.(item._id)}>
@@ -107,7 +107,7 @@ export default function NotificationCard({
             </div>
           )}
 
-          {/* ✅ IGNORED — Read Now button (dubara read kar sakte hain) */}
+          {/*  IGNORED — Read Now button (dubara read kar sakte hain) */}
           {isEmployee && item.status === 'IGNORED' && (
             <div style={{ display: 'flex', gap: 6 }}>
               <Button
@@ -115,7 +115,7 @@ export default function NotificationCard({
                 variant="outline"
                 onClick={() => onMarkRead?.(item._id)}
               >
-                🔄 Read Now
+                 Read Now
               </Button>
             </div>
           )}

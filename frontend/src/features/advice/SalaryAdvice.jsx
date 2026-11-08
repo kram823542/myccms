@@ -29,7 +29,7 @@ export default function SalaryAdvice() {
 
   const [showEntryModal, setShowEntryModal] = useState(false);
   const [salaryEntries, setSalaryEntries] = useState([]);
-  const [adviceDate, setAdviceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [adviceDate, setAdviceDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [adviceNumber, setAdviceNumber] = useState('');
   
   const [clfData, setClfData] = useState(null);
@@ -42,7 +42,7 @@ export default function SalaryAdvice() {
   const [deleting, setDeleting] = useState(false);
   const [loadingAdvices, setLoadingAdvices] = useState(false);
 
-  // ✅ CLF Data load karo & Advice Number auto-generate karo
+  //  CLF Data load karo & Advice Number auto-generate karo
    useEffect(() => {
     const user = getAuthUser() || {};
     if (user.clfId) {
@@ -72,7 +72,7 @@ export default function SalaryAdvice() {
       setLoading(true);
       try {
         setEmployees(await listAllEmployeesInScope());
-      } catch (err) {
+      } catch  {
         toast.error('Failed to load employees');
       } finally {
         setLoading(false);
@@ -96,7 +96,7 @@ export default function SalaryAdvice() {
     }
   };
 
-  useEffect(() => { loadAdvices(); }, []);
+  useEffect(() => { void Promise.resolve().then(loadAdvices); }, []);
 
   const handleLoadClfMembers = async () => {
     try {
@@ -114,7 +114,7 @@ export default function SalaryAdvice() {
       }));
       setEmployees((prev) => [...prev, ...formattedMembers]);
       toast.success('CLF Members loaded successfully!');
-    } catch (error) {
+    } catch  {
       toast.error('Failed to load CLF members');
     } finally {
       setLoadingMembers(false);
@@ -193,10 +193,10 @@ export default function SalaryAdvice() {
       const { data } = await adviceApi.createAdvice(payload);
       const saved = data.data;
       
-      // ✅ Toast message me पत्रांक show karo
+      //  Toast message me पत्रांक show karo
       toast.success(
         <div>
-          <div style={{ fontWeight: 'bold', marginBottom: 4 }}>✅ Advice Generated!</div>
+          <div style={{ fontWeight: 'bold', marginBottom: 4 }}> Advice Generated!</div>
           <div style={{ fontSize: 12 }}>पत्रांक: {saved.adviceNumber}</div>
         </div>, 
         { duration: 4000 }
@@ -227,7 +227,7 @@ export default function SalaryAdvice() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch  {
       toast.error('Failed to download PDF');
     }
   };
@@ -259,10 +259,10 @@ export default function SalaryAdvice() {
         </div>
         <div className="flex gap-2">
           {user.clfId && (
-            <Button onClick={handleLoadClfMembers} loading={loadingMembers} style={{ padding: '8px 12px', fontSize: 11 }}>⚡ Load CLF Members</Button>
+            <Button onClick={handleLoadClfMembers} loading={loadingMembers} style={{ padding: '8px 12px', fontSize: 11 }}> Load CLF Members</Button>
           )}
           <button onClick={() => { setShowHistory((v) => !v); if (!showHistory) loadAdvices(); }} className="text-[10px] font-bold uppercase tracking-widest px-3 py-2 rounded" style={{ border: `1px solid ${theme.colors.border}`, color: theme.colors.primary, backgroundColor: theme.colors.background }}>
-            {showHistory ? '✕ Close History' : `📚 History (${advices.length})`}
+            {showHistory ? '✕ Close History' : ` History (${advices.length})`}
           </button>
         </div>
       </div>
@@ -301,8 +301,8 @@ export default function SalaryAdvice() {
                       <td className="px-4 py-2 text-right font-mono font-bold" style={{ color: theme.colors.secondary }}>₹ {a.totalAmount.toLocaleString('en-IN')}</td>
                       <td className="px-4 py-2 text-center">
                         <div className="flex justify-center gap-2">
-                          <Button size="sm" variant="outline" onClick={() => downloadPDFFor(a._id, a.adviceNumber)}>⬇️ PDF</Button>
-                          <Button size="sm" variant="danger" onClick={() => setDeleteTarget(a)}>🗑️</Button>
+                          <Button size="sm" variant="outline" onClick={() => downloadPDFFor(a._id, a.adviceNumber)}> PDF</Button>
+                          <Button size="sm" variant="danger" onClick={() => setDeleteTarget(a)}></Button>
                         </div>
                       </td>
                     </tr>
@@ -404,13 +404,13 @@ export default function SalaryAdvice() {
             />
             {(!clfData?.bankAccounts || clfData.bankAccounts.length === 0) && (
               <p style={{ fontSize: 11, color: theme.colors.danger, marginTop: 4 }}>
-                ⚠️ No bank accounts found. Please add them in your Profile first.
+                 No bank accounts found. Please add them in your Profile first.
               </p>
             )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* ✅ Advice Number (Auto Prefix) - User can type the end number */}
+            {/*  Advice Number (Auto Prefix) - User can type the end number */}
             <Input 
               label="Advice Number (पत्रांक)" 
               value={adviceNumber} 
@@ -441,7 +441,7 @@ export default function SalaryAdvice() {
             ))}
           </div>
           <div className="flex gap-2 pt-3 border-t" style={{ borderColor: theme.colors.border }}>
-            <Button onClick={handleSaveAdvice} loading={saving} style={{ flex: 1 }}>💾 Save & Download PDF</Button>
+            <Button onClick={handleSaveAdvice} loading={saving} style={{ flex: 1 }}> Save & Download PDF</Button>
             <Button variant="ghost" onClick={() => setShowEntryModal(false)}>Cancel</Button>
           </div>
         </div>

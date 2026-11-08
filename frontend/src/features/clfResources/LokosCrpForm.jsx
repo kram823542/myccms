@@ -10,7 +10,7 @@ const EMPTY = {
   mobile: '',
   accountNumber: '',
   bankName: '',
-  branch: '',       // ✅ branch
+  branch: '',       //  branch
   ifscCode: '',
 };
 
@@ -30,7 +30,7 @@ export default function LokosCrpForm({ initial, onSave, onCancel, saving = false
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // ✅ Auto Uppercase for specific fields
+    //  Auto Uppercase for specific fields
     const upper = ['designation', 'bankName', 'branch', 'ifscCode'];
     setForm((f) => ({
       ...f,
@@ -46,7 +46,7 @@ export default function LokosCrpForm({ initial, onSave, onCancel, saving = false
     if (!form.village.trim()) return setError('Village is required');
     if (!form.mobile.trim()) return setError('Mobile is required');
 
-    // ✅ IFSC optional but agar diya hai to validate karo
+    //  IFSC optional but agar diya hai to validate karo
     if (form.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(form.ifscCode)) {
       return setError('Invalid IFSC code (e.g. SBIN0001234)');
     }
@@ -68,7 +68,7 @@ export default function LokosCrpForm({ initial, onSave, onCancel, saving = false
       <h4 style={{ margin: '8px 0 0', fontSize: 14, color: theme.colors.primary }}>Bank Details (optional)</h4>
       <Input label="Account Number" name="accountNumber" value={form.accountNumber} onChange={handleChange} />
       <Input label="Bank Name" name="bankName" value={form.bankName} onChange={handleChange} style={{ textTransform: 'uppercase' }} />
-      <Input label="Branch" name="branch" value={form.branch} onChange={handleChange} style={{ textTransform: 'uppercase' }} /> {/* ✅ branch */}
+      <Input label="Branch" name="branch" value={form.branch} onChange={handleChange} style={{ textTransform: 'uppercase' }} /> {/*  branch */}
       <Input label="IFSC Code" name="ifscCode" value={form.ifscCode} onChange={handleChange} placeholder="SBIN0001234" style={{ textTransform: 'uppercase' }} />
 
       {error && <p style={{ color: theme.colors.danger, fontSize: 13, margin: 0 }}>{error}</p>}

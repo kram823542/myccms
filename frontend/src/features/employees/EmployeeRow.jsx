@@ -8,11 +8,11 @@ export default function EmployeeRow({
   basePath,
   canReset,
   canDelete,
-  canEdit,    // ✅ Naya Prop
+  canEdit,    //  Naya Prop
   onReset,
   onDelete,
   onToggleStatus,
-  onEdit,     // ✅ Naya Prop
+  onEdit,     //  Naya Prop
 }) {
   const [openMenu, setOpenMenu] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -112,7 +112,7 @@ export default function EmployeeRow({
             </Link>
           )}
 
-          {/* ✅ Menu condition me canEdit bhi add kiya */}
+          {/*  Menu condition me canEdit bhi add kiya */}
           {(canReset || canDelete || canEdit) && (
             <div style={{ position: 'relative' }}>
               <button
@@ -155,7 +155,7 @@ export default function EmployeeRow({
                     padding: '6px'
                   }}
                 >
-                  {/* ✅ NAYA: Edit Details Option */}
+                  {/*  NAYA: Edit Details Option */}
                   {canEdit && (
                     <MenuItem
                       icon={

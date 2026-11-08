@@ -5,7 +5,7 @@ export const getClf = (id) => apiClient.get(`/clfs/${id}`);
 export const createClf = (payload) => apiClient.post('/clfs', payload);
 export const bpmDashboard = () => apiClient.get('/clfs/dashboard/bpm');
 
-// ✅ FIXED: Flattened data payload for reset
+//  FIXED: Flattened data payload for reset
 export const resetClfPassword = (id, data) =>
   apiClient.post(`/clfs/${id}/reset-password`, data);
 

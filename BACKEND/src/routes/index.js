@@ -18,6 +18,8 @@ import leaveRoutes from '../modules/leaves/leave.routes.js';
 // ✅ NEW: CLF Resources (Lokos CRP + VO)
 import clfResourceRoutes from '../modules/clfResources/clfResource.routes.js';
 import submissionWindowRoutes from '../modules/submissionWindows/submissionWindows.routes.js';
+// routes/index.js — ADD this line at the bottom (before export)
+import systemRoutes from '../modules/system/system.routes.js';
 
 const router = Router();
 
@@ -39,6 +41,7 @@ router.use('/audit-logs', auditRoutes);
 router.use('/advice', adviceRoutes);
 router.use('/leaves', leaveRoutes);
 router.use('/submission-windows', submissionWindowRoutes);
+router.use('/system', systemRoutes);
 
 
 

@@ -1,6 +1,6 @@
 import Table from '../../components/ui/Table.jsx';
 import Badge from '../../components/ui/Badge.jsx';
-import { theme } from '../../config/theme.js'; // ✅ Theme import kiya
+import { theme } from '../../config/theme.js'; //  Theme import kiya
 
 export default function AttendanceTable({ attendance = [], loading = false }) {
   const columns = [
@@ -24,11 +24,11 @@ export default function AttendanceTable({ attendance = [], loading = false }) {
     {
       header: 'Status',
       render: (r) => {
-        // ✅ Status ke hisaab se Badge ka variant set karo
+        //  Status ke hisaab se Badge ka variant set karo
         let variant = 'warning'; // Default
         if (r.status === 'PRESENT') variant = 'success';
         else if (r.status === 'ABSENT') variant = 'danger';
-        else if (r.status === 'LEAVE') variant = 'info'; // ✅ LEAVE ke liye Blue (info) badge
+        else if (r.status === 'LEAVE') variant = 'info'; //  LEAVE ke liye Blue (info) badge
 
         return (
           <Badge variant={variant}>

@@ -1,4 +1,4 @@
-// ✅ Bank Name Shortener
+//  Bank Name Shortener
 export const getBankShortName = (fullName) => {
   if (!fullName) return '';
   const map = {
@@ -18,7 +18,7 @@ export const getBankShortName = (fullName) => {
   return map[fullName.toLowerCase().trim()] || fullName;
 };
 
-// ✅ Amount to Words Converter (e.g. 1000 -> One Thousand Rupees Only)
+//  Amount to Words Converter (e.g. 1000 -> One Thousand Rupees Only)
 export const formatAmountInWords = (num) => {
   if (!num || num === 0) return 'Zero Rupees Only';
   const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];

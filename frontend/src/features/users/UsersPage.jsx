@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import PageHeader from '../../components/common/PageHeader.jsx';
 import Table from '../../components/ui/Table.jsx';
 import Badge from '../../components/ui/Badge.jsx';
@@ -6,38 +6,37 @@ import Button from '../../components/ui/Button.jsx';
 import Modal from '../../components/ui/Modal.jsx';
 import UserForm from './UserForm.jsx';
 import { theme } from '../../config/theme.js';
+import toast from 'react-hot-toast';
 import * as api from './users.api.js';
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const page = 1;
+  const limit = 20;
   const [openForm, setOpenForm] = useState(false);
   const [tempPass, setTempPass] = useState(null);
 
-  const load = async () => {
-    setLoading(true);
+  const load = useCallback(async () => {
     try {
-      const { data } = await api.listUsers({ page: 1, limit: 50 });
+      const { data } = await api.listUsers({ page, limit });
       setUsers(data.data.users || []);
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to load users');
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit]);
 
   useEffect(() => {
-    load();
-  }, []);
+    void Promise.resolve().then(load);
+  }, [load]);
 
   const columns = [
     { header: 'Username', key: 'username' },
     { header: 'Name', key: 'name' },
     { header: 'Role', render: (r) => <Badge variant="info">{r.role}</Badge> },
-    {
-      header: 'Block',
-      render: (r) => r.blockId?.name || '—',
-    },
+    { header: 'Block', render: (r) => r.blockId?.name || '—' },
     {
       header: 'Status',
       render: (r) => (

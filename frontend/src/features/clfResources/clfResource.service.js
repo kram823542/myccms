@@ -15,13 +15,13 @@ const assertClfScope = async (user, clfId) => {
   const clf = await CLF.findById(clfId);
   if (!clf) throw ApiError.notFound('CLF not found in database');
 
-  // ✅ CLF Admin — sirf apna CLF access kar sakta hai
+  //  CLF Admin — sirf apna CLF access kar sakta hai
   if (user.role === 'CLF' && String(user.clfId) === String(clf._id)) return clf;
 
-  // ✅ BPM Admin — sirf apne block ke CLFs access kar sakta hai
+  //  BPM Admin — sirf apne block ke CLFs access kar sakta hai
   if (user.role === 'BPM' && String(user.blockId) === String(clf.blockId)) return clf;
 
-  // ❌ Baaki koi (Super Admin included) access nahi kar sakta
+  //  Baaki koi (Super Admin included) access nahi kar sakta
   throw ApiError.forbidden('Access denied. Only CLF or BPM can access this resource.');
 };
 
@@ -30,11 +30,11 @@ const assertClfScope = async (user, clfId) => {
    ═══════════════════════════════════════════ */
 
 export const createLokosCrp = async (req, data) => {
-  // ✅ FIX: Agar payload me clfId nahi, toh logged-in CLF user ka clfId use karo
+  //  FIX: Agar payload me clfId nahi, toh logged-in CLF user ka clfId use karo
   const clfId = data.clfId || req.user.clfId;
   const clf = await assertClfScope(req.user, clfId);
 
-  // ✅ Sirf CLF admin hi create kar sakta hai (BPM read-only)
+  //  Sirf CLF admin hi create kar sakta hai (BPM read-only)
   if (req.user.role !== 'CLF') {
     throw ApiError.forbidden('Only CLF Admin can create Lokos CRP');
   }
@@ -75,12 +75,12 @@ export const listLokosCrps = async (req, query) => {
   const user = req.user;
   const filter = {};
 
-  // ✅ CLF → apna data, BPM → block ka data
+  //  CLF → apna data, BPM → block ka data
   if (user.role === 'CLF') {
     filter.clfId = user.clfId;
   } else if (user.role === 'BPM') {
     filter.blockId = user.blockId;
-    // ✅ BPM specific CLF filter kar sakta hai query se
+    //  BPM specific CLF filter kar sakta hai query se
     if (query.clfId) filter.clfId = query.clfId;
   } else {
     throw ApiError.forbidden('Access denied');
@@ -123,7 +123,7 @@ export const updateLokosCrp = async (req, id, data) => {
   if (!doc) throw ApiError.notFound('Lokos CRP not found');
   await assertClfScope(req.user, doc.clfId);
 
-  // ✅ Sirf CLF admin update kar sakta hai
+  //  Sirf CLF admin update kar sakta hai
   if (req.user.role !== 'CLF') {
     throw ApiError.forbidden('Only CLF Admin can update Lokos CRP');
   }
@@ -156,7 +156,7 @@ export const deleteLokosCrp = async (req, id) => {
   if (!doc) throw ApiError.notFound('Lokos CRP not found');
   await assertClfScope(req.user, doc.clfId);
 
-  // ✅ Sirf CLF admin delete kar sakta hai
+  //  Sirf CLF admin delete kar sakta hai
   if (req.user.role !== 'CLF') {
     throw ApiError.forbidden('Only CLF Admin can delete Lokos CRP');
   }
@@ -192,7 +192,7 @@ export const createVo = async (req, data) => {
   const clfId = data.clfId || req.user.clfId;
   const clf = await assertClfScope(req.user, clfId);
 
-  // ✅ Sirf CLF admin create kar sakta hai
+  //  Sirf CLF admin create kar sakta hai
   if (req.user.role !== 'CLF') {
     throw ApiError.forbidden('Only CLF Admin can create VO');
   }
@@ -229,7 +229,7 @@ export const listVos = async (req, query) => {
   const user = req.user;
   const filter = {};
 
-  // ✅ CLF → apna data, BPM → block ka data
+  //  CLF → apna data, BPM → block ka data
   if (user.role === 'CLF') {
     filter.clfId = user.clfId;
   } else if (user.role === 'BPM') {
@@ -269,7 +269,7 @@ export const updateVo = async (req, id, data) => {
   if (!doc) throw ApiError.notFound('VO not found');
   await assertClfScope(req.user, doc.clfId);
 
-  // ✅ Sirf CLF admin update kar sakta hai
+  //  Sirf CLF admin update kar sakta hai
   if (req.user.role !== 'CLF') {
     throw ApiError.forbidden('Only CLF Admin can update VO');
   }
@@ -308,7 +308,7 @@ export const deleteVo = async (req, id) => {
   if (!doc) throw ApiError.notFound('VO not found');
   await assertClfScope(req.user, doc.clfId);
 
-  // ✅ Sirf CLF admin delete kar sakta hai
+  //  Sirf CLF admin delete kar sakta hai
   if (req.user.role !== 'CLF') {
     throw ApiError.forbidden('Only CLF Admin can delete VO');
   }

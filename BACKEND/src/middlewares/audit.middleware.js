@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { AuditLog } from '../modules/auditLogs/auditLog.model.js';
 import { logger } from '../utils/logger.js';
 
@@ -10,10 +11,15 @@ export const createAudit = async ({
   status = 'SUCCESS',
 }) => {
   try {
-    // ✅ Safe check: Agar req undefined hai toh crash na ho
     if (!req) {
       logger.warn('Audit skipped: req object is undefined');
       return;
+    }
+
+    // ✅ FIX: Agar targetId valid ObjectId nahi hai (jaise 'singleton'), toh null kar do
+    let safeTargetId = null;
+    if (targetId && mongoose.Types.ObjectId.isValid(targetId)) {
+      safeTargetId = targetId;
     }
 
     await AuditLog.create({
@@ -22,10 +28,9 @@ export const createAudit = async ({
       userName: req.user?.name || null,
       action,
       targetType,
-      targetId,
-      metadata,
+      targetId: safeTargetId,
+      metadata: { ...metadata, originalTargetId: targetId }, // Original ID metadata me save kar lo
       ipAddress: req.ip || req.headers?.['x-forwarded-for'] || 'Unknown',
-      // ✅ FIX: Safe check lagaya hai
       userAgent: req.headers?.['user-agent'] || 'Unknown Device',
       status,
     });

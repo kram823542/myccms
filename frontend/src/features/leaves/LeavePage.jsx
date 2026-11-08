@@ -8,7 +8,7 @@ import LeaveForm from './LeaveForm';
 import LeaveLetterModal from './LeaveLetterModal';
 import { applyLeaveApi, getMyLeavesApi, cancelLeaveApi } from './leaves.api';
 import { getAuthUser } from '../../utils/authStorage.js';
-import { getEmployee } from '../employees/employees.api.js'; // ✅ Employee API import kiya
+import { getEmployee } from '../employees/employees.api.js'; //  Employee API import kiya
 import { theme } from '../../config/theme.js';
 
 export default function LeavePage() {
@@ -22,7 +22,7 @@ export default function LeavePage() {
       setFetching(true);
       const user = getAuthUser() || {};
       
-      // ✅ 1. Employee ka CLF ID nikaalne ki koshish karo
+      //  1. Employee ka CLF ID nikaalne ki koshish karo
       let fallbackClfId = user.clfId;
       let empId = user.employeeId;
 
@@ -39,21 +39,21 @@ export default function LeavePage() {
 
       const res = await getMyLeavesApi();
       
-      // ✅ 2. Har leave me clfId inject kar do taaki modal me 'CLF Name Not Found' na aaye
+      //  2. Har leave me clfId inject kar do taaki modal me 'CLF Name Not Found' na aaye
       const mappedLeaves = (res.data || []).map(l => ({
         ...l,
         clfId: l.clfId || l.employeeId?.clfId || fallbackClfId
       }));
 
       setLeaves(mappedLeaves);
-    } catch (error) {
+    } catch  {
       toast.error('Failed to load leave history');
     } finally {
       setFetching(false);
     }
   };
 
-  useEffect(() => { fetchLeaves(); }, []);
+  useEffect(() => { void Promise.resolve().then(fetchLeaves); }, []);
 
   const handleApplyLeave = async (payload, onSuccess) => {
     setLoading(true);
@@ -87,12 +87,12 @@ export default function LeavePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           
-          {/* ✅ Left Column: Form */}
+          {/*  Left Column: Form */}
           <div className="lg:col-span-1">
             <LeaveForm onSubmit={handleApplyLeave} loading={loading} />
           </div>
 
-          {/* ✅ Right Column: History */}
+          {/*  Right Column: History */}
           <div style={{ background: theme.colors.surface, padding: 'clamp(16px, 4vw, 24px)', borderRadius: theme.radius.md, boxShadow: theme.shadow.sm, border: `1px solid ${theme.colors.border}` }} className="lg:col-span-2">
             <h2 style={{ color: theme.colors.text, borderBottom: `1px solid ${theme.colors.border}`, paddingBottom: '12px', marginBottom: '16px' }} className="text-base md:text-lg font-semibold">My Leave History</h2>
             
@@ -104,7 +104,7 @@ export default function LeavePage() {
               </div>
             ) : (
               <>
-                {/* ✅ Desktop Table (Hidden on Mobile) */}
+                {/*  Desktop Table (Hidden on Mobile) */}
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
@@ -135,7 +135,7 @@ export default function LeavePage() {
                   </table>
                 </div>
 
-                {/* ✅ Mobile Card View (Hidden on Desktop) */}
+                {/*  Mobile Card View (Hidden on Desktop) */}
                 <div className="md:hidden flex flex-col gap-3">
                   {leaves.map((leave) => (
                     <div key={leave._id} style={{ border: `1px solid ${theme.colors.border}`, borderRadius: theme.radius.md, padding: '12px', backgroundColor: theme.colors.background }}>

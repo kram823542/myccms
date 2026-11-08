@@ -42,7 +42,7 @@ export default function EmployeeDetails({ employee }) {
         ['Designation', employee.designation],
         ['Joining Date', employee.joiningDate?.slice(0, 10)],
         ['Aadhaar', employee.aadhaarNumber],
-        ['Status', <Badge variant={employee.status === 'ACTIVE' ? 'success' : 'danger'}>{employee.status}</Badge>],
+        ['Status', <Badge key="status" variant={employee.status === 'ACTIVE' ? 'success' : 'danger'}>{employee.status}</Badge>],
       ])}
 
       {section('Bank Details', [

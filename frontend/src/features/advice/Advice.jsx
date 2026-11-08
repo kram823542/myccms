@@ -9,9 +9,9 @@ export default function Advice() {
   const [tab, setTab] = useState('salary');
   
   const tabs = [
-    { key: 'salary', label: '👥 Employee Salary' },
-    { key: 'expense', label: '📋 Company Expense' },
-    { key: 'history', label: '📚 History' },
+    { key: 'salary', label: ' Employee Salary' },
+    { key: 'expense', label: ' Company Expense' },
+    { key: 'history', label: ' History' },
   ];
 
   // Calculate slider position (0%, 33.33%, 66.66%) based on active tab
@@ -22,7 +22,7 @@ export default function Advice() {
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 12px' }}>
       <PageHeader title="Advice" subtitle="Generate bank advice for employee salary or company expense" />
       
-      {/* ✅ NAYA: Perfect Slider Pill Tabs */}
+      {/*  NAYA: Perfect Slider Pill Tabs */}
       <div 
         style={{ 
           position: 'relative',
@@ -37,7 +37,7 @@ export default function Advice() {
           width: '100%',
         }}
       >
-        {/* ✅ Sliding Background */}
+        {/*  Sliding Background */}
         <div
           style={{
             position: 'absolute',
@@ -60,7 +60,7 @@ export default function Advice() {
               key={t.key}
               onClick={() => setTab(t.key)}
               style={{
-                flex: 1, // 👈 Equal width distribution
+                flex: 1, //  Equal width distribution
                 position: 'relative',
                 zIndex: 2,
                 padding: '8px 10px',
@@ -73,7 +73,7 @@ export default function Advice() {
                 textTransform: 'uppercase',
                 cursor: 'pointer',
                 transition: 'color 0.3s ease',
-                whiteSpace: 'nowrap', // 👈 Text ko wrap hone se roke
+                whiteSpace: 'nowrap', //  Text ko wrap hone se roke
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 borderRadius: 999,

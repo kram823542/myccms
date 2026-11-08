@@ -27,7 +27,7 @@
 //       {/* Sliding Tabs */}
 //       <div style={{ position: 'relative', display: 'flex', background: theme.colors.background, border: `1px solid ${theme.colors.border}`, borderRadius: 999, padding: 4, marginBottom: 20, boxShadow: theme.shadow.sm, maxWidth: 400 }}>
 //         <div style={{ position: 'absolute', top: 4, bottom: 4, left: tab === 'lokos' ? 4 : '50%', width: 'calc(50% - 4px)', background: theme.colors.primary, borderRadius: 999, transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)', zIndex: 1 }} />
-//         {[{ key: 'lokos', label: '👥 Lokos CRP' }, { key: 'vos', label: '🏘️ Village Organizations' }].map((t) => (
+//         {[{ key: 'lokos', label: ' Lokos CRP' }, { key: 'vos', label: ' Village Organizations' }].map((t) => (
 //           <button key={t.key} onClick={() => setTab(t.key)} style={{ flex: 1, position: 'relative', zIndex: 2, padding: '8px 12px', border: 'none', background: 'transparent', color: tab === t.key ? theme.colors.textLight : theme.colors.muted, fontWeight: 700, fontSize: 12, cursor: 'pointer', borderRadius: 999 }}>
 //             {t.label}
 //           </button>
@@ -73,11 +73,11 @@
 
 //       {open && (
 //         <div ref={menuRef} style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, background: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 12, boxShadow: theme.shadow.lg, minWidth: 160, zIndex: 9999, padding: 6 }}>
-//           <MenuItem icon="👁️" label="View Details" onClick={() => { setOpen(false); onView(item); }} color={theme.colors.text} />
+//           <MenuItem icon="" label="View Details" onClick={() => { setOpen(false); onView(item); }} color={theme.colors.text} />
 //           {canWrite && (
 //             <>
-//               <MenuItem icon="✏️" label="Edit" onClick={() => { setOpen(false); onEdit(item); }} color={theme.colors.text} />
-//               <MenuItem icon="🗑️" label="Delete" onClick={() => { setOpen(false); onDelete(item); }} color={theme.colors.danger} />
+//               <MenuItem icon="" label="Edit" onClick={() => { setOpen(false); onEdit(item); }} color={theme.colors.text} />
+//               <MenuItem icon="" label="Delete" onClick={() => { setOpen(false); onDelete(item); }} color={theme.colors.danger} />
 //             </>
 //           )}
 //         </div>
@@ -158,7 +158,7 @@
 //     }
 //   };
 
-//   // ✅ Filters Logic
+//   //  Filters Logic
 //   const uniqueDesignations = [...new Set(items.map(i => i.designation).filter(Boolean))];
 //   const uniqueBanks = [...new Set(items.map(i => i.bankName).filter(Boolean))];
 
@@ -198,7 +198,7 @@
 //       {/* Selected Counter (Advice generate feature ke liye future ready) */}
 //       {selectedIds.length > 0 && (
 //         <div style={{ padding: '10px 14px', background: `${theme.colors.primary}10`, border: `1px solid ${theme.colors.primary}30`, borderRadius: 8, marginBottom: 12, fontSize: 13, color: theme.colors.primary, fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-//           <span>✅ {selectedIds.length} Lokos CRP selected</span>
+//           <span> {selectedIds.length} Lokos CRP selected</span>
 //           <Button size="sm" onClick={() => toast.success('Advice Generate feature coming soon!')}>Generate Advice</Button>
 //         </div>
 //       )}
@@ -374,7 +374,7 @@
 
 //       {selectedIds.length > 0 && (
 //         <div style={{ padding: '10px 14px', background: `${theme.colors.primary}10`, border: `1px solid ${theme.colors.primary}30`, borderRadius: 8, marginBottom: 12, fontSize: 13, color: theme.colors.primary, fontWeight: 600 }}>
-//           ✅ {selectedIds.length} VO selected
+//            {selectedIds.length} VO selected
 //         </div>
 //       )}
 
@@ -491,7 +491,7 @@
 // }
 
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import PageHeader from '../../components/common/PageHeader.jsx';
 import Button from '../../components/ui/Button.jsx';
 import Modal from '../../components/ui/Modal.jsx';
@@ -509,7 +509,7 @@ import { getClf } from '../clfs/clfs.api.js';
 import apiClient from '../../services/apiClient.js'; 
 import toast from 'react-hot-toast';
 
-// ✅ Yahan hum frontend me ek chhoti utility call kar rahe hain (jo backend jaisi hi hai)
+//  Yahan hum frontend me ek chhoti utility call kar rahe hain (jo backend jaisi hi hai)
 // Agar aapne backend me file banayi hai, toh frontend me bhi ek file banao
 import { generatePatrankPrefix } from '../../utils/patrankGenerator.js'; 
 
@@ -532,7 +532,7 @@ export default function ClfResourcesPage() {
 
       <div style={{ position: 'relative', display: 'flex', background: theme.colors.background, border: `1px solid ${theme.colors.border}`, borderRadius: 999, padding: 4, marginBottom: 20, boxShadow: theme.shadow.sm, maxWidth: 400 }}>
         <div style={{ position: 'absolute', top: 4, bottom: 4, left: tab === 'lokos' ? 4 : '50%', width: 'calc(50% - 4px)', background: theme.colors.primary, borderRadius: 999, transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)', zIndex: 1 }} />
-        {[{ key: 'lokos', label: '👥 Lokos CRP' }, { key: 'vos', label: '🏘️ Village Organizations' }].map((t) => (
+        {[{ key: 'lokos', label: ' Lokos CRP' }, { key: 'vos', label: ' Village Organizations' }].map((t) => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{ flex: 1, position: 'relative', zIndex: 2, padding: '8px 12px', border: 'none', background: 'transparent', color: tab === t.key ? theme.colors.textLight : theme.colors.muted, fontWeight: 700, fontSize: 12, cursor: 'pointer', borderRadius: 999 }}>
             {t.label}
           </button>
@@ -578,11 +578,11 @@ function ActionMenu({ item, onEdit, onView, onDelete, canWrite }) {
 
       {open && (
         <div ref={menuRef} style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, background: theme.colors.surface, border: `1px solid ${theme.colors.border}`, borderRadius: 12, boxShadow: theme.shadow.lg, minWidth: 160, zIndex: 9999, padding: 6 }}>
-          <MenuItem icon="👁️" label="View Details" onClick={() => { setOpen(false); onView(item); }} color={theme.colors.text} />
+          <MenuItem icon="" label="View Details" onClick={() => { setOpen(false); onView(item); }} color={theme.colors.text} />
           {canWrite && (
             <>
-              <MenuItem icon="✏️" label="Edit" onClick={() => { setOpen(false); onEdit(item); }} color={theme.colors.text} />
-              <MenuItem icon="🗑️" label="Delete" onClick={() => { setOpen(false); onDelete(item); }} color={theme.colors.danger} />
+              <MenuItem icon="" label="Edit" onClick={() => { setOpen(false); onEdit(item); }} color={theme.colors.text} />
+              <MenuItem icon="" label="Delete" onClick={() => { setOpen(false); onDelete(item); }} color={theme.colors.danger} />
             </>
           )}
         </div>
@@ -602,17 +602,18 @@ function MenuItem({ icon, label, color, onClick }) {
 
 /* ═══════════════ ADVICE MODAL COMPONENT ═══════════════ */
 function GenerateAdviceModal({ isOpen, onClose, type, selectedItems, clfData }) {
-  const [adviceDate, setAdviceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [adviceDate, setAdviceDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [adviceNumber, setAdviceNumber] = useState('');
   const [selectedBankAcc, setSelectedBankAcc] = useState('');
   const [entries, setEntries] = useState([]);
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
+    void Promise.resolve().then(() => {
+      if (!isOpen) return;
       setAdviceDate(new Date().toISOString().split('T')[0]);
       
-      // ✅ Auto-fetch using Utility (No Hardcode)
+      //  Auto-fetch using Utility (No Hardcode)
       if (clfData?.name) {
         const prefix = generatePatrankPrefix(clfData.name);
         const currentYear = new Date().getFullYear();
@@ -631,7 +632,7 @@ function GenerateAdviceModal({ isOpen, onClose, type, selectedItems, clfData }) 
         monthValue: 'Nov26'
       }));
       setEntries(initialEntries);
-    }
+    });
   }, [isOpen, clfData, selectedItems]);
 
   const totalAmount = entries.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
@@ -669,7 +670,7 @@ function GenerateAdviceModal({ isOpen, onClose, type, selectedItems, clfData }) 
           month: entries[0].monthValue || 'Nov26',
           adviceDate,
           adviceNumber: adviceNumber, 
-          // ✅ Ensure array of numbers
+          //  Ensure array of numbers
           amounts: entries.map(e => parseFloat(e.amount)), 
           selectedBank: selectedBankObj,
         },
@@ -695,7 +696,7 @@ function GenerateAdviceModal({ isOpen, onClose, type, selectedItems, clfData }) 
         try {
           const json = JSON.parse(text);
           toast.error(json.message || 'Failed to generate advice');
-        } catch(e) {
+        } catch {
           toast.error('Failed to generate advice');
         }
       } else {
@@ -789,7 +790,7 @@ function GenerateAdviceModal({ isOpen, onClose, type, selectedItems, clfData }) 
         </div>
 
         <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-          <Button onClick={handleGenerate} loading={generating} style={{ flex: 1 }}>💾 Save & Download PDF</Button>
+          <Button onClick={handleGenerate} loading={generating} style={{ flex: 1 }}> Save & Download PDF</Button>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
         </div>
       </div>
@@ -815,19 +816,19 @@ function LokosTab({ canWrite, clfData }) {
   
   const [adviceModalOpen, setAdviceModalOpen] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await api.listLokos({ search });
       setItems(data.data.lokosCrps || []);
-    } catch (err) {
+    } catch  {
       toast.error('Failed to load Lokos CRPs');
     } finally {
       setLoading(false);
     }
-  };
+  }, [search]);
 
-  useEffect(() => { load(); }, [search]);
+  useEffect(() => { void Promise.resolve().then(load); }, [load]);
 
   const handleSave = async (form) => {
     setSaving(true);
@@ -899,7 +900,7 @@ function LokosTab({ canWrite, clfData }) {
 
       {selectedIds.length > 0 && (
         <div style={{ padding: '10px 14px', background: `${theme.colors.primary}10`, border: `1px solid ${theme.colors.primary}30`, borderRadius: 8, marginBottom: 12, fontSize: 13, color: theme.colors.primary, fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>✅ {selectedIds.length} Lokos CRP selected</span>
+          <span> {selectedIds.length} Lokos CRP selected</span>
           <Button size="sm" onClick={() => setAdviceModalOpen(true)}>Generate Advice</Button>
         </div>
       )}
@@ -1014,19 +1015,19 @@ function VosTab({ canWrite, clfData }) {
   
   const [adviceModalOpen, setAdviceModalOpen] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await api.listVos({ search });
       setItems(data.data.vos || []);
-    } catch (err) {
+    } catch  {
       toast.error('Failed to load VOs');
     } finally {
       setLoading(false);
     }
-  };
+  }, [search]);
 
-  useEffect(() => { load(); }, [search]);
+  useEffect(() => { void Promise.resolve().then(load); }, [load]);
 
   const handleSave = async (form) => {
     setSaving(true);
@@ -1083,7 +1084,7 @@ function VosTab({ canWrite, clfData }) {
 
       {selectedIds.length > 0 && (
         <div style={{ padding: '10px 14px', background: `${theme.colors.primary}10`, border: `1px solid ${theme.colors.primary}30`, borderRadius: 8, marginBottom: 12, fontSize: 13, color: theme.colors.primary, fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>✅ {selectedIds.length} VO selected</span>
+          <span> {selectedIds.length} VO selected</span>
           <Button size="sm" onClick={() => setAdviceModalOpen(true)}>Generate Advice</Button>
         </div>
       )}

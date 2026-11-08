@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { theme } from '../../config/theme.js';
 import { clearAuthState, getAuthUser } from '../../utils/authStorage.js';
-import { getEmployee } from '../../features/employees/employees.api.js'; // ✅ Import API
+import { getEmployee } from '../../features/employees/employees.api.js'; //  Import API
 
+// Shared by Sidebar and BottomBar; keeping it here avoids duplicating the route icon map.
+// oxlint-disable-next-line react/only-export-components
 export const renderDynamicIcon = (item, size = 20) => {
   // ... (Tumhara purana icon logic same rahega) ...
   const label = (item.label || '').toLowerCase();
@@ -59,12 +61,30 @@ export default function Sidebar({ title, menu = [] }) {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const [user, setUser] = useState(getAuthUser() || {}); // ✅ State me rakha
-  const [activeIndex, setActiveIndex] = useState(-1);
+  const [user, setUser] = useState(getAuthUser() || {}); //  State me rakha
+  const activeIndex = useMemo(() => {
+    let currentPath = location.pathname;
+    if (currentPath.endsWith('/') && currentPath.length > 1) currentPath = currentPath.slice(0, -1);
+
+    let bestMatchIndex = -1;
+    let longestLength = 0;
+    menu.forEach((item, index) => {
+      let itemPath = item.path || '';
+      if (itemPath.endsWith('/') && itemPath.length > 1) itemPath = itemPath.slice(0, -1);
+      if (
+        (currentPath === itemPath || currentPath.startsWith(itemPath + '/')) &&
+        itemPath.length > longestLength
+      ) {
+        bestMatchIndex = index;
+        longestLength = itemPath.length;
+      }
+    });
+    return bestMatchIndex;
+  }, [location.pathname, menu]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeTooltip, setActiveTooltip] = useState({ show: false, label: '', top: 0 });
 
-  // ✅ NAYA: Agar Employee hai, toh API se sahi naam fetch karo
+  //  NAYA: Agar Employee hai, toh API se sahi naam fetch karo
   useEffect(() => {
     if (user.role === 'EMPLOYEE' && user.employeeId) {
       getEmployee(user.employeeId)
@@ -76,27 +96,6 @@ export default function Sidebar({ title, menu = [] }) {
         .catch(() => {});
     }
   }, [user.role, user.employeeId]);
-
-  useEffect(() => {
-    let currentPath = location.pathname;
-    if (currentPath.endsWith('/') && currentPath.length > 1) currentPath = currentPath.slice(0, -1);
-
-    let bestMatchIndex = -1;
-    let longestLength = 0;
-
-    menu.forEach((item, index) => {
-      let itemPath = item.path || '';
-      if (itemPath.endsWith('/') && itemPath.length > 1) itemPath = itemPath.slice(0, -1);
-      const isExact = currentPath === itemPath;
-      const isPrefix = currentPath.startsWith(itemPath + '/');
-      if ((isExact || isPrefix) && itemPath.length > longestLength) {
-        bestMatchIndex = index;
-        longestLength = itemPath.length;
-      }
-    });
-
-    setActiveIndex(bestMatchIndex);
-  }, [location.pathname, menu]);
 
   useEffect(() => {
     document.body.dataset.sidebar = isCollapsed ? 'collapsed' : 'expanded';
@@ -162,7 +161,7 @@ export default function Sidebar({ title, menu = [] }) {
             {!isCollapsed && (
               <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '0 2px' }}>
                 <h1 style={{ margin: 0, fontSize: 12, fontWeight: 700, color: theme.colors.sidebarText, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</h1>
-                {/* ✅ Yahan ab Employee ka sahi naam dikhega */}
+                {/*  Yahan ab Employee ka sahi naam dikhega */}
                 <p style={{ margin: 0, fontSize: 10, color: theme.colors.muted, opacity: 0.9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</p>
                 <span style={{ width: 'max-content', marginTop: 4, fontSize: 8, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 800, background: `${theme.colors.accent}22`, color: theme.colors.accent, border: `1px solid ${theme.colors.accent}55`, padding: '2px 8px', borderRadius: 0 }}>
                   {user?.role?.replace('_', ' ')}

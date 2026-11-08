@@ -3,7 +3,7 @@ import apiClient from '../../services/apiClient.js';
 export const listUsers = (params) => apiClient.get('/users', { params });
 export const createBPM = (payload) => apiClient.post('/users/bpm', payload);
 
-// ✅ FIXED: Flattened data payload for reset
+//  FIXED: Flattened data payload for reset
 export const resetPassword = (id, data) =>
   apiClient.post(`/users/${id}/reset-password`, data);
   

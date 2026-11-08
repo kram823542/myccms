@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useReactToPrint } from 'react-to-print';
 import { getBankShortName, formatAmountInWords } from './AdviceUtils';
@@ -6,13 +6,6 @@ import { theme } from '../../config/theme.js';
 
 const AdviceFormate = ({ advicePreview, clfData }) => {
   const printRef = useRef(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
-
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Bank-Advice-${advicePreview?.adviceNumber || 'Preview'}`,
@@ -30,7 +23,7 @@ const AdviceFormate = ({ advicePreview, clfData }) => {
   const adviceNumberDisplay = advicePreview.adviceNumber || '—';
   const clfBank = advicePreview.clfBankDetails || { bankName: '-', accountNumber: '-', branch: '-' };
 
-  // ✅ Fallback if clfData missing
+  //  Fallback if clfData missing
   const letterhead = clfData?.letterhead || {};
   const footer = clfData?.footer || {};
   const signatures = clfData?.signatures || {};
@@ -74,7 +67,7 @@ const AdviceFormate = ({ advicePreview, clfData }) => {
             <div className="w-[70%] print-accent-orange"></div>
           </div>
 
-          {/* ✅ DYNAMIC HEADER */}
+          {/*  DYNAMIC HEADER */}
           <div className="flex items-center justify-between gap-3 pb-3 shrink-0">
             <img src={leftLogo} alt="Left Logo" className="w-[100px] h-[100px] object-contain" crossOrigin="anonymous" />
             <div className="flex-1 text-center font-serif">
@@ -178,7 +171,7 @@ const AdviceFormate = ({ advicePreview, clfData }) => {
 
           {isLastPage && <div className="flex-1 min-h-[10mm]"></div>}
 
-          {/* ✅ DYNAMIC SIGNATURES */}
+          {/*  DYNAMIC SIGNATURES */}
           {isLastPage && (
             <div className="pb-10 shrink-0">
               <div className="flex justify-between items-end">
@@ -197,7 +190,7 @@ const AdviceFormate = ({ advicePreview, clfData }) => {
           )}
         </div>
 
-        {/* ✅ DYNAMIC FOOTER */}
+        {/*  DYNAMIC FOOTER */}
         <div className="w-full pt-1 pb-0 mt-auto shrink-0">
           <div className="flex w-full h-[5px] mb-1.5">
             <div className="w-[30%] print-accent-green"></div>
@@ -237,7 +230,7 @@ const AdviceFormate = ({ advicePreview, clfData }) => {
         </div>
       </div>
 
-      {mounted && createPortal(
+      {createPortal(
         <div style={{ position: 'fixed', left: '-10000px', top: 0, width: '210mm', zIndex: -1 }} aria-hidden="true">
           <div ref={printRef} className="print-root print-surface">
             {employeeChunks.map((chunk, pageIndex) => renderPageCard(chunk, pageIndex, true))}

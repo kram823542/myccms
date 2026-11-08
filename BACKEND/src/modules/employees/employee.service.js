@@ -37,55 +37,56 @@ export const createEmployee = async (req, data) => {
   const session = await mongoose.startSession();
   let result;
   try {
-    await session.withTransaction(async () => {
-      const tempPassword = generatePassword(10);
-      const username = empCode.toLowerCase();
-      const uniqueUsername = `${clf.code.toLowerCase()}_${username}`;
+    session.startTransaction();
+    
+    const tempPassword = generatePassword(10);
+    const username = empCode.toLowerCase();
+    const uniqueUsername = `${clf.code.toLowerCase()}_${username}`;
 
-      const empUser = await User.create(
-        [{
-          username: uniqueUsername,
-          password: tempPassword,
-          role: 'EMPLOYEE',
-          name: data.name,
-          mobile: data.mobile,
-          blockId: clf.blockId,
-          clfId: clf._id,
-          createdBy: user._id,
-          mustChangePassword: true,
-          profilePhoto: data.profilePhoto || '',
-        }],
-        { session }
-      );
+    const empUser = await User.create(
+      [{
+        username: uniqueUsername,
+        password: tempPassword,
+        role: 'EMPLOYEE',
+        name: data.name,
+        mobile: data.mobile,
+        blockId: clf.blockId,
+        clfId: clf._id,
+        createdBy: user._id,
+        mustChangePassword: true,
+        profilePhoto: data.profilePhoto || '',
+      }],
+      { session }
+    );
 
-      const employee = await Employee.create(
-        [{
-          employeeCode: empCode,
-          name: data.name,
-          mobile: data.mobile,
-          designation: data.designation,
-          joiningDate: data.joiningDate,
-          aadhaarNumber: data.aadhaarNumber ? encrypt(data.aadhaarNumber) : undefined,
-          bankDetails: {
-            bankName: data.bankDetails?.bankName,
-            accountNumber: data.bankDetails?.accountNumber ? encrypt(data.bankDetails.accountNumber) : undefined,
-            branch: data.bankDetails?.branch,
-            ifsc: data.bankDetails?.ifsc?.toUpperCase(),
-          },
-          workLocation: { panchayat: data.workLocation.panchayat },
-          profilePhoto: data.profilePhoto,
-          clfId: clf._id,
-          blockId: clf.blockId,
-          userId: empUser[0]._id,
-          createdBy: user._id,
-        }],
-        { session }
-      );
+    const employee = await Employee.create(
+      [{
+        employeeCode: empCode,
+        name: data.name,
+        mobile: data.mobile,
+        designation: data.designation,
+        joiningDate: data.joiningDate,
+        aadhaarNumber: data.aadhaarNumber ? encrypt(data.aadhaarNumber) : undefined,
+        bankDetails: {
+          bankName: data.bankDetails?.bankName,
+          accountNumber: data.bankDetails?.accountNumber ? encrypt(data.bankDetails.accountNumber) : undefined,
+          branch: data.bankDetails?.branch,
+          ifsc: data.bankDetails?.ifsc?.toUpperCase(),
+        },
+        workLocation: { panchayat: data.workLocation.panchayat },
+        profilePhoto: data.profilePhoto,
+        clfId: clf._id,
+        blockId: clf.blockId,
+        userId: empUser[0]._id,
+        createdBy: user._id,
+      }],
+      { session }
+    );
 
-      await User.findByIdAndUpdate(empUser[0]._id, { employeeId: employee[0]._id }, { session });
+    await User.findByIdAndUpdate(empUser[0]._id, { employeeId: employee[0]._id }, { session });
 
-      result = { employee: employee[0], login: { username: uniqueUsername, tempPassword } };
-    });
+    await session.commitTransaction();
+    result = { employee: employee[0], login: { username: uniqueUsername, tempPassword } };
 
     await createAudit({
       req,
@@ -96,8 +97,11 @@ export const createEmployee = async (req, data) => {
     });
 
     return result;
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
   } finally {
-    await session.endSession();
+    session.endSession();
   }
 };
 
@@ -192,7 +196,6 @@ export const assertEmployeeAccess = (user, emp) => {
   throw ApiError.forbidden('Access denied');
 };
 
-/* ✅ UPDATE EMPLOYEE: Sirf CLF Admin edit kar sakta hai */
 export const updateEmployee = async (req, id, data) => {
   const emp = await Employee.findById(id).select('+aadhaarNumber +bankDetails.accountNumber');
   if (!emp) throw ApiError.notFound('Employee not found');
@@ -217,10 +220,16 @@ export const updateEmployee = async (req, id, data) => {
 
   await emp.save();
 
-  await User.findByIdAndUpdate(emp.userId, {
-    ...(data.name && { name: data.name }),
-    ...(data.mobile && { mobile: data.mobile }),
-  });
+  // ✅ FIX: Update User properly
+  if (emp.userId) {
+    const userUpdate = {};
+    if (data.name) userUpdate.name = data.name;
+    if (data.mobile) userUpdate.mobile = data.mobile;
+    
+    if (Object.keys(userUpdate).length > 0) {
+      await User.findByIdAndUpdate(emp.userId, userUpdate);
+    }
+  }
 
   await createAudit({ req, action: 'EMPLOYEE_UPDATED', targetType: 'Employee', targetId: emp._id });
   return formatEmployee(emp, { revealSensitive: true });
@@ -236,7 +245,14 @@ export const setEmployeeStatus = async (req, id, status) => {
 
   emp.status = status;
   await emp.save();
-  await User.findByIdAndUpdate(emp.userId, { status: status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE' });
+
+  // ✅ FIX: User status update properly
+  if (emp.userId) {
+    await User.findByIdAndUpdate(emp.userId, { 
+      status: status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE' 
+    });
+  }
+
   await createAudit({ req, action: `EMPLOYEE_${status}`, targetType: 'Employee', targetId: id });
   return emp;
 };
@@ -281,7 +297,6 @@ export const resetEmployeePassword = async (req, id, data) => {
 
     empUser.password = password;
     empUser.mustChangePassword = true;
-    
   }
 
   empUser.loginAttempts = 0;
@@ -299,7 +314,6 @@ export const resetEmployeePassword = async (req, id, data) => {
   return { username: empUser.username, resetBy: user.role };
 };
 
-// ✅ NAYA: Employee Credentials Fetch karo
 export const getEmployeeCredentials = async (req) => {
   if (req.user.role !== 'CLF') throw ApiError.forbidden('Only CLF Admin can view credentials');
 
@@ -319,7 +333,6 @@ export const getEmployeeCredentials = async (req) => {
   }));
 };
 
-// ✅ FIX #8: Soft delete + orphan cleanup
 export const deleteEmployee = async (req, id) => {
   const emp = await Employee.findById(id);
   if (!emp) throw ApiError.notFound('Employee not found');
@@ -335,14 +348,22 @@ export const deleteEmployee = async (req, id) => {
     throw ApiError.forbidden('Only CLF or Super Admin can delete employee');
   }
 
+  const session = await mongoose.startSession();
   try {
-    await Promise.all([
-      Attendance.deleteMany({ employeeId: emp._id }),
-      WorkDone.deleteMany({ employeeId: emp._id }),
-      Leave.deleteMany({ employeeId: emp._id }),
-      ActionPlan.deleteMany({ employeeId: emp._id }),
-      MessageRecipient.deleteMany({ employeeId: emp._id }),
-    ]);
+    session.startTransaction();
+
+    await Attendance.deleteMany({ employeeId: emp._id }, { session });
+    await WorkDone.deleteMany({ employeeId: emp._id }, { session });
+    await Leave.deleteMany({ employeeId: emp._id }, { session });
+    await ActionPlan.deleteMany({ employeeId: emp._id }, { session });
+    await MessageRecipient.deleteMany({ employeeId: emp._id }, { session });
+
+    if (emp.userId) {
+      await User.findByIdAndDelete(emp.userId, { session });
+    }
+    await Employee.findByIdAndDelete(id, { session });
+
+    await session.commitTransaction();
 
     if (emp.profilePhoto && emp.profilePhoto.includes('cloudinary')) {
       try {
@@ -353,20 +374,20 @@ export const deleteEmployee = async (req, id) => {
       }
     }
 
-    if (emp.userId) await User.findByIdAndDelete(emp.userId);
-    await Employee.findByIdAndDelete(id);
+    await createAudit({
+      req,
+      action: 'EMPLOYEE_DELETED',
+      targetType: 'Employee',
+      targetId: emp._id,
+      metadata: { employeeCode: emp.employeeCode, name: emp.name },
+    });
+
+    return { deleted: true, employeeCode: emp.employeeCode };
   } catch (err) {
-    logger.error(`Employee delete cascade failed: ${err.message}`);
+    await session.abortTransaction();
+    logger.error(`Employee delete cascade transaction failed: ${err.message}`);
     throw ApiError.internal('Employee delete failed');
+  } finally {
+    session.endSession();
   }
-
-  await createAudit({
-    req,
-    action: 'EMPLOYEE_DELETED',
-    targetType: 'Employee',
-    targetId: emp._id,
-    metadata: { employeeCode: emp.employeeCode, name: emp.name },
-  });
-
-  return { deleted: true, employeeCode: emp.employeeCode };
 };

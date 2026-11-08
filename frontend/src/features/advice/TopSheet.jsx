@@ -4,7 +4,7 @@ import Input from '../../components/ui/Input.jsx';
 import Select from '../../components/ui/Select.jsx';
 import Loader from '../../components/ui/Loader.jsx';
 import TopSheetHistory from './TopSheetHistory.jsx'; 
-import TopSheetFormate from './TopSheetFormate.jsx'; // ✅ Import TopSheetFormate
+import TopSheetFormate from './TopSheetFormate.jsx'; //  Import TopSheetFormate
 import * as adviceApi from './advice.api.js';
 import { getClf } from '../clfs/clfs.api.js';
 import { getAuthUser } from '../../utils/authStorage.js';
@@ -14,7 +14,10 @@ import { theme } from '../../config/theme.js';
 export default function TopSheet() {
   const [activeTab, setActiveTab] = useState('generate');
 
-  const [month, setMonth] = useState('');
+  const [month, setMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
   const [advices, setAdvices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -24,7 +27,7 @@ export default function TopSheet() {
   const [selectedAdviceIds, setSelectedAdviceIds] = useState([]);
   const [inputs, setInputs] = useState({});
   
-  // ✅ NAYA: Top Sheet Preview ke liye state
+  //  NAYA: Top Sheet Preview ke liye state
   const [topSheetData, setTopSheetData] = useState(null);
   const [selectedBankObj, setSelectedBankObj] = useState(null);
 
@@ -39,9 +42,6 @@ export default function TopSheet() {
       }).catch(console.error);
     }
     
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    setMonth(currentMonth);
   }, []);
 
   const fetchAdvices = async () => {
@@ -87,7 +87,7 @@ export default function TopSheet() {
       toast.success(`${sortedList.length} Advices fetched!`);
 
     } catch (err) {
-      console.error("❌ Fetch Error:", err);
+      console.error(" Fetch Error:", err);
       toast.error(err.response?.data?.message || 'Failed to load advices');
     } finally {
       setLoading(false);
@@ -138,7 +138,7 @@ export default function TopSheet() {
 
     setGenerating(true);
     try {
-      // ✅ Yahan hum API se PDF mangwa rahe hain (jo backend se aayega)
+      //  Yahan hum API se PDF mangwa rahe hain (jo backend se aayega)
       const { data } = await adviceApi.generateTopSheet(payload);
       
       // Agar aap frontend wala TopSheetFormate use karna chahte ho toh data ready karo
@@ -189,7 +189,7 @@ export default function TopSheet() {
             boxShadow: activeTab === 'generate' ? theme.shadow.md : 'none', display: 'flex', alignItems: 'center', gap: 8
           }}
         >
-          <span style={{ fontSize: 16, opacity: activeTab === 'generate' ? 1 : 0.7 }}>📄</span>
+          <span style={{ fontSize: 16, opacity: activeTab === 'generate' ? 1 : 0.7 }}></span>
           Generate Top Sheet
         </Button>
         
@@ -201,7 +201,7 @@ export default function TopSheet() {
             boxShadow: activeTab === 'history' ? theme.shadow.md : 'none', display: 'flex', alignItems: 'center', gap: 8
           }}
         >
-          <span style={{ fontSize: 16, opacity: activeTab === 'history' ? 1 : 0.7 }}>📚</span>
+          <span style={{ fontSize: 16, opacity: activeTab === 'history' ? 1 : 0.7 }}></span>
           History
         </Button>
       </div>
@@ -308,7 +308,7 @@ export default function TopSheet() {
 
               <div className="p-4 border-t flex justify-end" style={{ borderColor: theme.colors.border }}>
                 <Button onClick={handleGenerate} loading={generating} style={{ padding: '10px 24px' }} disabled={selectedAdviceIds.length === 0}>
-                  📄 Generate Top Sheet PDF
+                   Generate Top Sheet PDF
                 </Button>
               </div>
             </div>
@@ -318,7 +318,7 @@ export default function TopSheet() {
             </div>
           )}
 
-          {/* ✅ NAYA: Frontend Print Preview (Agar aap frontend wala formate use karna chahte hain toh) */}
+          {/*  NAYA: Frontend Print Preview (Agar aap frontend wala formate use karna chahte hain toh) */}
           {topSheetData && selectedBankObj && clfData && (
             <div className="mt-8">
               <h3 className="text-sm font-bold uppercase mb-4" style={{ color: theme.colors.primary }}>Top Sheet Preview</h3>

@@ -1,8 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Modal from '../ui/Modal.jsx';
 import Button from '../ui/Button.jsx';
 import Input from '../ui/Input.jsx';
 import { theme } from '../../config/theme.js';
+
+function EyeIcon({ show }) {
+  return show ? (
+    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+      <line x1="1" y1="1" x2="23" y2="23"></line>
+    </svg>
+  ) : (
+    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+  );
+}
 
 export default function ResetPasswordModal({
   open,
@@ -12,30 +26,17 @@ export default function ResetPasswordModal({
   currentUsername = '', 
   onConfirm, 
 }) {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(currentUsername);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
-  // ✅ Eye Toggle States
+  //  Eye Toggle States
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      setUsername(currentUsername);
-      setNewPassword('');
-      setConfirmPassword('');
-      setError('');
-      setSuccess(false);
-      setLoading(false);
-      setShowNewPassword(false);
-      setShowConfirmPassword(false);
-    }
-  }, [open, currentUsername]);
 
   const validate = () => {
     if (!username || username.trim() === '') {
@@ -73,21 +74,6 @@ export default function ResetPasswordModal({
     }
   };
 
-  // ✅ Eye Icon SVG
-  const EyeIcon = ({ show }) => (
-    show ? (
-      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-        <line x1="1" y1="1" x2="23" y2="23"></line>
-      </svg>
-    ) : (
-      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-        <circle cx="12" cy="12" r="3"></circle>
-      </svg>
-    )
-  );
-
   return (
     <Modal
       open={open}
@@ -108,7 +94,7 @@ export default function ResetPasswordModal({
             required
           />
 
-          {/* ✅ FIX: Input jaisa tha waisa hi hai, bas upar eye icon laga hai */}
+          {/*  FIX: Input jaisa tha waisa hi hai, bas upar eye icon laga hai */}
           <div style={{ position: 'relative' }}>
             <Input
               label="New Password (optional)"
@@ -204,7 +190,7 @@ export default function ResetPasswordModal({
               fontWeight: 600,
             }}
           >
-            ✅ Credentials updated successfully!
+             Credentials updated successfully!
           </div>
           <p style={{ fontSize: 13, color: theme.colors.muted, margin: 0 }}>
             {entityName} ab naye Login ID {newPassword ? 'aur Password' : ''} se login kar sakta hai.

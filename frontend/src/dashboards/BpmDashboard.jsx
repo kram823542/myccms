@@ -70,14 +70,14 @@ export default function BpmDashboard() {
   return (
     <>
       <PageHeader
-        title={`${greeting()}, ${user.name || 'BPM Admin'} 👋`}
+        title={`${greeting()}, ${user.name || 'BPM Admin'} `}
         subtitle="Block overview — CLFs, employees & daily activity"
       />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-        <Stat icon="🏢" label="Total CLFs" value={data.totalCLFs} color={theme.colors.primary} to="/bpm/clfs" />
-        <Stat icon="👥" label="Active Employees" value={data.totalEmployees} color={theme.colors.info} to="/bpm/employees" />
-        <Stat icon="📝" label="Today's Action Plans" value={data.todayActionPlans} color={theme.colors.secondary} to="/bpm/work" />
+        <Stat icon="" label="Total CLFs" value={data.totalCLFs} color={theme.colors.primary} to="/bpm/clfs" />
+        <Stat icon="" label="Active Employees" value={data.totalEmployees} color={theme.colors.info} to="/bpm/employees" />
+        <Stat icon="" label="Today's Action Plans" value={data.todayActionPlans} color={theme.colors.secondary} to="/bpm/work" />
       </div>
     </>
   );

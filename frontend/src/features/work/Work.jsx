@@ -18,23 +18,22 @@ export default function Work() {
     {
       key: 'action-plan',
       label: 'Action Plan',
-      icon: '📝',
+      icon: '',
       hint: windows ? formatSubmissionWindow(windows.actionPlan) : error ? 'Restart API' : 'Loading…',
     },
     {
       key: 'work-done',
       label: 'Work Done',
-      icon: '✅',
+      icon: '',
       hint: windows ? formatSubmissionWindow(windows.workDone) : error ? 'Restart API' : 'Loading…',
     },
   ];
 
-  // Slider calculation (0% or 50%)
   const activeIndex = tabs.findIndex(t => t.key === tab);
   const sliderLeft = `${activeIndex * (100 / tabs.length)}%`;
 
   return (
-    <div style={{ maxWidth: 1300, margin: '0 auto', width: '100%', padding: '0 8px' }}>
+    <div style={{ maxWidth: 1300, margin: '0 auto', width: '100%', padding: '0 8px', boxSizing: 'border-box', overflowX: 'hidden' }}>
       <PageHeader
         title={isEmployee ? 'Daily Reports' : 'Work'}
         subtitle={
@@ -44,30 +43,33 @@ export default function Work() {
         }
       />
 
-      {/* ✅ FIXED: Smooth Slider Pills */}
+      {/*  Fully Responsive Slider Container */}
       <div
+        className="work-tabs-container"
         style={{
           position: 'relative',
           display: 'flex',
-          marginBottom: 28,
+          marginBottom: 24,
           marginTop: 8,
-          padding: 6,
-          background: theme.colors.background,
+          padding: 4,
+          background: theme.colors.surface,
           borderRadius: 999,
           border: `1px solid ${theme.colors.border}`,
           boxShadow: theme.shadow.sm,
-          maxWidth: 480, // Width control
-          width: '100%', // Responsive
+          maxWidth: 480,
+          width: '100%',
+          boxSizing: 'border-box',
+          overflow: 'hidden'
         }}
       >
-        {/* ✅ Sliding Background */}
+        {/* Sliding Background Pill */}
         <div
           style={{
             position: 'absolute',
-            top: 6,
-            bottom: 6,
+            top: 4,
+            bottom: 4,
             left: sliderLeft,
-            width: `calc(${100 / tabs.length}% - 6px)`, // Thoda adjust kiya taaki perfect fit ho
+            width: `calc(${100 / tabs.length}% - 4px)`,
             background: theme.colors.primary,
             borderRadius: 999,
             transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -86,35 +88,37 @@ export default function Work() {
                 flex: 1,
                 position: 'relative',
                 zIndex: 2,
-                padding: '10px 12px',
+                padding: '8px 10px',
                 border: 'none',
                 background: 'transparent',
                 color: isActive ? theme.colors.textLight : theme.colors.muted,
                 fontWeight: isActive ? 700 : 600,
-                fontSize: 13,
+                fontSize: 'clamp(11px, 2.8vw, 13px)',
                 cursor: 'pointer',
                 transition: 'color 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 6,
-                whiteSpace: 'nowrap', // Text wrap nahi hoga
+                gap: 4,
+                whiteSpace: 'nowrap',
+                minWidth: 0,
               }}
             >
-              <span style={{ fontSize: 16, opacity: isActive ? 1 : 0.7 }}>{t.icon}</span>
-              <span>{t.label}</span>
+              <span style={{ fontSize: 'clamp(13px, 3.5vw, 15px)', opacity: isActive ? 1 : 0.8, flexShrink: 0 }}>{t.icon}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.label}</span>
               
-              {/* Hint Text (Time) */}
+              {/* Responsive Hint Text */}
               <span
+                className="tab-hint-badge"
                 style={{
-                  fontSize: 9,
+                  fontSize: 8,
                   fontWeight: 700,
-                  padding: '2px 6px',
+                  padding: '2px 4px',
                   borderRadius: 4,
-                  background: isActive ? `${theme.colors.textLight}40` : `${theme.colors.muted}15`,
+                  background: isActive ? `${theme.colors.textLight}33` : `${theme.colors.muted}15`,
                   color: isActive ? theme.colors.textLight : theme.colors.muted,
-                  display: window.innerWidth < 450 ? 'none' : 'inline-block', // Mobile pe hide
                   marginLeft: 2,
+                  flexShrink: 0,
                 }}
               >
                 {t.hint}
@@ -124,8 +128,8 @@ export default function Work() {
         })}
       </div>
 
-      {/* Content Area */}
-      <div style={{ width: '100%', animation: 'fadeIn 0.3s ease' }}>
+      {/* Content Area with strict overflow safety */}
+      <div style={{ width: '100%', maxWidth: '100vw', boxSizing: 'border-box', animation: 'fadeIn 0.3s ease', overflowX: 'hidden' }}>
         {tab === 'action-plan' && <ActionPlansPage />}
         {tab === 'work-done' && <WorkDonePage />}
       </div>
@@ -134,6 +138,9 @@ export default function Work() {
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(4px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 380px) {
+          .tab-hint-badge { display: none !important; }
         }
       `}</style>
     </div>

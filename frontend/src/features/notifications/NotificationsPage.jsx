@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import PageHeader from '../../components/common/PageHeader.jsx';
 import NotificationList from './NotificationList.jsx';
 import Modal from '../../components/ui/Modal.jsx';
@@ -9,7 +9,14 @@ import Badge from '../../components/ui/Badge.jsx';
 import { theme } from '../../config/theme.js';
 import { listClfs } from '../clfs/clfs.api.js';
 import { getAuthUser } from '../../utils/authStorage.js';
+import toast from 'react-hot-toast';
 import * as api from './notifications.api.js';
+
+const MESSAGE_TYPES = [
+  { value: 'NOTICE', label: 'Notice' },
+  { value: 'LETTER', label: 'Letter' },
+  { value: 'INFORMATION', label: 'Information' },
+];
 
 export default function NotificationsPage() {
   const user = getAuthUser() || {};
@@ -25,8 +32,7 @@ export default function NotificationsPage() {
   const [trackingData, setTrackingData] = useState(null);
   const [trackingLoading, setTrackingLoading] = useState(false);
 
-  const load = async () => {
-    setLoading(true);
+  const load = useCallback(async () => {
     try {
       if (isEmployee || isCLF) {
         const { data } = await api.myMessages();
@@ -40,14 +46,14 @@ export default function NotificationsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isEmployee, isBPM, isCLF]);
 
   useEffect(() => {
     let cancelled = false;
     const fetchData = async () => { if (!cancelled) await load(); };
     fetchData();
     return () => { cancelled = true; };
-  }, []);
+  }, [load]);
 
   const openTracking = async (messageId) => {
     setTrackingId(messageId);
@@ -141,7 +147,21 @@ function ComposeModal({ open, onClose, onSent }) {
 
   useEffect(() => {
     if (open) {
-      listClfs().then(({ data }) => setClfs((data.data || []).map((c) => ({ value: c._id, label: `${c.name} (${c.code})` }))));
+      listClfs()
+        .then(({ data }) => {
+          const clfList = (data.data.clfs || data.data || []).map((c) => ({
+            value: c._id,
+            label: `${c.name} (${c.code || c.loginId})`,
+          }));
+          setClfs(clfList);
+          if (clfList.length > 0) {
+            setForm((f) => ({ ...f, clfId: clfList[0].value, messageType: 'NOTICE' }));
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load CLFs:', err);
+          toast.error('Failed to load CLFs');
+        });
     }
   }, [open]);
 
@@ -149,12 +169,29 @@ function ComposeModal({ open, onClose, onSent }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (!form.clfId) {
+      toast.error('Please select a CLF.');
+      return;
+    }
+    if (!form.subject.trim() || !form.body.trim()) {
+      toast.error('Subject and body are required.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await api.sendMessage(form);
-      setForm({ clfId: '', messageType: 'NOTICE', subject: '', body: '' });
+      await api.sendMessage({
+        clfId: form.clfId,
+        messageType: form.messageType || 'NOTICE',
+        subject: form.subject.trim(),
+        body: form.body.trim(),
+      });
+      setForm({ clfId: clfs[0]?.value || '', messageType: 'NOTICE', subject: '', body: '' });
+      toast.success('Message sent successfully!');
       onSent?.();
       onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send message');
     } finally {
       setLoading(false);
     }
@@ -165,13 +202,19 @@ function ComposeModal({ open, onClose, onSent }) {
       <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <Select label="CLF" name="clfId" value={form.clfId} onChange={handle} options={clfs} required />
-          <Select label="Type" name="messageType" value={form.messageType} onChange={handle} options={[{ value: 'NOTICE', label: 'Notice' }, { value: 'LETTER', label: 'Letter' }, { value: 'INFORMATION', label: 'Information' }]} />
+          <Select label="Type" name="messageType" value={form.messageType} onChange={handle} options={MESSAGE_TYPES} />
         </div>
         <Input label="Subject" name="subject" value={form.subject} onChange={handle} required />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <label style={{ fontSize: 13, fontWeight: 600, color: theme.colors.text, paddingLeft: 14 }}>Message Body</label>
-          <textarea name="body" value={form.body} onChange={handle} rows={5} placeholder="Write your message here..."
-            style={{ padding: '13px 20px', borderRadius: '9999px', border: `1.5px solid ${theme.colors.border}`, fontSize: 14, fontFamily: 'inherit', outline: 'none', resize: 'vertical', background: theme.colors.surface, color: theme.colors.text }} required
+          <textarea
+            name="body"
+            value={form.body}
+            onChange={handle}
+            rows={5}
+            placeholder="Write your message here..."
+            style={{ padding: '13px 20px', borderRadius: '12px', border: `1.5px solid ${theme.colors.border}`, fontSize: 14, fontFamily: 'inherit', outline: 'none', resize: 'vertical', background: theme.colors.surface, color: theme.colors.text }}
+            required
           />
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>

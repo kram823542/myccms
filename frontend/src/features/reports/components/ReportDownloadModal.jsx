@@ -4,11 +4,13 @@ import Button from '../../../components/ui/Button.jsx';
 import Input from '../../../components/ui/Input.jsx';
 import Select from '../../../components/ui/Select.jsx';
 import { theme } from '../../../config/theme.js';
+import apiClient from '../../../services/apiClient.js'; //  API client
 
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
+const getDefaultMonths = () =>
+  Array.from({ length: 12 }, (_, i) => ({
+    value: i + 1,
+    label: new Date(0, i).toLocaleString('default', { month: 'long' }),
+  }));
 
 export default function ReportDownloadModal({
   open,
@@ -18,18 +20,29 @@ export default function ReportDownloadModal({
   onDownload,
   bulkCount = 0,
 }) {
-  const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [initialPeriod] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() + 1 };
+  });
+  const [year, setYear] = useState(initialPeriod.year);
+  const [month, setMonth] = useState(initialPeriod.month);
+  const [monthsList, setMonthsList] = useState([]); //  Backend se aane wale months
   const [loading, setLoading] = useState(false);
 
-  // Reset state when modal opens
+  //  Backend se dynamic months list fetch karna (localization support ke sath)
   useEffect(() => {
-    if (open) {
-      setYear(now.getFullYear());
-      setMonth(now.getMonth() + 1);
-      setLoading(false);
-    }
+    if (!open) return;
+    let cancelled = false;
+    const fetchMonths = async () => {
+      try {
+        const { data } = await apiClient.get('/config/months');
+        if (!cancelled) setMonthsList(data.data || getDefaultMonths());
+      } catch {
+        if (!cancelled) setMonthsList(getDefaultMonths());
+      }
+    };
+    fetchMonths();
+    return () => { cancelled = true; };
   }, [open]);
 
   const isBulk = bulkCount > 0;
@@ -56,16 +69,8 @@ export default function ReportDownloadModal({
   return (
     <Modal open={open} onClose={onClose} title={title}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {/* Info Banner */}
         {isBulk ? (
-          <div
-            style={{
-              background: theme.colors.background,
-              padding: 12,
-              borderRadius: theme.radius.sm,
-              fontSize: 13,
-            }}
-          >
+          <div style={{ background: theme.colors.background, padding: 12, borderRadius: theme.radius.sm, fontSize: 13 }}>
             <b>{bulkCount} employees selected</b>
             <div style={{ color: theme.colors.muted, marginTop: 2 }}>
               {type === 'action-plan' ? 'Action Plan' : 'Work Done'} report — सभी की PDF download होंगी
@@ -73,19 +78,10 @@ export default function ReportDownloadModal({
           </div>
         ) : (
           employee && (
-            <div
-              style={{
-                background: theme.colors.background,
-                padding: 12,
-                borderRadius: theme.radius.sm,
-                fontSize: 13,
-              }}
-            >
+            <div style={{ background: theme.colors.background, padding: 12, borderRadius: theme.radius.sm, fontSize: 13 }}>
               <div>
                 <b>{employee.name}</b>
-                {employee.employeeCode && employee.employeeCode !== 'BULK' && (
-                  <> ({employee.employeeCode})</>
-                )}
+                {employee.employeeCode && employee.employeeCode !== 'BULK' && (<> ({employee.employeeCode})</>)}
               </div>
               {employee.designation && employee.designation !== '—' && (
                 <div style={{ color: theme.colors.muted, marginTop: 2 }}>
@@ -97,32 +93,18 @@ export default function ReportDownloadModal({
           )
         )}
 
-        {/* Year */}
-        <Input
-          label="Year"
-          type="number"
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
-          min="2020"
-          max="2100"
-        />
+        <Input label="Year" type="number" value={year} onChange={(e) => setYear(e.target.value)} min="2020" max="2100" />
 
-        {/* Month */}
         <Select
           label="Month"
           value={month}
           onChange={(e) => setMonth(e.target.value)}
-          options={MONTHS.map((m, i) => ({ value: i + 1, label: m }))}
+          options={monthsList}
         />
 
-        {/* Actions */}
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
-          <Button variant="ghost" onClick={onClose} disabled={loading}>
-            Cancel
-          </Button>
-          <Button onClick={handleDownload} loading={loading}>
-            Download PDF
-          </Button>
+          <Button variant="ghost" onClick={onClose} disabled={loading}>Cancel</Button>
+          <Button onClick={handleDownload} loading={loading}>Download PDF</Button>
         </div>
       </div>
     </Modal>

@@ -10,7 +10,7 @@ const DESIGNATIONS = ['BOD Manager', 'CLF Manager', 'Accountant', 'MIS', 'Other'
 
 export default function ClfBodModal({ clf, onClose, onUpdated }) {
   const [form, setForm] = useState({
-    // ✅ Name input wapas add kar diya
+    //  Name input wapas add kar diya
     name: '',
     letterhead: { addressLine: '', registrationNo: '', leftLogo: '', rightLogo: '' },
     footer: { blockOffice: '', districtOffice: '', stateOffice: '', phone: '' },
@@ -35,10 +35,11 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
   const [editingBankIndex, setEditingBankIndex] = useState(null);
 
   useEffect(() => {
-    if (clf) {
+    if (!clf) return;
+    void Promise.resolve().then(() => {
       const core = clf.coreMembers || {};
       setForm({
-        name: clf.name || '', // ✅ CLF ka current name load kar raha hai
+        name: clf.name || '', //  CLF ka current name load kar raha hai
         letterhead: {
           addressLine: clf.letterhead?.addressLine || '',
           registrationNo: clf.letterhead?.registrationNo || '',
@@ -79,7 +80,7 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
         },
         bodMembers: clf.bodMembers || [],
       });
-    }
+    });
   }, [clf]);
 
   const handleLogoUpload = (e, side) => {
@@ -267,7 +268,7 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
         </h4>
         <div style={{ background: theme.colors.background, padding: 16, borderRadius: 8, marginBottom: 16, border: `1px solid ${theme.colors.border}` }}>
           
-          {/* ✅ CLF Name Input (Editable) */}
+          {/*  CLF Name Input (Editable) */}
           <div style={{ marginBottom: 12 }}>
             <Input label="CLF Main Name (Title)" value={form.name} onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))} required />
           </div>
@@ -280,7 +281,7 @@ export default function ClfBodModal({ clf, onClose, onUpdated }) {
             <Input label="Address Line" value={form.letterhead.addressLine} onChange={(e) => handleLetterheadChange('addressLine', e.target.value)} />
           </div>
 
-          {/* ✅ Logo Upload Section */}
+          {/*  Logo Upload Section */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 16, padding: 12, background: theme.colors.surface, borderRadius: 8, border: `1px dashed ${theme.colors.border}` }}>
             <div>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: theme.colors.text, marginBottom: 6 }}>Left Logo</label>

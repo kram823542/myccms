@@ -1,17 +1,17 @@
 export const theme = {
   colors: {
-    // ✅ PRIMARY & SECONDARY (Wine Red & Cocoa Brown)
+    //  PRIMARY & SECONDARY (Wine Red & Cocoa Brown)
     primary: '#7F011F',       // Deep Wine Red: Sidebar Active, Main Headers, Primary Buttons
     secondary: '#704214',     // Cocoa Brown: Secondary Buttons, Action Highlights
     accent: '#D4A373',        // Warm Gold: Badges, Star ratings, subtle icons
 
-    // ✅ BACKGROUND COLORS
+    //  BACKGROUND COLORS
     background: '#FDFBF7',    // Soothing Off-White: Har page ka main background
     surface: '#FFFFFF',       // Pure White: Cards, Tables, Modals (Clean look)
     surfaceAlt: '#F5EBD0',
     cardBg: '#F5EBD0',        // Light Sand: Inner cards, summary sections (Premium touch)
 
-    // ✅ TEXT COLORS
+    //  TEXT COLORS
     text: '#1A1513',          // Dark Espresso: Main text (High legibility aur crisp)
     muted: '#7A6E67',         // Warm Grey: Subtitles, labels, hints
     textLight: '#FFFFFF',     // Pure White: Jab Wine/Brown background par text likhna ho
@@ -22,7 +22,7 @@ export const theme = {
     overlayStrong: 'rgba(26, 21, 19, 0.75)',
     overlaySubtle: 'rgba(26, 21, 19, 0.08)',
 
-    // ✅ STATUS COLORS
+    //  STATUS COLORS
     success: '#10B981',       // Vibrant Green
     successSurface: '#DCFCE7',
     warning: '#F59E0B',       // Amber Gold
@@ -30,13 +30,13 @@ export const theme = {
     dangerSurface: '#FEE2E2',
     info: '#3B82F6',          // Cyan Blue
 
-    // ✅ BORDERS & SIDEBAR
+    //  BORDERS & SIDEBAR
     border: '#EFE9DF',        // Soft warm border
     sidebarBg: '#FFFFFF',     // Sidebar Background (White)
     sidebarText: '#1A1513',   // Sidebar Text
     sidebarActive: '#7F011F', // Sidebar Highlight (Wine Red)
 
-    // ✅ BOTTOM BAR COLORS (Mobile Navigation)
+    //  BOTTOM BAR COLORS (Mobile Navigation)
     bbDarkBrown: '#704214',   // Cocoa Brown (Bottom bar bg)
     bbLightLilac: '#FDFBF7',  // Off-White (Bottom bar text/icons)
     bbIndigo: '#7F011F',      // Wine Red (Bottom bar active state)

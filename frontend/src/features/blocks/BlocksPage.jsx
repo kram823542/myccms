@@ -7,6 +7,7 @@ import Modal from '../../components/ui/Modal.jsx';
 import Loader from '../../components/ui/Loader.jsx';
 import BlockForm from './BlockForm.jsx';
 import * as api from './blocks.api.js';
+import toast from 'react-hot-toast';
 
 export default function BlocksPage() {
   const [blocks, setBlocks] = useState([]);
@@ -18,12 +19,14 @@ export default function BlocksPage() {
     try {
       const { data } = await api.listBlocks();
       setBlocks(data.data || []);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to load blocks');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { void Promise.resolve().then(load); }, []);
 
   const columns = [
     { header: 'Name', key: 'name' },

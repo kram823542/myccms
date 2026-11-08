@@ -1,21 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Button from '../../components/ui/Button.jsx';
 import ImageUpload from '../../components/common/ImageUpload.jsx';
 import { theme } from '../../config/theme.js';
 import * as api from './workDone.api.js';
 
 export default function WorkDoneForm({ initialData, onSubmitted, onCancel }) {
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState(() => initialData?.description || '');
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // ✅ Agar rejected data edit karne aaye hain toh purana data load karo
-  useEffect(() => {
-    if (initialData) {
-      setDescription(initialData.description || '');
-    }
-  }, [initialData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +16,7 @@ export default function WorkDoneForm({ initialData, onSubmitted, onCancel }) {
       setError('Description is required');
       return;
     }
-    // ✅ Image ab optional hai, force nahi kar rahe
+    //  Image ab optional hai, force nahi kar rahe
     setError('');
     setLoading(true);
     try {
@@ -56,7 +49,7 @@ export default function WorkDoneForm({ initialData, onSubmitted, onCancel }) {
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3 style={{ margin: 0, fontSize: 16, color: theme.colors.primary }}>
-          {initialData ? '✏️ Re-submit Work Done' : 'Submit Work Done'}
+          {initialData ? ' Re-submit Work Done' : 'Submit Work Done'}
         </h3>
         {initialData?.rejectionReason && (
           <div style={{ fontSize: 12, color: theme.colors.danger, background: `${theme.colors.danger}10`, padding: '4px 10px', borderRadius: 6 }}>

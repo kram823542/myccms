@@ -63,7 +63,7 @@ apiClient.interceptors.response.use(
         }
 
         return apiClient(original);
-      } catch (e) {
+      } catch  {
         console.warn('Session expired — redirecting to login');
 
         clearAuthState();

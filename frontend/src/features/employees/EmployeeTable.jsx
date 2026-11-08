@@ -10,12 +10,12 @@ export default function EmployeeTable({ employees = [], loading = false }) {
       header: 'Employee',
       key: 'name',
       render: (r) => {
-        const dp = r.profilePhoto || r.userId?.profilePhoto; // ✅ DP fetch
+        const dp = r.profilePhoto || r.userId?.profilePhoto; //  DP fetch
         const initial = (r.name || '?').charAt(0).toUpperCase();
 
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {/* ✅ Avatar Circle */}
+            {/*  Avatar Circle */}
             <div 
               style={{ 
                 width: 38, 

@@ -8,7 +8,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
 import * as adviceApi from './advice.api.js';
 import { getClf } from '../clfs/clfs.api.js';
 import { getAuthUser } from '../../utils/authStorage.js';
-import { generatePatrankPrefix } from '../../utils/patrankGenerator.js'; // ✅ Import kiya
+import { generatePatrankPrefix } from '../../utils/patrankGenerator.js'; //  Import kiya
 import toast from 'react-hot-toast';
 import { theme } from '../../config/theme.js';
 
@@ -17,7 +17,8 @@ const EMPTY_ROW = { vendorName: '', bankName: '', branch: '', bankAccountNumber:
 export default function ExpenseAdvice() {
   const [showForm, setShowForm] = useState(false);
   const [entries, setEntries] = useState([{ ...EMPTY_ROW }]);
-  const [adviceDate, setAdviceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [adviceDate, setAdviceDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [currentYear] = useState(() => new Date().getFullYear());
   const [adviceNumber, setAdviceNumber] = useState('');
   
   const [clfData, setClfData] = useState(null);
@@ -30,7 +31,7 @@ export default function ExpenseAdvice() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  // ✅ CLF Data load karo aur Patrank set karo
+  //  CLF Data load karo aur Patrank set karo
   useEffect(() => {
     const user = getAuthUser() || {};
     if (user.clfId) {
@@ -40,15 +41,14 @@ export default function ExpenseAdvice() {
           setSelectedBankAcc(data.data.bankAccounts[0].accountNumber);
         }
         
-        // ✅ Auto-fetch Patrank
+        //  Auto-fetch Patrank
         if (data.data?.name) {
           const prefix = generatePatrankPrefix(data.data.name);
-          const currentYear = new Date().getFullYear();
           setAdviceNumber(`${prefix}/CLF/${currentYear}/`);
         }
       }).catch(console.error);
     }
-  }, []);
+  }, [currentYear]);
 
   const loadAdvices = async () => {
     setLoadingAdvices(true);
@@ -65,15 +65,14 @@ export default function ExpenseAdvice() {
     }
   };
 
-  useEffect(() => { loadAdvices(); }, []);
+  useEffect(() => { void Promise.resolve().then(loadAdvices); }, []);
 
   const handleOpenForm = () => {
     setEntries([{ ...EMPTY_ROW }]);
     
-    // ✅ Yahan Fix kiya: Form khulte hi dynamic Patrank fetch karo
+    //  Yahan Fix kiya: Form khulte hi dynamic Patrank fetch karo
     if (clfData?.name) {
       const prefix = generatePatrankPrefix(clfData.name);
-      const currentYear = new Date().getFullYear();
       setAdviceNumber(`${prefix}/CLF/${currentYear}/`);
     } else {
       setAdviceNumber('');
@@ -130,7 +129,7 @@ export default function ExpenseAdvice() {
     try {
       const { data } = await adviceApi.createAdvice(payload);
       const saved = data.data;
-      toast.success(`✅ Advice saved — ${saved.adviceNumber || '(auto)'}`);
+      toast.success(` Advice saved — ${saved.adviceNumber || '(auto)'}`);
       await downloadPDFFor(saved._id, saved.adviceNumber);
       setShowForm(false);
       setEntries([{ ...EMPTY_ROW }]);
@@ -138,7 +137,6 @@ export default function ExpenseAdvice() {
       // Reset to new patrank
       if (clfData?.name) {
         const prefix = generatePatrankPrefix(clfData.name);
-        const currentYear = new Date().getFullYear();
         setAdviceNumber(`${prefix}/CLF/${currentYear}/`);
       }
       loadAdvices();
@@ -162,7 +160,7 @@ export default function ExpenseAdvice() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch  {
       toast.error('Failed to download PDF');
     }
   };
@@ -192,7 +190,7 @@ export default function ExpenseAdvice() {
           <p className="text-xs mt-0.5" style={{ color: theme.colors.muted }}>Dukaan / Hotel / Vendor का bank advice generate करें।</p>
         </div>
         <button onClick={() => { setShowHistory((v) => !v); if (!showHistory) loadAdvices(); }} className="text-[10px] font-bold uppercase tracking-widest px-3 py-2 rounded" style={{ border: `1px solid ${theme.colors.border}`, color: theme.colors.primary, backgroundColor: theme.colors.background }}>
-          {showHistory ? '✕ Close History' : `📚 History (${advices.length})`}
+          {showHistory ? '✕ Close History' : ` History (${advices.length})`}
         </button>
       </div>
 
@@ -224,7 +222,7 @@ export default function ExpenseAdvice() {
                       <td className="px-4 py-2 font-mono font-semibold" style={{ color: theme.colors.text }}>
                         {a.adviceNumber && a.adviceNumber.trim() 
                           ? a.adviceNumber 
-                          : `${generatePatrankPrefix(clfData?.name)}/CLF/${new Date().getFullYear()}/`}
+                          : `${generatePatrankPrefix(clfData?.name)}/CLF/${currentYear}/`}
                       </td>
                       <td className="px-4 py-2" style={{ color: theme.colors.muted }}>{new Date(a.adviceDate).toLocaleDateString('en-IN')}</td>
                       <td className="px-4 py-2" style={{ color: theme.colors.text }}>{a.bankName || '-'}</td>
@@ -232,8 +230,8 @@ export default function ExpenseAdvice() {
                       <td className="px-4 py-2 text-right font-mono font-bold" style={{ color: theme.colors.secondary }}>₹ {a.totalAmount.toLocaleString('en-IN')}</td>
                       <td className="px-4 py-2 text-center">
                         <div className="flex justify-center gap-2">
-                          <Button size="sm" variant="outline" onClick={() => downloadPDFFor(a._id, a.adviceNumber)}>⬇️ PDF</Button>
-                          <Button size="sm" variant="danger" onClick={() => setDeleteTarget(a)}>🗑️</Button>
+                          <Button size="sm" variant="outline" onClick={() => downloadPDFFor(a._id, a.adviceNumber)}> PDF</Button>
+                          <Button size="sm" variant="danger" onClick={() => setDeleteTarget(a)}></Button>
                         </div>
                       </td>
                     </tr>
@@ -267,13 +265,13 @@ export default function ExpenseAdvice() {
             />
             {(!clfData?.bankAccounts || clfData.bankAccounts.length === 0) && (
               <p style={{ fontSize: 11, color: theme.colors.danger, marginTop: 4 }}>
-                ⚠️ No bank accounts found. Please add them in your Profile first.
+                 No bank accounts found. Please add them in your Profile first.
               </p>
             )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* ✅ Ab yahan BKO/CLF/2026/ aayega */}
+            {/*  Ab yahan BKO/CLF/2026/ aayega */}
             <Input 
               label="Advice Number (पत्रांक)" 
               value={adviceNumber} 
@@ -322,7 +320,7 @@ export default function ExpenseAdvice() {
           </div>
 
           <div className="flex gap-3 pt-3 border-t" style={{ borderColor: theme.colors.border }}>
-            <Button onClick={handleSaveAdvice} loading={saving} style={{ flex: 1 }}>💾 Save & Download PDF</Button>
+            <Button onClick={handleSaveAdvice} loading={saving} style={{ flex: 1 }}> Save & Download PDF</Button>
             <Button variant="ghost" onClick={() => setShowForm(false)}>Cancel</Button>
           </div>
         </div>

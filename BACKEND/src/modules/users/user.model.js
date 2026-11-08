@@ -30,20 +30,21 @@ const userSchema = new mongoose.Schema(
     },
     name: { type: String, required: true, trim: true },
 
-    // ✅ FIX #24: email unique + sparse (optional but if present, unique)
+    // ✅ SPARSE INDEX BUG FIX: Empty strings को null में कन्वर्ट करने के लिए set लगा दिया गया है
     email: {
       type: String,
       trim: true,
       lowercase: true,
       unique: true,
       sparse: true,
+      set: (v) => (v === '' ? null : v),
     },
-    // ✅ FIX #24: mobile unique + sparse
     mobile: {
       type: String,
       trim: true,
       unique: true,
       sparse: true,
+      set: (v) => (v === '' ? null : v),
     },
 
     blockId: {

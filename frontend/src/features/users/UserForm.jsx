@@ -30,15 +30,15 @@ export default function UserForm({ onCreated }) {
     e.preventDefault();
     setError('');
 
-    // ✅ DEBUGGING: Check karein ki kya data ja raha hai
-    console.log("📤 Sending Data to Backend:", form);
+    //  DEBUGGING: Check karein ki kya data ja raha hai
+    console.log(" Sending Data to Backend:", form);
 
     setLoading(true);
     try {
       const { data } = await api.createBPM(form);
       onCreated?.(data.data.tempPassword);
     } catch (err) {
-      console.error("❌ Backend Error:", err.response?.data);
+      console.error(" Backend Error:", err.response?.data);
       setError(err.response?.data?.message || 'Failed to create BPM');
     } finally {
       setLoading(false);

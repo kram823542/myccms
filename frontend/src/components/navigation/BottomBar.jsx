@@ -8,7 +8,15 @@ export default function BottomBar({ menu = [] }) {
   const user = getAuthUser() || {};
   const profileImage = user.profilePhoto || user.profileImage || null;
 
+  //  ROLE_MENUS — SUPER_ADMIN added
   const ROLE_MENUS = {
+    SUPER_ADMIN: [
+      { label: 'Dashboard', path: '/super-admin' },
+      { label: 'Users', path: '/super-admin/users' },
+      { label: 'Blocks', path: '/super-admin/blocks' },
+      { label: 'Audit Logs', path: '/super-admin/audit-logs' },
+      { label: 'System', path: '/super-admin/system' }, 
+    ],
     EMPLOYEE: [
       { label: 'Dashboard', path: '/employee' },
       { label: 'Work', path: '/employee/work' },
@@ -29,14 +37,22 @@ export default function BottomBar({ menu = [] }) {
     ],
   };
 
-  const isEmployee = user.role === 'EMPLOYEE';
-  const items = isEmployee ? ROLE_MENUS.EMPLOYEE : (ROLE_MENUS[user.role] ? ROLE_MENUS[user.role] : menu.slice(0, 4));
+  const items = ROLE_MENUS[user.role] ? ROLE_MENUS[user.role] : menu.slice(0, 4);
 
   let currentPath = location.pathname;
   if (currentPath.endsWith('/') && currentPath.length > 1) currentPath = currentPath.slice(0, -1);
 
-  const profilePath = isEmployee ? '/employee/profile' : user.role === 'CLF' ? '/clf/profile' : '/bpm/profile';
-  const isProfileActive = currentPath === profilePath || currentPath.startsWith(profilePath + '/');
+  //  FIXED: Role-specific profile path with explicit SUPER_ADMIN mapping
+  const PROFILE_PATHS = {
+    SUPER_ADMIN: '/super-admin/profile',
+    BPM: '/bpm/profile',
+    CLF: '/clf/profile',
+    EMPLOYEE: '/employee/profile',
+  };
+  const profilePath = PROFILE_PATHS[user.role] || '/login';
+
+  const isProfileActive =
+    currentPath === profilePath || currentPath.startsWith(profilePath + '/');
 
   let activeIndex = -1;
   let longestMatch = 0;
@@ -45,8 +61,12 @@ export default function BottomBar({ menu = [] }) {
     items.forEach((item, index) => {
       let itemPath = item.path || '';
       if (itemPath.endsWith('/') && itemPath.length > 1) itemPath = itemPath.slice(0, -1);
+
+      //  Skip exact match for the dashboard root path against its prefix
+      // (e.g. "/super-admin" should match /super-admin but not /super-admin/users as active)
       const isExact = currentPath === itemPath;
       const isPrefix = currentPath.startsWith(itemPath + '/');
+
       if ((isExact || isPrefix) && itemPath.length > longestMatch) {
         activeIndex = index;
         longestMatch = itemPath.length;
@@ -168,8 +188,16 @@ export default function BottomBar({ menu = [] }) {
           })}
         </div>
 
-        <Link to={profilePath} className={`custom-bb-circle-btn ${isProfileActive ? 'active' : ''}`} title="Profile">
-          {profileImage ? <img src={profileImage} alt="profile" className="custom-bb-profile-img" /> : <span className="custom-bb-initial">{userInitial}</span>}
+        <Link
+          to={profilePath}
+          className={`custom-bb-circle-btn ${isProfileActive ? 'active' : ''}`}
+          title="Profile"
+        >
+          {profileImage ? (
+            <img src={profileImage} alt="profile" className="custom-bb-profile-img" />
+          ) : (
+            <span className="custom-bb-initial">{userInitial}</span>
+          )}
         </Link>
       </nav>
     </>

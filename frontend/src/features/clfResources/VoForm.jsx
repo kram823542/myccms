@@ -9,7 +9,7 @@ const EMPTY = {
   voName: '',
   accountNumber: '',
   bankName: '',
-  branch: '',        // ✅
+  branch: '',        // 
   ifscCode: '',
   sachiv: { ...EMPTY_MEMBER },
   adhyaksh: { ...EMPTY_MEMBER },
@@ -87,7 +87,7 @@ export default function VoForm({ initial, onSave, onCancel, saving = false }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <Input label="Account Number" name="accountNumber" value={form.accountNumber} onChange={handleChange} />
         <Input label="Bank Name" name="bankName" value={form.bankName} onChange={handleChange} style={{ textTransform: 'uppercase' }} />
-        <Input label="Branch" name="branch" value={form.branch} onChange={handleChange} style={{ textTransform: 'uppercase' }} /> {/* ✅ */}
+        <Input label="Branch" name="branch" value={form.branch} onChange={handleChange} style={{ textTransform: 'uppercase' }} /> {/*  */}
         <Input label="IFSC Code" name="ifscCode" value={form.ifscCode} onChange={handleChange} placeholder="SBIN0001234" style={{ textTransform: 'uppercase' }} />
       </div>
 

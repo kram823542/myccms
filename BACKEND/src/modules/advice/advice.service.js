@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Advice } from './advice.model.js';
 import { CLF } from '../clfs/clf.model.js';
 import { ApiError } from '../../utils/ApiError.js';
@@ -51,22 +52,22 @@ export const createAdvice = async (req, data) => {
   let inputAdviceNumber = data.adviceNumber ? String(data.adviceNumber).trim() : '';
   const currentYear = new Date().getFullYear();
 
-  // ✅ 1. Auto prefix agar input khali hai
   if (!inputAdviceNumber) {
     const prefix = generatePatrankPrefix(clf.name);
     inputAdviceNumber = `${prefix}/CLF/${currentYear}/`;
   }
 
-  // ✅ 2. Database ke liye unique banao, par PDF me clean bhejo
+  // ✅ RACE CONDITION FIX: क्रिप्टो रैंडम स्ट्रिंग ताकि समान मिलीसेकंड में भी टकराव न हो
   let dbAdviceNumber = inputAdviceNumber;
   const existing = await Advice.findOne({ clfId: clf._id, adviceNumber: dbAdviceNumber, isDeleted: false });
   if (existing) {
-    dbAdviceNumber = `${dbAdviceNumber}-${Date.now()}`; // Sirf DB ke liye
+    const randomSuffix = crypto.randomBytes(3).toString('hex');
+    dbAdviceNumber = `${dbAdviceNumber}-${Date.now()}-${randomSuffix}`;
   }
 
   const advice = await Advice.create({
     adviceType: data.adviceType === 'EXPENSE' ? 'EXPENSE' : 'SALARY',
-    adviceNumber: dbAdviceNumber, // DB me unique jayega
+    adviceNumber: dbAdviceNumber,
     adviceDate: data.adviceDate || getISTDateString(),
     clfBankDetails: data.clfBankDetails,
     createdByRole: user.role,
@@ -81,25 +82,12 @@ export const createAdvice = async (req, data) => {
     totalRows: cleaned.length,
   });
 
-  // ✅ 3. PDF me exact clean number bhejo (timestamp NAHI)
   advice.adviceNumber = inputAdviceNumber;
 
   await createAudit({ req, action: 'ADVICE_CREATED', targetType: 'Advice', targetId: advice._id, metadata: { adviceNumber: inputAdviceNumber || '(empty)', totalAmount, rows: cleaned.length, adviceType: advice.adviceType } });
   return advice;
 };
 
-// ... (baaki functions same rahenge)
-
-
-
-
-
-
-
-
-/* ────────────────────────────────────────────
-   LIST ADVICES
-   ──────────────────────────────────────────── */
 export const listAdvices = async (req, query) => {
   try {
     const user = req.user;
@@ -141,9 +129,6 @@ export const listAdvices = async (req, query) => {
   }
 };
 
-/* ────────────────────────────────────────────
-   GET ONE
-   ──────────────────────────────────────────── */
 export const getAdvice = async (req, id) => {
   const advice = await Advice.findById(id);
   if (!advice || advice.isDeleted) throw ApiError.notFound('Advice not found');
@@ -151,9 +136,6 @@ export const getAdvice = async (req, id) => {
   return advice;
 };
 
-/* ────────────────────────────────────────────
-   DELETE
-   ──────────────────────────────────────────── */
 export const deleteAdvice = async (req, id) => {
   const advice = await Advice.findById(id);
   if (!advice || advice.isDeleted) throw ApiError.notFound('Advice not found');
@@ -178,9 +160,6 @@ export const deleteAdvice = async (req, id) => {
   return { deleted: true, adviceNumber: advice.adviceNumber };
 };
 
-/* ────────────────────────────────────────────
-   GET CLF MEMBERS
-   ──────────────────────────────────────────── */
 export const getClfMembersForAdvice = async (req, clfId) => {
   const clf = await CLF.findById(clfId);
   if (!clf) throw ApiError.notFound('CLF not found');
@@ -207,9 +186,6 @@ export const getClfMembersForAdvice = async (req, clfId) => {
   return members;
 };
 
-/* ────────────────────────────────────────────
-   GENERATE ADVICE PDF (Using Central Engine)
-   ──────────────────────────────────────────── */
 export const generateAdvicePDF = async (req, id, res, { inline = false } = {}) => {
   const advice = await Advice.findById(id);
   if (!advice || advice.isDeleted) throw ApiError.notFound('Advice not found');
@@ -218,19 +194,15 @@ export const generateAdvicePDF = async (req, id, res, { inline = false } = {}) =
   const clf = await CLF.findById(advice.clfId);
   if (!clf) throw ApiError.notFound('CLF not found');
 
-  // ✅ FIX: Database me agar timestamp (-179397...) laga hua hai, toh use hatao
-  // Kyunki DB me humne unique rakhne ke liye timestamp lagaya tha.
   let cleanAdviceNumber = advice.adviceNumber || '';
-  if (cleanAdviceNumber.includes('-179')) {
-    cleanAdviceNumber = cleanAdviceNumber.split('-')[0]; // Timestamp hata do
+  if (cleanAdviceNumber.includes('-')) {
+    cleanAdviceNumber = cleanAdviceNumber.split('-')[0];
   }
 
-  // Ek temporary object banao PDF ke liye jisme clean number ho
   const pdfAdvice = {
     ...advice.toObject(),
     adviceNumber: cleanAdviceNumber
   };
 
-  // ✅ Central Engine ko clean object bhejo
   await generateCentralPDF(res, { advice: pdfAdvice, clf });
 };

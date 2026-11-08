@@ -71,7 +71,6 @@ const fetchImageBuffer = async (url) => {
   }
 };
 
-// ✅ MAIN EXPORT: Ek hi function sabka PDF banayega
 export const generateCentralPDF = async (res, { advice, clf }) => {
   const leftLogoBuf = await fetchImageBuffer(clf.letterhead?.leftLogo);
   const rightLogoBuf = await fetchImageBuffer(clf.letterhead?.rightLogo);
@@ -89,9 +88,10 @@ export const generateCentralPDF = async (res, { advice, clf }) => {
   const totalAmount = advice.totalAmount;
   const clfBank = advice.clfBankDetails || { bankName: advice.bankName || '-', accountNumber: '-', branch: advice.branch || '-' };
 
-  const PAGE_1_MAX = 5;
-  const PAGE_NEXT_MAX = 11;
-  const SIGNATURE_FITS_THRESHOLD = 4;
+  // ✅ FIX: Page 1 par exact 10 employees, agle page par 12
+  const PAGE_1_MAX = 10; 
+  const PAGE_NEXT_MAX = 12; 
+  const SIGNATURE_FITS_THRESHOLD = 8; 
 
   const chunks = [];
   if (employees.length <= PAGE_1_MAX) chunks.push(employees);
@@ -139,8 +139,9 @@ export const generateCentralPDF = async (res, { advice, clf }) => {
     doc.text(clf.letterhead?.addressLine || '', titleX, ty, { width: titleWidth, align: 'center' });
     ty += 14;
 
+    // ✅ FIX: Registration number ke aage label add kiya
     if (clf.letterhead?.registrationNo) {
-      doc.text(clf.letterhead.registrationNo, titleX, ty, { width: titleWidth, align: 'center' });
+      doc.text(`निबंधन संख्या :- ${clf.letterhead.registrationNo}`, titleX, ty, { width: titleWidth, align: 'center' });
     }
 
     y = Math.max(logoY + logoSize, ty + 10) + 6;
@@ -212,20 +213,21 @@ export const generateCentralPDF = async (res, { advice, clf }) => {
         const currentRowHeight = Math.max(rowHeight, nameHeight + 6, desigHeight + 6);
 
         const rowValues = [
-          { w: colWidths.sl, value: `${emp.sl}.`, align: 'center', wrap: false },
-          { w: colWidths.name, value: nameText, align: 'left', wrap: true },
-          { w: colWidths.designation, value: desigText, align: 'left', wrap: true },
-          { w: colWidths.month, value: emp.month || '-', align: 'left', wrap: false },
-          { w: colWidths.bankAccountNumber, value: emp.bankAccountNumber || '-', align: 'left', wrap: false },
-          { w: colWidths.bank, value: getBankShortName(emp.bankName), align: 'left', wrap: false },
-          { w: colWidths.branch, value: emp.branch || '-', align: 'left', wrap: false },
-          { w: colWidths.ifsc, value: emp.ifscCode || '-', align: 'left', wrap: false },
-          { w: colWidths.amount, value: emp.amount.toLocaleString('en-IN'), align: 'right', wrap: false },
+          { w: colWidths.sl, value: `${emp.sl}.`, align: 'center', wrap: false, size: 8 },
+          { w: colWidths.name, value: nameText, align: 'left', wrap: true, size: 8 },
+          { w: colWidths.designation, value: desigText, align: 'left', wrap: true, size: 8 },
+          { w: colWidths.month, value: emp.month || '-', align: 'left', wrap: false, size: 8 },
+          { w: colWidths.bankAccountNumber, value: emp.bankAccountNumber || '-', align: 'left', wrap: false, size: 9 }, 
+          { w: colWidths.bank, value: getBankShortName(emp.bankName), align: 'left', wrap: false, size: 8 },
+          { w: colWidths.branch, value: emp.branch || '-', align: 'left', wrap: false, size: 8 },
+          { w: colWidths.ifsc, value: emp.ifscCode || '-', align: 'left', wrap: false, size: 8 },
+          { w: colWidths.amount, value: emp.amount.toLocaleString('en-IN'), align: 'right', wrap: false, size: 8 },
         ];
         
         rowValues.forEach((v) => {
           doc.rect(x, y, v.w, currentRowHeight).stroke();
-          const textY = y + (v.wrap ? 5 : (currentRowHeight - 8) / 2 + 2);
+          const textY = y + (v.wrap ? 5 : (currentRowHeight - v.size) / 2 + 1);
+          doc.font('Devanagari').fontSize(v.size || 8); 
           doc.text(v.value, x + 2, textY, { width: v.w - 4, align: v.align, lineBreak: v.wrap ? true : false, ellipsis: !v.wrap });
           x += v.w;
         });
@@ -280,11 +282,12 @@ export const generateCentralPDF = async (res, { advice, clf }) => {
       let fy = footerTop + 12;
       doc.font('Devanagari').fontSize(7.5).fillColor('black');
       
+      // ✅ FIX: Footer me labels add kiye (प्रखंड कार्यालय, जिला कार्यालय, आदि)
       const footerLines = [
-        clf.footer?.blockOffice,
-        clf.footer?.districtOffice,
-        clf.footer?.stateOffice,
-        clf.footer?.phone,
+        clf.footer?.blockOffice ? `प्रखंड कार्यालय :- ${clf.footer.blockOffice}` : null,
+        clf.footer?.districtOffice ? `जिला कार्यालय :- ${clf.footer.districtOffice}` : null,
+        clf.footer?.stateOffice ? `राज्य कार्यालय :- ${clf.footer.stateOffice}` : null,
+        clf.footer?.phone ? `फोन नं0 :- ${clf.footer.phone}` : null,
       ].filter(Boolean);
 
       footerLines.forEach((line) => {
