@@ -1,26 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap');
 @import "tailwindcss";
 
-/* Global reset */
-*, *::before, *::after {
-  box-sizing: border-box;
+/* LIGHT MODE COLORS */
+:root {
+  --bg-color: #FDFBF7;
+  --surface-color: #FFFFFF;
+  --text-color: #1A1513;
+  --text-muted: #7A6E67;
+  --border-color: #EFE9DF;
 }
+
+/* DARK MODE COLORS */
+[data-theme="dark"] {
+  --bg-color: #121212;
+  --surface-color: #1E1E1E;
+  --text-color: #F3F4F6;
+  --text-muted: #9CA3AF;
+  --border-color: #333333;
+}
+
+/* Global reset */
+*, *::before, *::after { box-sizing: border-box; }
 
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#root,
-#root * {
+#root, #root * {
   text-transform: uppercase !important;
+  letter-spacing: 0.04em;
+  font-weight: 700 !important;
+  font-style: italic !important;
 }
+
+/* Modern slim scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #4B5563; }
 
 .theme-hover-row:hover {
   background-color: var(--theme-hover-color);

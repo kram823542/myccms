@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/navigation/Sidebar.jsx';
 import BottomBar from '../components/navigation/BottomBar.jsx';
 import Breadcrumb from '../components/navigation/Breadcrumb.jsx';
+import TopControls from '../components/common/TopControls.jsx'; // NAYA IMPORT
 import { theme } from '../config/theme.js';
 
 const menu = [
@@ -11,13 +12,16 @@ const menu = [
   { label: 'Audit Logs', path: '/super-admin/audit-logs' },
   { label: 'Reports', path: '/super-admin/reports' },
   { label: 'System Control', path: '/super-admin/system' },
-  { label: 'Profile', path: '/super-admin/profile' },   //  ADDED
+  { label: 'Profile', path: '/super-admin/profile' },
 ];
 
 export default function SuperAdminLayout() {
   return (
     <div style={{ minHeight: '100vh', background: theme.colors.background }}>
       <Sidebar title="Super Admin" menu={menu} />
+
+      {/* Top Controls yahan add kiya */}
+      <TopControls />
 
       <div
         className="clf-content"

@@ -162,6 +162,23 @@ export default function BottomBar({ menu = [] }) {
         .custom-bb-profile-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
         .custom-bb-initial { font-size: 18px; font-weight: 800; color: ${theme.colors.textLight}; }
         
+        /* ✅ FIX: DARK MODE COLORS for Bottom Bar */
+        [data-theme="dark"] .custom-bb-main,
+        [data-theme="dark"] .custom-bb-circle-btn {
+          background: #1E1E1E !important;
+          border-color: #333333 !important;
+          color: #F3F4F6 !important;
+        }
+        
+        [data-theme="dark"] .custom-bb-item {
+          color: #9CA3AF !important;
+        }
+
+        [data-theme="dark"] .custom-bb-item.active {
+          background: #333333 !important;
+          color: #FFFFFF !important;
+        }
+
         @media (max-width: 320px) {
           .custom-bb-container { bottom: 8px; gap: 4px; width: calc(100% - 10px); }
           .custom-bb-main { height: 48px; padding: 3px 4px; }

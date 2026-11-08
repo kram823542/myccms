@@ -2,6 +2,7 @@ import express from 'express';
 import { body, param } from 'express-validator';
 import {
   applyLeave,
+  getLeaveTypes,
   getMyLeaves,
   cancelLeave,
   getAllLeavesForAdmin,
@@ -33,6 +34,7 @@ const statusValidation = [
 ];
 
 // Employee routes
+router.get('/types', authorize('EMPLOYEE'), getLeaveTypes);
 router.post('/apply', authorize('EMPLOYEE'), applyValidation, validate, applyLeave);
 router.get('/my-leaves', authorize('EMPLOYEE'), getMyLeaves);
 router.delete('/:id', authorize('EMPLOYEE'), param('id').isMongoId(), validate, cancelLeave);

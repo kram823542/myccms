@@ -34,25 +34,6 @@ const getMonthRange = () => {
   return { start, end };
 };
 
-function EmployeeDashboardCard({ to, title, subtitle, color, badge, badgeVariant }) {
-  return (
-    <Link
-      to={to}
-      style={{ textDecoration: 'none', background: theme.colors.surface, borderRadius: theme.radius.md, padding: 16, boxShadow: theme.shadow.sm, border: `1px solid ${theme.colors.border}`, borderLeft: `4px solid ${color}`, color: theme.colors.text, display: 'block', transition: 'transform 0.15s ease, box-shadow 0.15s ease', position: 'relative', boxSizing: 'border-box' }}
-      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = theme.shadow.md; }}
-      onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = theme.shadow.sm; }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ fontSize: 14, fontWeight: 700 }}>{title}</div>
-        {badge && <Badge variant={badgeVariant || 'default'}>{badge}</Badge>}
-      </div>
-      <div style={{ fontSize: 12, color: theme.colors.muted, marginTop: 6, lineHeight: 1.4 }}>
-        {subtitle}
-      </div>
-    </Link>
-  );
-}
-
 export default function EmployeeDashboard() {
   const user = getAuthUser() || {};
   const greeting = getGreeting();
@@ -121,6 +102,18 @@ export default function EmployeeDashboard() {
 
   const displayName = employeeData?.name || user.name || 'Employee';
 
+  const Card = ({ to, title, subtitle, color, badge, badgeVariant }) => (
+    <Link to={to} style={{ textDecoration: 'none', background: theme.colors.surface, borderRadius: theme.radius.md, padding: 16, boxShadow: theme.shadow.sm, border: `1px solid ${theme.colors.border}`, borderLeft: `4px solid ${color}`, color: theme.colors.text, display: 'block', transition: 'transform 0.15s ease, box-shadow 0.15s ease', position: 'relative', boxSizing: 'border-box' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = theme.shadow.md; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = theme.shadow.sm; }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ fontSize: 14, fontWeight: 700 }}>{title}</div>
+        {badge && (<Badge variant={badgeVariant || 'default'}>{badge}</Badge>)}
+      </div>
+      <div style={{ fontSize: 12, color: theme.colors.muted, marginTop: 6, lineHeight: 1.4 }}>
+        {subtitle}
+      </div>
+    </Link>
+  );
+
   const planBadge = todayPlan ? { text: 'Submitted', variant: 'success' } : currentWindow === 'ACTION_PLAN_OPEN' ? { text: 'Submit Now', variant: 'warning' } : { text: 'Not Submitted', variant: 'default' };
   const workBadge = todayWork ? { text: todayWork.status, variant: todayWork.status === 'APPROVED' ? 'success' : todayWork.status === 'REJECTED' ? 'danger' : 'warning' } : currentWindow === 'WORK_DONE_OPEN' ? { text: 'Submit Now', variant: 'warning' } : { text: 'Not Submitted', variant: 'default' };
 
@@ -146,10 +139,10 @@ export default function EmployeeDashboard() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
-        <EmployeeDashboardCard to="/employee/work" title=" Today's Action Plan" subtitle={todayPlan ? ` Submitted at ${new Date(todayPlan.submittedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}` : windows ? `Submit between ${formatSubmissionWindow(windows.actionPlan)} IST` : 'Submission time unavailable'} color={theme.colors.primary} badge={planBadge.text} badgeVariant={planBadge.variant} />
-        <EmployeeDashboardCard to="/employee/work" title=" Today's Work Done" subtitle={todayWork ? todayWork.status === 'REJECTED' ? ` Rejected` : `${todayWork.status === 'APPROVED' ? ' Approved' : ' Pending'}` : windows ? `Submit between ${formatSubmissionWindow(windows.workDone)} IST` : 'Submission time unavailable'} color={theme.colors.success} badge={workBadge.text} badgeVariant={workBadge.variant} />
-        <EmployeeDashboardCard to="/employee/attendance" title=" My Attendance" subtitle={`${monthAttendance.present} Present, ${monthAttendance.absent} Absent this month`} color={theme.colors.info} />
-        <EmployeeDashboardCard to="/employee/notifications" title=" Notifications" subtitle={unreadCount > 0 ? `${unreadCount} unread message${unreadCount > 1 ? 's' : ''}` : 'All caught up!'} color={theme.colors.accent} badge={unreadCount > 0 ? `${unreadCount}` : null} badgeVariant="danger" />
+        <Card to="/employee/work" title=" Today's Action Plan" subtitle={todayPlan ? ` Submitted at ${new Date(todayPlan.submittedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}` : windows ? `Submit between ${formatSubmissionWindow(windows.actionPlan)} IST` : 'Submission time unavailable'} color={theme.colors.primary} badge={planBadge.text} badgeVariant={planBadge.variant} />
+        <Card to="/employee/work" title=" Today's Work Done" subtitle={todayWork ? todayWork.status === 'REJECTED' ? ` Rejected` : `${todayWork.status === 'APPROVED' ? ' Approved' : ' Pending'}` : windows ? `Submit between ${formatSubmissionWindow(windows.workDone)} IST` : 'Submission time unavailable'} color={theme.colors.success} badge={workBadge.text} badgeVariant={workBadge.variant} />
+        <Card to="/employee/attendance" title=" My Attendance" subtitle={`${monthAttendance.present} Present, ${monthAttendance.absent} Absent this month`} color={theme.colors.info} />
+        <Card to="/employee/notifications" title=" Notifications" subtitle={unreadCount > 0 ? `${unreadCount} unread message${unreadCount > 1 ? 's' : ''}` : 'All caught up!'} color={theme.colors.accent} badge={unreadCount > 0 ? `${unreadCount}` : null} badgeVariant="danger" />
       </div>
 
       {recentWork.length > 0 && (

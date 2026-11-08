@@ -28,6 +28,18 @@ const getFontPath = (fontName) => {
 const BUNDLED_FONT_REGULAR = getFontPath('NotoSansDevanagari-Regular.ttf');
 const BUNDLED_FONT_BOLD = getFontPath('NotoSansDevanagari-Bold.ttf');
 
+export const getLeaveTypes = async (req, res) => {
+  const leaveTypes = Leave.schema.path('leaveType').enumValues.map((value) => ({
+    value,
+    label: value === 'Training' ? 'Training (प्रशिक्षण)' : value,
+  }));
+
+  res.status(200).json({
+    success: true,
+    data: leaveTypes,
+  });
+};
+
 const SYSTEM_FONTS = {
   regular: [
     BUNDLED_FONT_REGULAR,
